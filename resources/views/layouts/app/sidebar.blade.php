@@ -96,9 +96,6 @@
                     <flux:sidebar.item icon="document-text" :current="request()->routeIs('admin.documents.*')">
                         {{ __('Rancangan Dokumen') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="shield-check" :current="request()->routeIs('admin.verifications.*')">
-                        {{ __('Verifikasi Dokumen') }}
-                    </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
 

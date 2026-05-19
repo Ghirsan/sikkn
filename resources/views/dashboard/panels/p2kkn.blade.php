@@ -60,31 +60,23 @@
 <div class="grid gap-4 md:grid-cols-2">
     {{-- Document Lifecycle Overview --}}
     <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-        <flux:heading size="lg" class="mb-4">{{ __('Status Dokumen') }}</flux:heading>
+        <flux:heading size="lg" class="mb-4">{{ __('Status Dokumen (Program Kerja)') }}</flux:heading>
         <div class="space-y-3">
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Draft') }}</flux:text>
+                <flux:text class="text-sm">{{ __('Draft Mahasiswa') }}</flux:text>
                 <flux:text class="text-sm font-bold">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Disubmit') }}</flux:text>
-                <flux:text class="text-sm font-bold">0</flux:text>
-            </div>
-            <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Revisi DPL') }}</flux:text>
-                <flux:text class="text-sm font-bold">0</flux:text>
-            </div>
-            <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Disetujui DPL') }}</flux:text>
-                <flux:text class="text-sm font-bold">0</flux:text>
-            </div>
-            <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Menunggu Verifikasi') }}</flux:text>
+                <flux:text class="text-sm">{{ __('Direview DPL') }}</flux:text>
                 <flux:text class="text-sm font-bold text-amber-500">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Final') }}</flux:text>
+                <flux:text class="text-sm">{{ __('Disetujui DPL') }}</flux:text>
                 <flux:text class="text-sm font-bold text-green-500">0</flux:text>
+            </div>
+            <div class="flex items-center justify-between">
+                <flux:text class="text-sm">{{ __('PDF Final Terbentuk') }}</flux:text>
+                <flux:text class="text-sm font-bold text-blue-500">0</flux:text>
             </div>
         </div>
     </div>
@@ -93,8 +85,7 @@
     <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
         <flux:heading size="lg" class="mb-4">{{ __('Aksi Cepat') }}</flux:heading>
         <div class="grid gap-2">
-            <flux:button variant="filled" icon="shield-check" class="justify-start">{{ __('Verifikasi Dokumen') }}</flux:button>
-            <flux:button variant="ghost" icon="document-text" class="justify-start">{{ __('Lihat Rancangan Dokumen') }}</flux:button>
+            <flux:button variant="filled" icon="document-text" class="justify-start">{{ __('Lihat Rancangan Dokumen') }}</flux:button>
             <flux:button variant="ghost" icon="academic-cap" class="justify-start">{{ __('Daftar Peserta KKN') }}</flux:button>
             <flux:button variant="ghost" icon="user-circle" class="justify-start">{{ __('Daftar DPL') }}</flux:button>
             <flux:button variant="ghost" icon="user-group" class="justify-start">{{ __('Kelola Kelompok') }}</flux:button>
