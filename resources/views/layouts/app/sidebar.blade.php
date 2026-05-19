@@ -20,12 +20,18 @@
 
                 {{-- Mahasiswa Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Mahasiswa))
+                <flux:sidebar.group :heading="__('Program Kerja')" class="grid">
+                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('programs.*')">
+                        {{ __('Program Saya') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group :heading="__('Dokumen')" class="grid">
                     <flux:sidebar.item icon="document-text" :current="request()->routeIs('documents.*')">
-                        {{ __('Dokumen Saya') }}
+                        {{ __('Dokumen Tim (LRK/LPK)') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="book-open" :current="request()->routeIs('daily-logs.*')">
-                        {{ __('Catatan Harian') }}
+                        {{ __('Logbook Harian') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :current="request()->routeIs('mentoring-logs.*')">
                         {{ __('Buku Pembimbingan') }}
@@ -43,13 +49,28 @@
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Dpl))
                 <flux:sidebar.group :heading="__('Bimbingan')" class="grid">
                     <flux:sidebar.item icon="user-group" :current="request()->routeIs('dpl.groups.*')">
-                        {{ __('Kelompok Bimbingan') }}
+                        {{ __('Mahasiswa Bimbingan') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="inbox" :current="request()->routeIs('dpl.reviews.*')">
-                        {{ __('Review Dokumen') }}
+                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('dpl.programs.*')">
+                        {{ __('Review Program') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('dpl.documents.*')">
+                        {{ __('Dokumen Tim') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Supervisi')" class="grid">
+                    <flux:sidebar.item icon="book-open" :current="request()->routeIs('dpl.daily-logs.*')">
+                        {{ __('Logbook Mahasiswa') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :current="request()->routeIs('dpl.mentoring.*')">
                         {{ __('Buku Pembimbingan') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Penilaian')" class="grid">
+                    <flux:sidebar.item icon="clipboard-document-check" :current="request()->routeIs('dpl.grades.*')">
+                        {{ __('Penilaian Mahasiswa') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
@@ -63,12 +84,18 @@
                     <flux:sidebar.item icon="user-group" :current="request()->routeIs('admin.groups.*')">
                         {{ __('Kelompok') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="users" :current="request()->routeIs('admin.users.*')">
-                        {{ __('Pengguna') }}
+                    <flux:sidebar.item icon="academic-cap" :current="request()->routeIs('admin.students.*')">
+                        {{ __('Peserta KKN') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-circle" :current="request()->routeIs('admin.dpl.*')">
+                        {{ __('Daftar DPL') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group :heading="__('Verifikasi')" class="grid">
+                <flux:sidebar.group :heading="__('Dokumen')" class="grid">
+                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('admin.documents.*')">
+                        {{ __('Rancangan Dokumen') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="shield-check" :current="request()->routeIs('admin.verifications.*')">
                         {{ __('Verifikasi Dokumen') }}
                     </flux:sidebar.item>
@@ -81,11 +108,8 @@
                     <flux:sidebar.item icon="academic-cap" :current="request()->routeIs('prodi.students.*')">
                         {{ __('Mahasiswa KKN') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('prodi.documents.*')">
-                        {{ __('Monitor Dokumen') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="chart-bar" :current="request()->routeIs('prodi.reports.*')">
-                        {{ __('Laporan') }}
+                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('prodi.programs.*')">
+                        {{ __('Program Kerja') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
@@ -93,17 +117,11 @@
                 {{-- Fakultas Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
                 <flux:sidebar.group :heading="__('Fakultas')" class="grid">
-                    <flux:sidebar.item icon="building-library" :current="request()->routeIs('fakultas.prodi.*')">
-                        {{ __('Program Studi') }}
+                    <flux:sidebar.item icon="academic-cap" :current="request()->routeIs('fakultas.students.*')">
+                        {{ __('Mahasiswa Per Prodi') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('fakultas.documents.*')">
-                        {{ __('Monitor Dokumen') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="chart-bar" :current="request()->routeIs('fakultas.reports.*')">
-                        {{ __('Laporan') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="arrow-down-tray" :current="request()->routeIs('fakultas.exports.*')">
-                        {{ __('Export') }}
+                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('fakultas.programs.*')">
+                        {{ __('Program Kerja') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif

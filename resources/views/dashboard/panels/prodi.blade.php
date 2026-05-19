@@ -1,56 +1,65 @@
 {{-- Prodi Dashboard Panel --}}
+{{-- Prodi: Melihat daftar mahasiswanya serta program multidisiplin --}}
+{{-- dan pengabdian masyarakat yang diusulkan oleh mahasiswa --}}
+
+{{-- Stat Cards --}}
 <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-    {{-- Mahasiswa Prodi --}}
     <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
         <div class="flex items-center gap-3">
-            <flux:icon name="academic-cap" class="size-8 text-purple-500" />
+            <div class="flex size-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
+                <flux:icon name="academic-cap" class="size-5 text-purple-500" />
+            </div>
             <div>
-                <flux:heading size="lg">{{ __('Mahasiswa') }}</flux:heading>
+                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Mahasiswa KKN') }}</flux:text>
                 <flux:text class="text-2xl font-bold">0</flux:text>
             </div>
         </div>
-        <flux:text class="mt-2 text-sm">{{ __('Mahasiswa KKN dari prodi') }}</flux:text>
+        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Dari program studi ini') }}</flux:text>
     </div>
 
-    {{-- Dokumen Prodi --}}
     <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
         <div class="flex items-center gap-3">
-            <flux:icon name="document-text" class="size-8 text-blue-500" />
+            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                <flux:icon name="light-bulb" class="size-5 text-blue-500" />
+            </div>
             <div>
-                <flux:heading size="lg">{{ __('Total Dokumen') }}</flux:heading>
+                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Program Multidisiplin') }}</flux:text>
                 <flux:text class="text-2xl font-bold">0</flux:text>
             </div>
         </div>
-        <flux:text class="mt-2 text-sm">{{ __('Dokumen mahasiswa prodi') }}</flux:text>
+        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Diusulkan mahasiswa prodi') }}</flux:text>
     </div>
 
-    {{-- DPL Prodi --}}
     <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
         <div class="flex items-center gap-3">
-            <flux:icon name="user-circle" class="size-8 text-green-500" />
+            <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
+                <flux:icon name="heart" class="size-5 text-green-500" />
+            </div>
             <div>
-                <flux:heading size="lg">{{ __('DPL') }}</flux:heading>
+                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Pengabdian') }}</flux:text>
                 <flux:text class="text-2xl font-bold">0</flux:text>
             </div>
         </div>
-        <flux:text class="mt-2 text-sm">{{ __('DPL dari program studi') }}</flux:text>
+        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Program pengabdian masyarakat') }}</flux:text>
     </div>
 </div>
 
-{{-- Quick Actions --}}
+{{-- Daftar Mahasiswa Prodi --}}
 <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-    <flux:heading size="lg" class="mb-4">{{ __('Aksi Cepat') }}</flux:heading>
-    <div class="flex flex-wrap gap-3">
-        <flux:button variant="filled" icon="chart-bar">{{ __('Laporan Prodi') }}</flux:button>
-        <flux:button variant="ghost" icon="academic-cap">{{ __('Daftar Mahasiswa') }}</flux:button>
-        <flux:button variant="ghost" icon="document-text">{{ __('Monitor Dokumen') }}</flux:button>
+    <div class="mb-4 flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Mahasiswa KKN Program Studi') }}</flux:heading>
     </div>
+    <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">
+        {{ __('Belum ada data mahasiswa KKN dari program studi ini.') }}
+    </flux:text>
 </div>
 
-{{-- Overview --}}
-<div class="flex-1 rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-    <flux:heading size="lg" class="mb-4">{{ __('Ringkasan Progress KKN') }}</flux:heading>
+{{-- Program Kerja Mahasiswa --}}
+<div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
+    <div class="mb-4 flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Program Kerja yang Diusulkan') }}</flux:heading>
+    </div>
     <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">
-        {{ __('Data ringkasan progress KKN program studi akan ditampilkan di sini.') }}
+        {{ __('Program multidisiplin dan pengabdian masyarakat yang diusulkan mahasiswa prodi akan ditampilkan di sini.') }}
     </flux:text>
 </div>
