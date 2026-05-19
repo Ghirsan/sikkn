@@ -78,22 +78,22 @@
                 {{-- P2KKN Admin Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::P2kkn))
                 <flux:sidebar.group :heading="__('Manajemen')" class="grid">
-                    <flux:sidebar.item icon="calendar" :current="request()->routeIs('admin.periods.*')">
+                    <flux:sidebar.item icon="calendar" :href="route('admin.periods.index')" :current="request()->routeIs('admin.periods.*')" wire:navigate>
                         {{ __('Periode KKN') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="user-group" :current="request()->routeIs('admin.groups.*')">
+                    <flux:sidebar.item icon="user-group" :href="route('admin.groups.index')" :current="request()->routeIs('admin.groups.*')" wire:navigate>
                         {{ __('Kelompok') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="academic-cap" :current="request()->routeIs('admin.students.*')">
+                    <flux:sidebar.item icon="academic-cap" :href="route('admin.students.index')" :current="request()->routeIs('admin.students.*')" wire:navigate>
                         {{ __('Peserta KKN') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="user-circle" :current="request()->routeIs('admin.dpl.*')">
+                    <flux:sidebar.item icon="user-circle" :href="route('admin.dpl.index')" :current="request()->routeIs('admin.dpl.*')" wire:navigate>
                         {{ __('Daftar DPL') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Dokumen')" class="grid">
-                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('admin.documents.*')">
+                    <flux:sidebar.item icon="document-text" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>
                         {{ __('Rancangan Dokumen') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
