@@ -102,10 +102,10 @@
                 {{-- Prodi Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Prodi))
                 <flux:sidebar.group :heading="__('Program Studi')" class="grid">
-                    <flux:sidebar.item icon="academic-cap" :current="request()->routeIs('prodi.students.*')">
+                    <flux:sidebar.item icon="academic-cap" :href="route('prodi.students.index')" :current="request()->routeIs('prodi.students.*')" wire:navigate>
                         {{ __('Mahasiswa KKN') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('prodi.programs.*')">
+                    <flux:sidebar.item icon="light-bulb" :href="route('prodi.programs.index')" :current="request()->routeIs('prodi.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>

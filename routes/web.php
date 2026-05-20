@@ -34,6 +34,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('mentoring-logs', 'mahasiswa.mentoring-logs.index')->name('mentoring-logs.index');
         Route::view('groups', 'mahasiswa.groups.index')->name('groups.index');
     });
+
+    // Prodi Routes
+    Route::middleware('role:prodi')->prefix('prodi')->group(function () {
+        Route::view('students', 'prodi.students.index')->name('prodi.students.index');
+        Route::view('programs', 'prodi.programs.index')->name('prodi.programs.index');
+    });
 });
 
 require __DIR__.'/settings.php';
