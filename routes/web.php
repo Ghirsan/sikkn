@@ -15,6 +15,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('dpl', 'admin.dpl.index')->name('admin.dpl.index');
         Route::view('documents', 'admin.documents.index')->name('admin.documents.index');
     });
+
+    // DPL Routes
+    Route::middleware('role:dpl')->prefix('dpl')->group(function () {
+        Route::view('groups', 'dpl.groups.index')->name('dpl.groups.index');
+        Route::view('programs', 'dpl.programs.index')->name('dpl.programs.index');
+        Route::view('documents', 'dpl.documents.index')->name('dpl.documents.index');
+        Route::view('daily-logs', 'dpl.daily-logs.index')->name('dpl.daily-logs.index');
+        Route::view('mentoring', 'dpl.mentoring.index')->name('dpl.mentoring.index');
+        Route::view('grades', 'dpl.grades.index')->name('dpl.grades.index');
+    });
 });
 
 require __DIR__.'/settings.php';

@@ -48,28 +48,28 @@
                 {{-- DPL Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Dpl))
                 <flux:sidebar.group :heading="__('Bimbingan')" class="grid">
-                    <flux:sidebar.item icon="user-group" :current="request()->routeIs('dpl.groups.*')">
+                    <flux:sidebar.item icon="user-group" :href="route('dpl.groups.index')" :current="request()->routeIs('dpl.groups.*')" wire:navigate>
                         {{ __('Mahasiswa Bimbingan') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('dpl.programs.*')">
+                    <flux:sidebar.item icon="light-bulb" :href="route('dpl.programs.index')" :current="request()->routeIs('dpl.programs.*')" wire:navigate>
                         {{ __('Review Program') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('dpl.documents.*')">
+                    <flux:sidebar.item icon="document-text" :href="route('dpl.documents.index')" :current="request()->routeIs('dpl.documents.*')" wire:navigate>
                         {{ __('Dokumen Tim') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Supervisi')" class="grid">
-                    <flux:sidebar.item icon="book-open" :current="request()->routeIs('dpl.daily-logs.*')">
+                    <flux:sidebar.item icon="book-open" :href="route('dpl.daily-logs.index')" :current="request()->routeIs('dpl.daily-logs.*')" wire:navigate>
                         {{ __('Logbook Mahasiswa') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="clipboard-document-list" :current="request()->routeIs('dpl.mentoring.*')">
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('dpl.mentoring.index')" :current="request()->routeIs('dpl.mentoring.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Penilaian')" class="grid">
-                    <flux:sidebar.item icon="clipboard-document-check" :current="request()->routeIs('dpl.grades.*')">
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('dpl.grades.index')" :current="request()->routeIs('dpl.grades.*')" wire:navigate>
                         {{ __('Penilaian Mahasiswa') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
