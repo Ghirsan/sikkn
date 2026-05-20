@@ -25,6 +25,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('mentoring', 'dpl.mentoring.index')->name('dpl.mentoring.index');
         Route::view('grades', 'dpl.grades.index')->name('dpl.grades.index');
     });
+
+    // Mahasiswa Routes
+    Route::middleware('role:mahasiswa')->group(function () {
+        Route::view('programs', 'mahasiswa.programs.index')->name('programs.index');
+        Route::view('documents', 'mahasiswa.documents.index')->name('documents.index');
+        Route::view('daily-logs', 'mahasiswa.daily-logs.index')->name('daily-logs.index');
+        Route::view('mentoring-logs', 'mahasiswa.mentoring-logs.index')->name('mentoring-logs.index');
+        Route::view('groups', 'mahasiswa.groups.index')->name('groups.index');
+    });
 });
 
 require __DIR__.'/settings.php';

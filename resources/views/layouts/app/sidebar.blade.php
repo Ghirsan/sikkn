@@ -21,25 +21,25 @@
                 {{-- Mahasiswa Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Mahasiswa))
                 <flux:sidebar.group :heading="__('Program Kerja')" class="grid">
-                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('programs.*')">
+                    <flux:sidebar.item icon="light-bulb" :href="route('programs.index')" :current="request()->routeIs('programs.*')" wire:navigate>
                         {{ __('Program Saya') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Dokumen')" class="grid">
-                    <flux:sidebar.item icon="document-text" :current="request()->routeIs('documents.*')">
+                    <flux:sidebar.item icon="document-text" :href="route('documents.index')" :current="request()->routeIs('documents.*')" wire:navigate>
                         {{ __('Dokumen Tim (LRK/LPK)') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="book-open" :current="request()->routeIs('daily-logs.*')">
+                    <flux:sidebar.item icon="book-open" :href="route('daily-logs.index')" :current="request()->routeIs('daily-logs.*')" wire:navigate>
                         {{ __('Logbook Harian') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="clipboard-document-list" :current="request()->routeIs('mentoring-logs.*')">
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('mentoring-logs.index')" :current="request()->routeIs('mentoring-logs.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('KKN')" class="grid">
-                    <flux:sidebar.item icon="user-group" :current="request()->routeIs('groups.*')">
+                    <flux:sidebar.item icon="user-group" :href="route('groups.index')" :current="request()->routeIs('groups.*')" wire:navigate>
                         {{ __('Kelompok Saya') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
