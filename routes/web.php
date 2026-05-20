@@ -40,6 +40,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('students', 'prodi.students.index')->name('prodi.students.index');
         Route::view('programs', 'prodi.programs.index')->name('prodi.programs.index');
     });
+
+    // Fakultas Routes
+    Route::middleware('role:fakultas')->prefix('fakultas')->group(function () {
+        Route::view('students', 'fakultas.students.index')->name('fakultas.students.index');
+        Route::view('programs', 'fakultas.programs.index')->name('fakultas.programs.index');
+    });
 });
 
 require __DIR__.'/settings.php';

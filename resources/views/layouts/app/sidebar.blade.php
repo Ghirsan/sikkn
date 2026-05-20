@@ -114,10 +114,10 @@
                 {{-- Fakultas Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
                 <flux:sidebar.group :heading="__('Fakultas')" class="grid">
-                    <flux:sidebar.item icon="academic-cap" :current="request()->routeIs('fakultas.students.*')">
+                    <flux:sidebar.item icon="academic-cap" :href="route('fakultas.students.index')" :current="request()->routeIs('fakultas.students.*')" wire:navigate>
                         {{ __('Mahasiswa Per Prodi') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="light-bulb" :current="request()->routeIs('fakultas.programs.*')">
+                    <flux:sidebar.item icon="light-bulb" :href="route('fakultas.programs.index')" :current="request()->routeIs('fakultas.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
