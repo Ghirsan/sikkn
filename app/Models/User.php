@@ -8,12 +8,15 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'prodi', 'fakultas', 'group_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -68,5 +71,55 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role->isAdmin();
+    }
+
+    // ── Relationships ────────────────────────────────────────────
+
+    /**
+     * Get the group this student belongs to.
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * Get the groups supervised by this DPL.
+     */
+    public function supervisedGroups(): HasMany
+    {
+        return $this->hasMany(Group::class, 'dpl_id');
+    }
+
+    /**
+     * Get the programs proposed by this student.
+     */
+    public function programs(): HasMany
+    {
+        return $this->hasMany(Program::class, 'student_id');
+    }
+
+    /**
+     * Get the daily logs for this student.
+     */
+    public function dailyLogs(): HasMany
+    {
+        return $this->hasMany(DailyLog::class, 'student_id');
+    }
+
+    /**
+     * Get the mentoring logs for this student.
+     */
+    public function mentoringLogs(): HasMany
+    {
+        return $this->hasMany(MentoringLog::class, 'student_id');
+    }
+
+    /**
+     * Get the grade for this student.
+     */
+    public function grade(): HasOne
+    {
+        return $this->hasOne(Grade::class, 'student_id');
     }
 }
