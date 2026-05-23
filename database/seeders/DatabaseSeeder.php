@@ -38,5 +38,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Dekan Fakultas Teknik',
             'email' => 'fakultas@sikkn.test',
         ]);
+
+        // Seed KKN data (periods, groups, students, programs, logs)
+        $this->call(KKNSeeder::class);
     }
 }
