@@ -1,71 +1,10 @@
 <x-layouts::app :title="__('Dokumen Tim')">
     <div class="flex h-full w-full flex-1 flex-col gap-6 rounded-xl">
-        {{-- Page Header --}}
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <flux:heading size="xl">{{ __('Dokumen Tim') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Lihat dokumen lengkap hasil pengisian form program kerja satu tim KKN.') }}</flux:text>
-            </div>
+        <div>
+            <flux:heading size="xl">{{ __('Dokumen Tim') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Lihat dokumen lengkap hasil pengisian form program kerja satu tim KKN.') }}</flux:text>
         </div>
-
         <flux:separator />
-
-        {{-- Document Type Tabs --}}
-        <div class="grid gap-4 md:grid-cols-2">
-            {{-- LRK Card --}}
-            <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-                <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                        <flux:icon name="document-text" class="size-5 text-blue-500" />
-                    </div>
-                    <div>
-                        <flux:heading size="lg">{{ __('LRK') }}</flux:heading>
-                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Laporan Rencana Kegiatan') }}</flux:text>
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
-                    <flux:text class="text-sm">{{ __('Status') }}</flux:text>
-                    <flux:badge color="zinc" size="sm">{{ __('Belum Dibuat') }}</flux:badge>
-                </div>
-                <flux:text class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-                    {{ __('Dokumen LRK gabungan akan tersedia setelah mahasiswa mengisi program kerja.') }}
-                </flux:text>
-            </div>
-
-            {{-- LPK Card --}}
-            <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-                <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                        <flux:icon name="document-text" class="size-5 text-green-500" />
-                    </div>
-                    <div>
-                        <flux:heading size="lg">{{ __('LPK') }}</flux:heading>
-                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Laporan Pelaksanaan Kegiatan') }}</flux:text>
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
-                    <flux:text class="text-sm">{{ __('Status') }}</flux:text>
-                    <flux:badge color="zinc" size="sm">{{ __('Belum Dibuat') }}</flux:badge>
-                </div>
-                <flux:text class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-                    {{ __('Dokumen LPK gabungan akan tersedia setelah pelaksanaan kegiatan KKN.') }}
-                </flux:text>
-            </div>
-        </div>
-
-        {{-- Compiled Programs Preview --}}
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                <flux:heading size="lg">{{ __('Daftar Program Kerja Tim') }}</flux:heading>
-            </div>
-
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="document-text" class="mx-auto size-12 text-neutral-300 dark:text-neutral-600" />
-                <flux:heading size="lg" class="mt-4">{{ __('Belum Ada Program') }}</flux:heading>
-                <flux:text class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                    {{ __('Program kerja yang telah disetujui akan dikompilasi menjadi dokumen LRK/LPK tim di sini.') }}
-                </flux:text>
-            </div>
-        </div>
+        <livewire:dpl.team-documents />
     </div>
 </x-layouts::app>
