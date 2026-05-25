@@ -1,7 +1,7 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Summary Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
                     <flux:icon name="user-group" class="size-5 text-purple-500" />
@@ -11,8 +11,8 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
                 </div>
             </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        </flux:card>
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
                     <flux:icon name="check-circle" class="size-5 text-green-500" />
@@ -22,8 +22,8 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['with_dpl'] }}</flux:text>
                 </div>
             </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        </flux:card>
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
                     <flux:icon name="exclamation-triangle" class="size-5 text-amber-500" />
@@ -33,11 +33,11 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['without_dpl'] }}</flux:text>
                 </div>
             </div>
-        </div>
+        </flux:card>
     </div>
 
     {{-- Groups Table --}}
-    <div class="rounded-xl border border-neutral-200 dark:border-neutral-700">
+    <flux:card class="!p-0">
         <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
             <div class="flex items-center justify-between">
                 <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
@@ -84,5 +84,5 @@
                 </flux:table.rows>
             </flux:table>
         @endif
-    </div>
+    </flux:card>
 </div>

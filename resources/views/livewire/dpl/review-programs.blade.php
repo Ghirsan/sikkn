@@ -1,7 +1,7 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-4">
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
                     <flux:icon name="clock" class="size-5 text-amber-500" />
@@ -11,8 +11,8 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['pending'] }}</flux:text>
                 </div>
             </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        </flux:card>
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
                     <flux:icon name="check-circle" class="size-5 text-green-500" />
@@ -22,8 +22,8 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['approved'] }}</flux:text>
                 </div>
             </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        </flux:card>
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30">
                     <flux:icon name="arrow-path" class="size-5 text-red-500" />
@@ -33,8 +33,8 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['revision'] }}</flux:text>
                 </div>
             </div>
-        </div>
-        <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        </flux:card>
+        <flux:card>
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
                     <flux:icon name="document-text" class="size-5 text-blue-500" />
@@ -44,7 +44,7 @@
                     <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
                 </div>
             </div>
-        </div>
+        </flux:card>
     </div>
 
     {{-- Filter --}}
@@ -57,7 +57,7 @@
     </flux:select>
 
     {{-- Programs --}}
-    <div class="rounded-xl border border-neutral-200 dark:border-neutral-700">
+    <flux:card class="!p-0">
         <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
             <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
         </div>
@@ -117,5 +117,5 @@
                 </flux:table.rows>
             </flux:table>
         @endif
-    </div>
+    </flux:card>
 </div>
