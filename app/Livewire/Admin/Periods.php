@@ -20,11 +20,6 @@ class Periods extends Component
 
     public function startCreating()
     {
-        if (Period::where('status', PeriodStatus::Active)->exists()) {
-            $this->addError('creation_failed', 'Tidak dapat menambahkan periode baru. Masih ada periode yang berstatus aktif. Selesaikan periode aktif terlebih dahulu.');
-            return;
-        }
-
         $this->isCreating = true;
     }
 

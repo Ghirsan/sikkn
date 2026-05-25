@@ -49,13 +49,7 @@
         </div>
     @else
         <div class="flex flex-col items-end gap-2">
-            @error('creation_failed')
-                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-                    <flux:icon name="exclamation-circle" class="mr-1 inline size-4" />
-                    {{ $message }}
-                </div>
-            @enderror
-            <flux:button wire:click="startCreating" variant="filled" icon="plus">{{ __('Tambah Periode') }}</flux:button>
+            <flux:button wire:click="startCreating" variant="filled" icon="plus" :disabled="(bool) $activePeriod">{{ __('Tambah Periode') }}</flux:button>
         </div>
     @endif
 
