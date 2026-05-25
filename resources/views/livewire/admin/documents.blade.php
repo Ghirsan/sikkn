@@ -77,7 +77,7 @@
                         <flux:table.row :key="$data->group->id">
                             <flux:table.cell variant="strong">{{ $data->group->name }}</flux:table.cell>
                             <flux:table.cell>{{ $data->group->village }}</flux:table.cell>
-                            <flux:table.cell>{{ $data->group->period->name }}</flux:table.cell>
+                            <flux:table.cell>Semester {{ $data->group->period->semester->value }} {{ $data->group->period->year }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$data->allApproved ? 'green' : 'zinc'" inset="top bottom">
                                     {{ $data->allApproved ? __('Siap PDF') : $data->approvedCount.'/'.$data->totalPrograms.' approved' }}

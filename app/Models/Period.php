@@ -12,11 +12,10 @@ class Period extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
+        'semester',
         'year',
         'start_date',
         'end_date',
-        'status',
     ];
 
     protected function casts(): array
@@ -24,7 +23,7 @@ class Period extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
-            'status' => PeriodStatus::class,
+            'semester' => \App\Enums\Semester::class,
         ];
     }
 
@@ -41,6 +40,25 @@ class Period extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('status', PeriodStatus::Active);
+        return $query->where('start_date', '<=', now())
+                     ->where('end_date', '>=', now());
+    }
+
+    /**
+     * Dynamically determine the status based on dates.
+     */
+    public function getStatusAttribute(): PeriodStatus
+    {
+        $now = now()->startOfDay();
+        $start = $this->start_date->startOfDay();
+        $end = $this->end_date->startOfDay();
+
+        if ($now->lt($start)) {
+            return PeriodStatus::Inactive;
+        } elseif ($now->gt($end)) {
+            return PeriodStatus::Completed;
+        }
+
+        return PeriodStatus::Active;
     }
 }

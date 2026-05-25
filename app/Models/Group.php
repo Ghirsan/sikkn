@@ -15,11 +15,19 @@ class Group extends Model
         'period_id',
         'dpl_id',
         'name',
+        'type',
         'village',
         'district',
         'regency',
         'province',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'type' => \App\Enums\GroupType::class,
+        ];
+    }
 
     /**
      * Get the period this group belongs to.

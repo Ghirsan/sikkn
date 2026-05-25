@@ -41,7 +41,7 @@
                             <flux:table.cell>
                                 @if($student->group)
                                     <flux:badge size="sm" color="green" inset="top bottom">{{ $student->group->name }}</flux:badge>
-                                    <div class="mt-1 text-xs text-neutral-400">{{ $student->group->period->name }}</div>
+                                    <div class="mt-1 text-xs text-neutral-400">Semester {{ $student->group->period->semester->value }} {{ $student->group->period->year }}</div>
                                 @else
                                     <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Belum Punya Kelompok') }}</flux:badge>
                                 @endif

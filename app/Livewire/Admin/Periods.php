@@ -8,7 +8,7 @@ use Livewire\Component;
 
 class Periods extends Component
 {
-    public string $name = '';
+    public \App\Enums\Semester $semester = \App\Enums\Semester::Ganjil;
 
     public string $year = '';
 
@@ -26,39 +26,28 @@ class Periods extends Component
     public function createPeriod()
     {
         $this->validate([
-            'name' => 'required|string|max:255',
+            'semester' => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\Semester::class)],
             'year' => 'required|digits:4',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
         ]);
 
         Period::create([
-            'name' => $this->name,
+            'semester' => $this->semester,
             'year' => $this->year,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
-            'status' => PeriodStatus::Inactive,
         ]);
 
-        $this->reset(['name', 'year', 'start_date', 'end_date', 'isCreating']);
+        $this->reset(['semester', 'year', 'start_date', 'end_date', 'isCreating']);
     }
 
-    public function toggleStatus(int $id, string $status)
-    {
-        $period = Period::findOrFail($id);
 
-        // If activating, deactivate any currently active period
-        if ($status === PeriodStatus::Active->value) {
-            Period::where('status', PeriodStatus::Active)->update(['status' => PeriodStatus::Completed]);
-        }
-
-        $period->update(['status' => PeriodStatus::from($status)]);
-    }
 
     public function render()
     {
         $periods = Period::withCount('groups')->latest()->get();
-        $activePeriod = Period::where('status', PeriodStatus::Active)->first();
+        $activePeriod = Period::active()->first();
 
         return view('livewire.admin.periods', [
             'periods' => $periods,

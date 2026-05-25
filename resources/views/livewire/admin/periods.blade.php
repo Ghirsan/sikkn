@@ -8,7 +8,7 @@
                 </div>
                 <div>
                     <flux:text class="text-xs font-medium uppercase tracking-wider text-green-600 dark:text-green-400">{{ __('Periode Aktif') }}</flux:text>
-                    <flux:heading size="lg">{{ $activePeriod->name }} {{ $activePeriod->year }}</flux:heading>
+                    <flux:heading size="lg">Semester {{ $activePeriod->semester->value }} {{ $activePeriod->year }}</flux:heading>
                 </div>
             </div>
             <flux:text class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
@@ -37,7 +37,11 @@
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/10">
             <flux:heading size="lg" class="mb-4">{{ __('Buat Periode Baru') }}</flux:heading>
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <flux:input wire:model="name" label="{{ __('Nama Periode') }}" placeholder="e.g. KKN Reguler" />
+                <flux:select wire:model="semester" label="{{ __('Semester') }}">
+                    @foreach(\App\Enums\Semester::cases() as $s)
+                        <flux:select.option value="{{ $s->value }}">{{ $s->value }}</flux:select.option>
+                    @endforeach
+                </flux:select>
                 <flux:input wire:model="year" label="{{ __('Tahun') }}" placeholder="e.g. 2026" type="number" />
                 <flux:input wire:model="start_date" label="{{ __('Tanggal Mulai') }}" type="date" />
                 <flux:input wire:model="end_date" label="{{ __('Tanggal Selesai') }}" type="date" />
@@ -67,28 +71,20 @@
         @else
             <flux:table>
                 <flux:table.columns>
-                    <flux:table.column>{{ __('Nama & Tahun') }}</flux:table.column>
+                    <flux:table.column>{{ __('Semester & Tahun') }}</flux:table.column>
                     <flux:table.column>{{ __('Rentang Tanggal') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column>{{ __('Kelompok') }}</flux:table.column>
-                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($periods as $period)
                         <flux:table.row :key="$period->id">
-                            <flux:table.cell variant="strong">{{ $period->name }} {{ $period->year }}</flux:table.cell>
+                            <flux:table.cell variant="strong">Semester {{ $period->semester->value }} {{ $period->year }}</flux:table.cell>
                             <flux:table.cell>{{ $period->start_date->format('d M Y') }} - {{ $period->end_date->format('d M Y') }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$period->status->color()">{{ $period->status->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>{{ $period->groups_count }} {{ __('Kelompok') }}</flux:table.cell>
-                            <flux:table.cell>
-                                @if($period->status->value === 'inactive')
-                                    <flux:button wire:click="toggleStatus({{ $period->id }}, 'active')" size="sm" variant="filled" color="green" icon="play">{{ __('Aktifkan') }}</flux:button>
-                                @elseif($period->status->value === 'active')
-                                    <flux:button wire:click="toggleStatus({{ $period->id }}, 'completed')" size="sm" variant="filled" color="amber" icon="check-circle">{{ __('Selesaikan') }}</flux:button>
-                                @endif
-                            </flux:table.cell>
                         </flux:table.row>
                     @endforeach
                 </flux:table.rows>

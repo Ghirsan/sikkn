@@ -54,6 +54,7 @@
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>{{ __('Nama Kelompok') }}</flux:table.column>
+                    <flux:table.column>{{ __('Jenis') }}</flux:table.column>
                     <flux:table.column>{{ __('Periode') }}</flux:table.column>
                     <flux:table.column>{{ __('Lokasi (Desa, Kec)') }}</flux:table.column>
                     <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
@@ -64,7 +65,10 @@
                         <flux:table.row :key="$group->id">
                             <flux:table.cell variant="strong">{{ $group->name }}</flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" color="zinc">{{ $group->period->name }}</flux:badge>
+                                <flux:badge size="sm" color="blue">{{ $group->type->value }}</flux:badge>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge size="sm" color="zinc">Semester {{ $group->period->semester->value }} {{ $group->period->year }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>{{ $group->village }}, {{ $group->district }}</flux:table.cell>
                             <flux:table.cell>

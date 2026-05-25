@@ -20,11 +20,10 @@ class KKNSeeder extends Seeder
     {
         // ── 1. Period ─────────────────────────────────────────────
         $period = Period::create([
-            'name' => 'KKN Reguler Semester Genap',
+            'semester' => \App\Enums\Semester::Genap,
             'year' => 2026,
             'start_date' => '2026-07-01',
             'end_date' => '2026-08-15',
-            'status' => PeriodStatus::Active,
         ]);
 
         // ── 2. DPL Users ──────────────────────────────────────────
@@ -52,6 +51,7 @@ class KKNSeeder extends Seeder
             'period_id' => $period->id,
             'dpl_id' => $dpl1->id,
             'name' => 'Kelompok 01',
+            'type' => \App\Enums\GroupType::Reguler,
             'village' => 'Desa Sukamakmur',
             'district' => 'Kec. Karanganyar',
             'regency' => 'Kab. Karanganyar',
@@ -62,6 +62,7 @@ class KKNSeeder extends Seeder
             'period_id' => $period->id,
             'dpl_id' => $dpl2->id,
             'name' => 'Kelompok 02',
+            'type' => \App\Enums\GroupType::Tematik,
             'village' => 'Desa Sidoharjo',
             'district' => 'Kec. Polanharjo',
             'regency' => 'Kab. Klaten',
@@ -72,6 +73,7 @@ class KKNSeeder extends Seeder
             'period_id' => $period->id,
             'dpl_id' => $dpl3->id,
             'name' => 'Kelompok 03',
+            'type' => \App\Enums\GroupType::Reguler,
             'village' => 'Desa Sendangtirto',
             'district' => 'Kec. Berbah',
             'regency' => 'Kab. Sleman',
