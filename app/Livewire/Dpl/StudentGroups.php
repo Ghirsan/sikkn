@@ -10,11 +10,11 @@ class StudentGroups extends Component
     public function render()
     {
         $user = Auth::user();
-        $groups = $user->supervisedGroups()->with(['students', 'period'])->get();
+        $group = $user->group?->load(['students', 'period', 'dpls']);
 
         return view('livewire.dpl.student-groups', [
-            'groups' => $groups,
-            'totalStudents' => $groups->sum(fn ($g) => $g->students->count()),
+            'groups' => $group ? collect([$group]) : collect(),
+            'totalStudents' => $group?->students->count() ?? 0,
         ]);
     }
 }

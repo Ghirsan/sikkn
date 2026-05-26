@@ -49,7 +49,6 @@ class KKNSeeder extends Seeder
         // ── 3. Groups ─────────────────────────────────────────────
         $group1 = Group::create([
             'period_id' => $period->id,
-            'dpl_id' => $dpl1->id,
             'name' => 'Kelompok 01',
             'type' => \App\Enums\GroupType::Reguler,
             'village' => 'Desa Sukamakmur',
@@ -60,7 +59,6 @@ class KKNSeeder extends Seeder
 
         $group2 = Group::create([
             'period_id' => $period->id,
-            'dpl_id' => $dpl2->id,
             'name' => 'Kelompok 02',
             'type' => \App\Enums\GroupType::Tematik,
             'village' => 'Desa Sidoharjo',
@@ -71,7 +69,6 @@ class KKNSeeder extends Seeder
 
         $group3 = Group::create([
             'period_id' => $period->id,
-            'dpl_id' => $dpl3->id,
             'name' => 'Kelompok 03',
             'type' => \App\Enums\GroupType::Reguler,
             'village' => 'Desa Sendangtirto',
@@ -79,6 +76,12 @@ class KKNSeeder extends Seeder
             'regency' => 'Kab. Sleman',
             'province' => 'DI Yogyakarta',
         ]);
+
+        // Assign DPLs to groups via group_id
+        $dpl1->update(['group_id' => $group1->id]);
+        $dpl2->update(['group_id' => $group2->id]);
+        $dpl3->update(['group_id' => $group3->id]);
+
 
         // ── 4. Students ───────────────────────────────────────────
         $studentsData = [

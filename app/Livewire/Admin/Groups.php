@@ -11,7 +11,7 @@ class Groups extends Component
 
     public function render()
     {
-        $query = Group::with(['period', 'dpl'])->withCount('students');
+        $query = Group::with(['period', 'dpls'])->withCount('students');
 
         if ($this->search) {
             $query->where('name', 'like', '%'.$this->search.'%')
@@ -24,8 +24,8 @@ class Groups extends Component
             'groups' => $groups,
             'stats' => [
                 'total' => Group::count(),
-                'with_dpl' => Group::whereNotNull('dpl_id')->count(),
-                'without_dpl' => Group::whereNull('dpl_id')->count(),
+                'with_dpl' => Group::whereHas('dpls')->count(),
+                'without_dpl' => Group::whereDoesntHave('dpls')->count(),
             ],
         ]);
     }

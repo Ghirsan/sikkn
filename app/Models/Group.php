@@ -13,7 +13,6 @@ class Group extends Model
 
     protected $fillable = [
         'period_id',
-        'dpl_id',
         'name',
         'type',
         'village',
@@ -38,11 +37,11 @@ class Group extends Model
     }
 
     /**
-     * Get the DPL assigned to this group.
+     * Get the DPLs assigned to this group.
      */
-    public function dpl(): BelongsTo
+    public function dpls(): HasMany
     {
-        return $this->belongsTo(User::class, 'dpl_id');
+        return $this->hasMany(User::class)->where('role', \App\Enums\UserRole::Dpl);
     }
 
     /**
@@ -50,7 +49,7 @@ class Group extends Model
      */
     public function students(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class)->where('role', \App\Enums\UserRole::Mahasiswa);
     }
 
     /**

@@ -11,14 +11,14 @@ class StudentGrades extends Component
     public function render()
     {
         $user = Auth::user();
-        $groups = $user->supervisedGroups()->with(['students.grade', 'period'])->get();
-        $periodCompleted = $groups->first()?->period?->status === PeriodStatus::Completed;
+        $group = $user->group?->load(['students.grade', 'period']);
+        $periodCompleted = $group?->period?->status === PeriodStatus::Completed;
 
-        $students = $groups->pluck('students')->flatten();
+        $students = $group?->students ?? collect();
         $graded = $students->filter(fn ($s) => $s->grade !== null)->count();
 
         return view('livewire.dpl.student-grades', [
-            'groups' => $groups,
+            'groups' => $group ? collect([$group]) : collect(),
             'students' => $students,
             'periodCompleted' => $periodCompleted,
             'stats' => [

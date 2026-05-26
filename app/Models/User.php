@@ -84,11 +84,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the groups supervised by this DPL.
+     * Alias: get the group this DPL supervises (same FK as student).
      */
-    public function supervisedGroups(): HasMany
+    public function supervisedGroup(): BelongsTo
     {
-        return $this->hasMany(Group::class, 'dpl_id');
+        return $this->group();
     }
 
     /**

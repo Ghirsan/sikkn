@@ -12,7 +12,7 @@ class Dpls extends Component
 
     public function render()
     {
-        $query = User::where('role', UserRole::Dpl)->withCount('supervisedGroups');
+        $query = User::where('role', UserRole::Dpl)->with('group');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -27,8 +27,8 @@ class Dpls extends Component
             'dpls' => $dpls,
             'stats' => [
                 'total' => $dpls->count(),
-                'assigned' => $dpls->where('supervised_groups_count', '>', 0)->count(),
-                'unassigned' => $dpls->where('supervised_groups_count', 0)->count(),
+                'assigned' => $dpls->whereNotNull('group_id')->count(),
+                'unassigned' => $dpls->whereNull('group_id')->count(),
             ],
         ]);
     }

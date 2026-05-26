@@ -56,7 +56,7 @@
                     <flux:table.column>{{ __('Nama DPL') }}</flux:table.column>
                     <flux:table.column>{{ __('NIP') }}</flux:table.column>
                     <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
-                    <flux:table.column>{{ __('Beban Bimbingan') }}</flux:table.column>
+                    <flux:table.column>{{ __('Kelompok') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($dpls as $dpl)
@@ -68,9 +68,11 @@
                             <flux:table.cell>{{ $dpl->nip }}</flux:table.cell>
                             <flux:table.cell>{{ $dpl->prodi }}</flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" :color="$dpl->supervised_groups_count > 0 ? 'blue' : 'zinc'" inset="top bottom">
-                                    {{ $dpl->supervised_groups_count }} {{ __('Kelompok') }}
-                                </flux:badge>
+                                @if($dpl->group)
+                                    <flux:badge size="sm" color="blue" inset="top bottom">{{ $dpl->group->name }}</flux:badge>
+                                @else
+                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Ditugaskan') }}</flux:badge>
+                                @endif
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach

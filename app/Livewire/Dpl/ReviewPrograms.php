@@ -43,10 +43,9 @@ class ReviewPrograms extends Component
 
     public function render()
     {
-        $user = Auth::user();
-        $groupIds = $user->supervisedGroups()->pluck('id');
+        $groupId = Auth::user()->group_id;
 
-        $query = Program::whereIn('group_id', $groupIds)->with(['student', 'group']);
+        $query = Program::where('group_id', $groupId)->with(['student', 'group']);
 
         if ($this->filterStatus) {
             $query->where('status', $this->filterStatus);
@@ -55,18 +54,18 @@ class ReviewPrograms extends Component
         return view('livewire.dpl.review-programs', [
             'programs' => $query->latest()->get(),
             'stats' => [
-                'pending' => Program::whereIn('group_id', $groupIds)->where('status', ProgramStatus::Submitted)->count(),
-                'approved' => Program::whereIn('group_id', $groupIds)->where('status', ProgramStatus::Approved)->count(),
-                'revision' => Program::whereIn('group_id', $groupIds)->where('status', ProgramStatus::NeedsRevision)->count(),
-                'total' => Program::whereIn('group_id', $groupIds)->count(),
+                'pending' => Program::where('group_id', $groupId)->where('status', ProgramStatus::Submitted)->count(),
+                'approved' => Program::where('group_id', $groupId)->where('status', ProgramStatus::Approved)->count(),
+                'revision' => Program::where('group_id', $groupId)->where('status', ProgramStatus::NeedsRevision)->count(),
+                'total' => Program::where('group_id', $groupId)->count(),
             ],
         ]);
     }
 
     private function getAuthorizedProgram(int $programId): Program
     {
-        $groupIds = Auth::user()->supervisedGroups()->pluck('id');
+        $groupId = Auth::user()->group_id;
 
-        return Program::whereIn('group_id', $groupIds)->findOrFail($programId);
+        return Program::where('group_id', $groupId)->findOrFail($programId);
     }
 }

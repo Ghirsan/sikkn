@@ -33,7 +33,8 @@ class StudentLogs extends Component
 
     private function getStudentIds()
     {
-        return Auth::user()->supervisedGroups()->with('students')->get()
-            ->pluck('students')->flatten()->pluck('id');
+        $group = Auth::user()->group;
+
+        return $group ? $group->students->pluck('id') : collect();
     }
 }

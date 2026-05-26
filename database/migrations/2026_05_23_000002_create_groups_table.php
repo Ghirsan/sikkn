@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
             $table->foreignId('period_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('dpl_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name');
             $table->string('type')->default('Reguler');
             $table->string('village')->nullable();

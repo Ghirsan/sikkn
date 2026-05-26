@@ -11,20 +11,21 @@ class TeamDocuments extends Component
     public function render()
     {
         $user = Auth::user();
-        $groups = $user->supervisedGroups()->with(['programs.student'])->get();
+        $group = $user->group?->load(['programs.student']);
 
-        $groupData = $groups->map(function ($group) {
+        $groupData = collect();
+        if ($group) {
             $total = $group->programs->count();
             $approved = $group->programs->where('status', ProgramStatus::Approved)->count();
 
-            return (object) [
+            $groupData = collect([(object) [
                 'group' => $group,
                 'totalPrograms' => $total,
                 'approvedCount' => $approved,
                 'allApproved' => $total > 0 && $approved === $total,
                 'approvedPrograms' => $group->programs->where('status', ProgramStatus::Approved),
-            ];
-        });
+            ]]);
+        }
 
         return view('livewire.dpl.team-documents', [
             'groupData' => $groupData,

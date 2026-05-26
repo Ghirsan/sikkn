@@ -18,19 +18,23 @@
         </flux:card>
 
         {{-- DPL Info --}}
-        @if($dpl)
+        @if($dpls->isNotEmpty())
             <flux:card>
-                <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                        <flux:icon name="user-circle" class="size-5 text-blue-500" />
-                    </div>
-                    <div>
-                        <flux:text class="text-xs font-medium uppercase tracking-wider text-neutral-500">{{ __('Dosen Pembimbing Lapangan') }}</flux:text>
-                        <flux:heading size="lg">{{ $dpl->name }}</flux:heading>
-                        @if($dpl->nip)
-                            <flux:text class="text-sm text-neutral-500">NIP: {{ $dpl->nip }}</flux:text>
-                        @endif
-                    </div>
+                <flux:text class="text-xs font-medium uppercase tracking-wider text-neutral-500">{{ __('Dosen Pembimbing Lapangan') }}</flux:text>
+                <div class="mt-3 space-y-3">
+                    @foreach($dpls as $dplUser)
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                                <flux:icon name="user-circle" class="size-5 text-blue-500" />
+                            </div>
+                            <div>
+                                <flux:heading size="sm">{{ $dplUser->name }}</flux:heading>
+                                @if($dplUser->nip)
+                                    <flux:text class="text-sm text-neutral-500">NIP: {{ $dplUser->nip }}</flux:text>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </flux:card>
         @endif

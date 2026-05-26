@@ -80,7 +80,11 @@
                             <flux:table.cell>
                                 <div class="flex items-center gap-2">
                                     <flux:icon name="user" class="size-4 text-neutral-400" />
-                                    {{ $group->dpl ? $group->dpl->name : __('Belum Ditugaskan') }}
+                                    @if($group->dpls->isNotEmpty())
+                                        {{ $group->dpls->pluck('name')->join(', ') }}
+                                    @else
+                                        {{ __('Belum Ditugaskan') }}
+                                    @endif
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
