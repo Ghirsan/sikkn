@@ -61,6 +61,14 @@ class Program extends Model
     }
 
     /**
+     * Get the dates for this program.
+     */
+    public function dates(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProgramDate::class);
+    }
+
+    /**
      * Check if this program can be edited.
      */
     public function isEditable(): bool

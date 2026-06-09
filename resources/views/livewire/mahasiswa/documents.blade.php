@@ -43,7 +43,7 @@
                 <div>
                     <flux:heading size="lg">{{ __('PDF Final Siap Dicetak!') }}</flux:heading>
                     <flux:text class="mt-1 text-sm text-neutral-600">{{ __('Seluruh program kerja tim telah disetujui DPL.') }}</flux:text>
-                    <flux:button variant="filled" class="mt-3" icon="document-arrow-down" size="sm">{{ __('Cetak PDF LRK') }}</flux:button>
+                    <flux:button href="{{ route('lrk.pdf', $group) }}" target="_blank" variant="filled" class="mt-3" icon="document-arrow-down" size="sm">{{ __('Cetak PDF LRK') }}</flux:button>
                 </div>
             </div>
         </flux:card>

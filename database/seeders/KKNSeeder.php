@@ -141,60 +141,89 @@ class KKNSeeder extends Seeder
         ]);
 
         // ── 6. Programs (varied statuses) ─────────────────────────
-        // Group 1 — Andi: approved, Rina: submitted, Budi: needs_revision, Dewi: draft
-        Program::create([
+        // Group 1 — All Approved (Fully structured for LRK test)
+        $prog1 = Program::create([
             'group_id' => $group1->id,
             'student_id' => $students[0]->id,
             'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
             'type' => ProgramType::SosialKemasyarakatan,
             'target' => 'Meningkatkan kemampuan literasi digital warga desa',
-            'target_audience' => 'Warga Desa Sukamakmur usia produktif',
+            'target_audience' => 'Warga Desa Sukamakmur',
             'budget' => 500000,
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Workshop dan pendampingan langsung',
             'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
-            'timeline' => 'Minggu ke-1 s/d ke-3',
+            'role_in_program' => 'Ketua Pelaksana',
+            'responsibility' => 'Menyusun materi dan mengkoordinasi peserta',
             'status' => ProgramStatus::Approved,
         ]);
 
-        Program::create([
+        $prog2 = Program::create([
             'group_id' => $group1->id,
             'student_id' => $students[1]->id,
             'title' => 'Pembuatan Website Profil Desa',
             'type' => ProgramType::Multidisiplin,
-            'target' => 'Menyediakan platform informasi desa berbasis web',
+            'theme' => 'Digitalisasi Layanan Desa',
+            'multidisciplinary_number' => 1,
+            'problem_potential' => 'Tidak adanya media informasi resmi desa',
             'target_audience' => 'Perangkat Desa dan masyarakat umum',
             'budget' => 300000,
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Pengembangan website dan pelatihan admin',
             'output_target' => 'Website profil desa aktif dan terkelola',
-            'timeline' => 'Minggu ke-1 s/d ke-4',
-            'status' => ProgramStatus::Submitted,
+            'status' => ProgramStatus::Approved,
         ]);
 
-        Program::create([
+        $prog3 = Program::create([
             'group_id' => $group1->id,
             'student_id' => $students[2]->id,
-            'title' => 'Pemetaan Potensi UMKM Desa',
-            'type' => ProgramType::SosialKemasyarakatan,
-            'target' => 'Mengidentifikasi dan mendokumentasikan potensi UMKM desa',
-            'target_audience' => 'Pelaku UMKM Desa Sukamakmur',
-            'budget' => 200000,
-            'source_of_fund' => 'Dana Mandiri',
-            'method' => 'Survei lapangan dan wawancara',
-            'output_target' => 'Dokumen pemetaan UMKM desa',
-            'timeline' => 'Minggu ke-2 s/d ke-4',
-            'status' => ProgramStatus::NeedsRevision,
-            'revision_note' => 'Tambahkan detail metodologi survei dan indikator keberhasilan yang lebih terukur.',
+            'title' => 'Video Dokumenter Potensi UMKM Desa',
+            'type' => ProgramType::Multidisiplin,
+            'theme' => 'Video Profil Desa Sukamakmur',
+            'multidisciplinary_number' => 3, // MD 3 = Video Format
+            'role_in_program' => 'Sutradara & Editor',
+            'responsibility' => 'Mengambil footage dan editing akhir',
+            'storyboard' => "Scene 1: Wawancara Kepala Desa\nScene 2: Aktivitas UMKM Kripik Singkong\nScene 3: Pemandangan Sawah Desa",
+            'video_script' => "Opening: Selamat datang di Desa Sukamakmur...\nVoice Over: Desa ini memiliki banyak potensi...",
+            'status' => ProgramStatus::Approved,
         ]);
 
-        Program::create([
+        $prog4 = Program::create([
             'group_id' => $group1->id,
             'student_id' => $students[3]->id,
             'title' => 'Perbaikan Saluran Irigasi Persawahan',
             'type' => ProgramType::Multidisiplin,
-            'target' => 'Memperbaiki saluran irigasi yang rusak',
-            'status' => ProgramStatus::Draft,
+            'theme' => 'Ketahanan Pangan Desa',
+            'multidisciplinary_number' => 2,
+            'problem_potential' => 'Saluran irigasi banyak yang tersumbat',
+            'target_audience' => 'Petani Desa Sukamakmur',
+            'method' => 'Kerja bakti dan pembuatan saluran sekunder',
+            'output_target' => 'Aliran air sawah lancar',
+            'status' => ProgramStatus::Approved,
+        ]);
+
+        // Add Program Dates for Calendar (Table 8)
+        $dates = ['2026-07-06', '2026-07-07'];
+        foreach ($dates as $d) { \App\Models\ProgramDate::create(['program_id' => $prog1->id, 'date' => $d]); }
+        $dates = ['2026-07-08', '2026-07-09', '2026-07-10'];
+        foreach ($dates as $d) { \App\Models\ProgramDate::create(['program_id' => $prog2->id, 'date' => $d]); }
+        $dates = ['2026-07-15', '2026-07-16'];
+        foreach ($dates as $d) { \App\Models\ProgramDate::create(['program_id' => $prog3->id, 'date' => $d]); }
+
+        // Add Schedule Events (Table 7)
+        \App\Models\ScheduleEvent::create([
+            'group_id' => $group1->id,
+            'title' => 'Upacara Penerjunan Mahasiswa KKN',
+            'date' => '2026-07-01',
+            'week_number' => 1,
+            'description' => 'Upacara pelepasan oleh Rektor Universitas',
+        ]);
+        \App\Models\ScheduleEvent::create([
+            'group_id' => $group1->id,
+            'title' => 'Observasi Lapangan dan Diskusi dengan Perangkat Desa',
+            'date' => '2026-07-02',
+            'week_number' => 1,
+            'description' => 'Survey pendahuluan di balai desa',
         ]);
 
         // Group 2 — all approved (ready for PDF)
