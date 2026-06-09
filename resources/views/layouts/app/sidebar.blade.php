@@ -27,8 +27,11 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Dokumen')" class="grid">
-                    <flux:sidebar.item icon="document-text" :href="route('documents.index')" :current="request()->routeIs('documents.*')" wire:navigate>
-                        {{ __('Dokumen Tim (LRK/LPK)') }}
+                    <flux:sidebar.item icon="document-text" :href="route('lrk.index')" :current="request()->routeIs('lrk.*')" wire:navigate>
+                        {{ __('LRK Tim') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-check" :href="route('lpk.index')" :current="request()->routeIs('lpk.*')" wire:navigate>
+                        {{ __('LPK Tim') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="book-open" :href="route('daily-logs.index')" :current="request()->routeIs('daily-logs.*')" wire:navigate>
                         {{ __('Logbook Harian') }}

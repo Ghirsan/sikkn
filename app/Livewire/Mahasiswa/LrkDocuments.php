@@ -6,7 +6,7 @@ use App\Enums\ProgramStatus;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
-class Documents extends Component
+class LrkDocuments extends Component
 {
     public function render()
     {
@@ -18,7 +18,7 @@ class Documents extends Component
         $approvedCount = $programs->count();
         $allApproved = $totalPrograms > 0 && $approvedCount === $totalPrograms;
 
-        return view('livewire.mahasiswa.documents', [
+        return view('livewire.mahasiswa.lrk-documents', [
             'group' => $group,
             'programs' => $programs,
             'totalPrograms' => $totalPrograms,

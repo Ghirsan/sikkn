@@ -9,6 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // LRK Print Page (accessible by all authenticated roles)
     Route::get('lrk/{group}/pdf', [\App\Http\Controllers\LrkPdfController::class, 'download'])->name('lrk.pdf');
+    Route::get('lpk/{group}/pdf', [\App\Http\Controllers\LpkPdfController::class, 'download'])->name('lpk.pdf');
 
     // P2KKN Admin Routes
     Route::middleware('role:p2kkn')->prefix('admin')->group(function () {
@@ -32,7 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Mahasiswa Routes
     Route::middleware('role:mahasiswa')->group(function () {
         Route::view('programs', 'mahasiswa.programs.index')->name('programs.index');
-        Route::view('documents', 'mahasiswa.documents.index')->name('documents.index');
+        Route::view('lrk', 'mahasiswa.lrk.index')->name('lrk.index');
+        Route::view('lpk', 'mahasiswa.lpk.index')->name('lpk.index');
         Route::view('daily-logs', 'mahasiswa.daily-logs.index')->name('daily-logs.index');
         Route::view('mentoring-logs', 'mahasiswa.mentoring-logs.index')->name('mentoring-logs.index');
         Route::view('groups', 'mahasiswa.groups.index')->name('groups.index');

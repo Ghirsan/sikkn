@@ -75,4 +75,12 @@ class Program extends Model
     {
         return in_array($this->status, [ProgramStatus::Draft, ProgramStatus::NeedsRevision]);
     }
+
+    /**
+     * Get the LPK for this program.
+     */
+    public function lpk(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Lpk::class);
+    }
 }
