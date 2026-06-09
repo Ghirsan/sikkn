@@ -7,6 +7,9 @@ Route::view('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
+    // LRK Print Page (accessible by all authenticated roles)
+    Route::get('lrk/{group}/print', \App\Livewire\LrkPrintPage::class)->name('lrk.print');
+
     // P2KKN Admin Routes
     Route::middleware('role:p2kkn')->prefix('admin')->group(function () {
         Route::view('periods', 'admin.periods.index')->name('admin.periods.index');

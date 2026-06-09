@@ -19,6 +19,10 @@ class Group extends Model
         'district',
         'regency',
         'province',
+        'partner_name',
+        'village_head',
+        'background',
+        'location_map_path',
     ];
 
     protected function casts(): array
@@ -66,6 +70,22 @@ class Group extends Model
     public function mentoringLogs(): HasMany
     {
         return $this->hasMany(MentoringLog::class);
+    }
+
+    /**
+     * Get the schedule events for this group.
+     */
+    public function scheduleEvents(): HasMany
+    {
+        return $this->hasMany(ScheduleEvent::class);
+    }
+
+    /**
+     * Get the survey documents for this group.
+     */
+    public function surveyDocuments(): HasMany
+    {
+        return $this->hasMany(SurveyDocument::class);
     }
 
     /**

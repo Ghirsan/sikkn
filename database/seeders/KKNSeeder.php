@@ -55,6 +55,8 @@ class KKNSeeder extends Seeder
             'district' => 'Kec. Karanganyar',
             'regency' => 'Kab. Karanganyar',
             'province' => 'Jawa Tengah',
+            'village_head' => 'H. Suparman, S.Sos.',
+            'background' => 'Desa Sukamakmur merupakan desa yang terletak di Kecamatan Karanganyar dengan mayoritas penduduk bermata pencaharian sebagai petani. Permasalahan utama yang ditemukan meliputi rendahnya literasi digital di kalangan warga usia produktif, saluran irigasi yang rusak, serta potensi UMKM yang belum terkelola dengan baik.',
         ]);
 
         $group2 = Group::create([
@@ -65,6 +67,9 @@ class KKNSeeder extends Seeder
             'district' => 'Kec. Polanharjo',
             'regency' => 'Kab. Klaten',
             'province' => 'Jawa Tengah',
+            'partner_name' => 'Yayasan Pendidikan Nusantara',
+            'village_head' => 'Bambang Widodo',
+            'background' => 'Desa Sidoharjo memiliki potensi di bidang pendidikan namun masih terkendala dengan kurangnya tenaga pengajar dan fasilitas belajar. Anak-anak usia sekolah membutuhkan bimbingan belajar terutama di bidang Matematika dan Bahasa Inggris.',
         ]);
 
         $group3 = Group::create([
@@ -75,6 +80,8 @@ class KKNSeeder extends Seeder
             'district' => 'Kec. Berbah',
             'regency' => 'Kab. Sleman',
             'province' => 'DI Yogyakarta',
+            'village_head' => 'Dra. Sri Mulyani',
+            'background' => 'Desa Sendangtirto memiliki potensi wisata dan pertanian organik yang belum dikelola secara optimal. Diperlukan pendampingan dalam hal pemasaran digital dan pengelolaan sumber daya alam.',
         ]);
 
         // Assign DPLs to groups via group_id
@@ -139,7 +146,7 @@ class KKNSeeder extends Seeder
             'group_id' => $group1->id,
             'student_id' => $students[0]->id,
             'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
-            'type' => ProgramType::PengabdianMasyarakat,
+            'type' => ProgramType::SosialKemasyarakatan,
             'target' => 'Meningkatkan kemampuan literasi digital warga desa',
             'target_audience' => 'Warga Desa Sukamakmur usia produktif',
             'budget' => 500000,
@@ -169,7 +176,7 @@ class KKNSeeder extends Seeder
             'group_id' => $group1->id,
             'student_id' => $students[2]->id,
             'title' => 'Pemetaan Potensi UMKM Desa',
-            'type' => ProgramType::PengabdianMasyarakat,
+            'type' => ProgramType::SosialKemasyarakatan,
             'target' => 'Mengidentifikasi dan mendokumentasikan potensi UMKM desa',
             'target_audience' => 'Pelaku UMKM Desa Sukamakmur',
             'budget' => 200000,
@@ -195,7 +202,7 @@ class KKNSeeder extends Seeder
             'group_id' => $group2->id,
             'student_id' => $students[4]->id,
             'title' => 'Bimbingan Belajar Matematika Anak SD',
-            'type' => ProgramType::PengabdianMasyarakat,
+            'type' => ProgramType::SosialKemasyarakatan,
             'target' => 'Meningkatkan kemampuan berhitung anak SD',
             'target_audience' => 'Siswa SD kelas 4-6 Desa Sidoharjo',
             'budget' => 250000,
@@ -210,7 +217,7 @@ class KKNSeeder extends Seeder
             'group_id' => $group2->id,
             'student_id' => $students[5]->id,
             'title' => 'English Fun Day untuk Anak-Anak',
-            'type' => ProgramType::PengabdianMasyarakat,
+            'type' => ProgramType::SosialKemasyarakatan,
             'target' => 'Mengenalkan bahasa Inggris melalui permainan',
             'target_audience' => 'Anak-anak usia 7-12 tahun',
             'budget' => 150000,

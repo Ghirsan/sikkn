@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('group_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->string('title');
-            $table->string('type')->default(ProgramType::PengabdianMasyarakat->value);
+            $table->string('type')->default(ProgramType::SosialKemasyarakatan->value);
             $table->text('target')->nullable();
             $table->text('target_audience')->nullable();
             $table->decimal('budget', 12, 2)->default(0);
