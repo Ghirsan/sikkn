@@ -14,11 +14,17 @@ class DailyLog extends Model
     protected $fillable = [
         'student_id',
         'date',
-        'duration_minutes',
-        'activity_description',
-        'image_path',
+        'important_notes',
         'status',
     ];
+
+    /**
+     * Get the activities for this daily log.
+     */
+    public function activities(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DailyLogActivity::class);
+    }
 
     protected function casts(): array
     {

@@ -33,8 +33,8 @@
                     <flux:sidebar.item icon="document-check" :href="route('lpk.index')" :current="request()->routeIs('lpk.*')" wire:navigate>
                         {{ __('LPK Tim') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="book-open" :href="route('daily-logs.index')" :current="request()->routeIs('daily-logs.*')" wire:navigate>
-                        {{ __('Logbook Harian') }}
+                    <flux:sidebar.item icon="book-open" :href="route('logbook.index')" :current="request()->routeIs('logbook.*')" wire:navigate>
+                        {{ __('Logbook') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('mentoring-logs.index')" :current="request()->routeIs('mentoring-logs.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
@@ -63,7 +63,7 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Supervisi')" class="grid">
-                    <flux:sidebar.item icon="book-open" :href="route('dpl.daily-logs.index')" :current="request()->routeIs('dpl.daily-logs.*')" wire:navigate>
+                    <flux:sidebar.item icon="book-open" :href="route('dpl.logbook.index')" :current="request()->routeIs('dpl.logbook.*')" wire:navigate>
                         {{ __('Logbook Mahasiswa') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('dpl.mentoring.index')" :current="request()->routeIs('dpl.mentoring.*')" wire:navigate>

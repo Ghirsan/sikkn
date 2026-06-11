@@ -272,24 +272,100 @@ class KKNSeeder extends Seeder
             'status' => ProgramStatus::Approved,
         ]);
 
-        // ── 7. Daily Logs (sample for Andi — student[0]) ──────────
-        $logDates = ['2026-07-01', '2026-07-02', '2026-07-03', '2026-07-04', '2026-07-05'];
-        $activities = [
-            'Survei lokasi dan perkenalan dengan perangkat desa. Koordinasi jadwal kegiatan KKN.',
-            'Sosialisasi program kerja kepada masyarakat RT 01 dan RT 02. Diskusi kebutuhan desa.',
-            'Persiapan materi pelatihan literasi digital. Penyusunan modul pembelajaran.',
-            'Pelaksanaan pelatihan literasi digital sesi pertama. 12 warga hadir.',
-            'Evaluasi hasil pelatihan sesi pertama. Revisi modul berdasarkan feedback peserta.',
+        // ── 7. Daily Logs — Minggu 1 (Andi — student[0]) ──────────
+        $weekOneLogs = [
+            [
+                'date' => '2026-07-01',
+                'important_notes' => 'Hari pertama KKN berjalan lancar. Disambut dengan hangat oleh perangkat desa dan masyarakat sekitar. Perlu segera dilakukan pemetaan potensi desa secara menyeluruh.',
+                'status' => LogStatus::Approved,
+                'activities' => [
+                    ['start_time' => '07:00', 'end_time' => '08:30', 'activity_description' => 'Upacara penerjunan mahasiswa KKN di Balai Desa Sukamakmur.'],
+                    ['start_time' => '09:00', 'end_time' => '11:30', 'activity_description' => 'Perkenalan dengan perangkat desa, ketua RT/RW, dan tokoh masyarakat.'],
+                    ['start_time' => '13:00', 'end_time' => '15:00', 'activity_description' => 'Survei lokasi dan observasi lingkungan desa bersama kepala dusun.'],
+                    ['start_time' => '15:30', 'end_time' => '17:00', 'activity_description' => 'Koordinasi internal kelompok KKN dan pembagian tugas posko.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-02',
+                'important_notes' => 'Warga RT 01 dan RT 02 sangat responsif terhadap rencana program KKN. Beberapa warga menyampaikan kebutuhan pelatihan penggunaan smartphone untuk UMKM.',
+                'status' => LogStatus::Approved,
+                'activities' => [
+                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Sosialisasi program kerja KKN kepada warga RT 01 di rumah Ketua RT.'],
+                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Sosialisasi program kerja KKN kepada warga RT 02 di pos kamling.'],
+                    ['start_time' => '14:00', 'end_time' => '16:00', 'activity_description' => 'Diskusi dan identifikasi kebutuhan masyarakat desa melalui wawancara tokoh setempat.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-03',
+                'important_notes' => 'Materi pelatihan literasi digital perlu disesuaikan dengan tingkat pemahaman warga yang mayoritas belum familiar dengan perangkat digital. Fokuskan pada penggunaan WhatsApp dan marketplace.',
+                'status' => LogStatus::Approved,
+                'activities' => [
+                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Penyusunan modul pelatihan literasi digital sesi 1: Pengenalan Smartphone.'],
+                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Konsultasi program kerja dengan Dosen Pembimbing Lapangan via Zoom.'],
+                    ['start_time' => '13:30', 'end_time' => '15:30', 'activity_description' => 'Persiapan alat dan bahan untuk pelatihan (laptop, proyektor, handout).'],
+                    ['start_time' => '16:00', 'end_time' => '17:00', 'activity_description' => 'Koordinasi dengan Karang Taruna untuk rekrutmen peserta pelatihan.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-04',
+                'important_notes' => 'Pelatihan sesi pertama dihadiri 12 warga dari target 15 orang. Antusiasme peserta tinggi. Kendala: koneksi internet tidak stabil di balai desa. Perlu dicari solusi alternatif untuk sesi berikutnya.',
+                'status' => LogStatus::Approved,
+                'activities' => [
+                    ['start_time' => '07:30', 'end_time' => '08:00', 'activity_description' => 'Persiapan ruangan dan pemasangan peralatan di Balai Desa.'],
+                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Pelaksanaan pelatihan literasi digital sesi 1: Pengenalan fitur dasar smartphone.'],
+                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Praktik langsung penggunaan WhatsApp dan Google Maps oleh peserta.'],
+                    ['start_time' => '13:00', 'end_time' => '14:00', 'activity_description' => 'Evaluasi pelaksanaan pelatihan dan pengisian kuesioner feedback peserta.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-05',
+                'important_notes' => 'Hasil evaluasi menunjukkan 80% peserta mampu menggunakan fitur dasar WhatsApp. Modul sesi 2 perlu diperkuat pada materi marketplace dan transaksi digital.',
+                'status' => LogStatus::Pending,
+                'activities' => [
+                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Evaluasi hasil pelatihan sesi pertama berdasarkan kuesioner peserta.'],
+                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Revisi dan penyempurnaan modul pelatihan sesi 2 berdasarkan feedback.'],
+                    ['start_time' => '14:00', 'end_time' => '16:00', 'activity_description' => 'Pendampingan ibu-ibu PKK dalam penggunaan media sosial untuk promosi produk desa.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-06',
+                'important_notes' => 'Kerja bakti bersama warga berjalan sangat baik. Gotong royong menjadi sarana pengenalan lebih dekat dengan masyarakat. Perangkat desa sangat mengapresiasi inisiatif kebersihan lingkungan.',
+                'status' => LogStatus::Pending,
+                'activities' => [
+                    ['start_time' => '06:30', 'end_time' => '09:00', 'activity_description' => 'Kerja bakti bersama warga membersihkan saluran irigasi dan lingkungan desa.'],
+                    ['start_time' => '09:30', 'end_time' => '11:30', 'activity_description' => 'Penanaman tanaman obat keluarga (TOGA) di pekarangan balai desa.'],
+                    ['start_time' => '13:00', 'end_time' => '15:00', 'activity_description' => 'Dokumentasi kegiatan dan penyusunan laporan harian kelompok.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-07',
+                'important_notes' => 'Minggu pertama KKN ditutup dengan evaluasi internal kelompok. Secara keseluruhan program berjalan sesuai rencana. Beberapa penyesuaian jadwal diperlukan untuk minggu kedua.',
+                'status' => LogStatus::Pending,
+                'activities' => [
+                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Rapat evaluasi internal kelompok KKN: review pencapaian minggu pertama.'],
+                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Penyusunan jadwal dan rencana kegiatan minggu kedua.'],
+                    ['start_time' => '14:00', 'end_time' => '15:30', 'activity_description' => 'Penyusunan laporan mingguan dan dokumentasi foto kegiatan minggu pertama.'],
+                    ['start_time' => '16:00', 'end_time' => '17:00', 'activity_description' => 'Kunjungan silaturahmi ke rumah ketua RT 03 dan RT 04.'],
+                ],
+            ],
         ];
 
-        foreach ($logDates as $i => $date) {
-            DailyLog::create([
+        foreach ($weekOneLogs as $logData) {
+            $log = DailyLog::create([
                 'student_id' => $students[0]->id,
-                'date' => $date,
-                'duration_minutes' => rand(120, 360),
-                'activity_description' => $activities[$i],
-                'status' => $i < 3 ? LogStatus::Approved : LogStatus::Pending,
+                'date' => $logData['date'],
+                'important_notes' => $logData['important_notes'],
+                'status' => $logData['status'],
             ]);
+
+            foreach ($logData['activities'] as $act) {
+                \App\Models\DailyLogActivity::create([
+                    'daily_log_id' => $log->id,
+                    'start_time' => $act['start_time'],
+                    'end_time' => $act['end_time'],
+                    'activity_description' => $act['activity_description'],
+                ]);
+            }
         }
 
         // ── 8. Mentoring Logs (sample for Group 1) ────────────────

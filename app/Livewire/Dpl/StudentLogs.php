@@ -19,7 +19,7 @@ class StudentLogs extends Component
     public function render()
     {
         $studentIds = $this->getStudentIds();
-        $logs = DailyLog::whereIn('student_id', $studentIds)->with('student')->latest('date')->get();
+        $logs = DailyLog::whereIn('student_id', $studentIds)->with(['student', 'activities'])->latest('date')->get();
 
         return view('livewire.dpl.student-logs', [
             'logs' => $logs,

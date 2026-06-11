@@ -50,8 +50,8 @@
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasiswa & Tanggal') }}</flux:table.column>
-                    <flux:table.column>{{ __('Aktivitas') }}</flux:table.column>
-                    <flux:table.column>{{ __('Status & Durasi') }}</flux:table.column>
+                    <flux:table.column>{{ __('Kegiatan') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -62,11 +62,19 @@
                                 <div class="text-xs text-neutral-500">{{ $log->date->translatedFormat('l, d F Y') }}</div>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <span class="line-clamp-2 text-sm text-neutral-600">{{ $log->activity_description }}</span>
+                                <div class="space-y-1">
+                                    @foreach($log->activities as $activity)
+                                        <div class="flex items-start gap-2 text-sm">
+                                            <span class="whitespace-nowrap text-xs text-neutral-400">
+                                                {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                                            </span>
+                                            <span class="line-clamp-1 text-neutral-600 dark:text-neutral-300">{{ $activity->activity_description }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge>
-                                <div class="mt-1 text-xs text-neutral-500">{{ $log->duration_minutes }} {{ __('menit') }}</div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if($log->status->value === 'pending')

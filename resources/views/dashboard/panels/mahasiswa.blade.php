@@ -32,7 +32,7 @@
         <flux:text class="mt-2 text-xs text-neutral-400 dark:text-neutral-500">{{ __('LRK & LPK kelompok') }}</flux:text>
     </div>
 
-    {{-- Logbook Harian --}}
+    {{-- Logbook --}}
     <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
         <div class="flex items-center gap-3">
             <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
@@ -99,7 +99,7 @@
         <flux:heading size="lg" class="mb-4">{{ __('Aksi Cepat') }}</flux:heading>
         <div class="grid gap-2">
             <flux:button variant="filled" icon="plus" class="justify-start">{{ __('Usulkan Program Kerja') }}</flux:button>
-            <flux:button variant="ghost" icon="book-open" class="justify-start">{{ __('Isi Logbook Harian') }}</flux:button>
+            <flux:button variant="ghost" icon="book-open" class="justify-start">{{ __('Isi Logbook') }}</flux:button>
             <flux:button variant="ghost" icon="clipboard-document-list" class="justify-start">{{ __('Isi Buku Pembimbingan') }}</flux:button>
             <flux:button variant="ghost" icon="user-group" class="justify-start">{{ __('Lihat Kelompok Saya') }}</flux:button>
         </div>

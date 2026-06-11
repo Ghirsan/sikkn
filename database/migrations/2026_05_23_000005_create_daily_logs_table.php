@@ -13,9 +13,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->date('date');
-            $table->unsignedInteger('duration_minutes')->default(0);
-            $table->text('activity_description');
-            $table->string('image_path')->nullable();
+            $table->text('important_notes')->nullable();
             $table->string('status')->default(LogStatus::Pending->value);
             $table->timestamps();
         });

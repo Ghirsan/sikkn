@@ -7,9 +7,10 @@ Route::view('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    // LRK Print Page (accessible by all authenticated roles)
+    // LRK & LPK Print Page (accessible by all authenticated roles)
     Route::get('lrk/{group}/pdf', [\App\Http\Controllers\LrkPdfController::class, 'download'])->name('lrk.pdf');
     Route::get('lpk/{group}/pdf', [\App\Http\Controllers\LpkPdfController::class, 'download'])->name('lpk.pdf');
+    Route::get('logbook/{student}/pdf', [\App\Http\Controllers\LogbookPdfController::class, 'download'])->name('logbook.pdf');
 
     // P2KKN Admin Routes
     Route::middleware('role:p2kkn')->prefix('admin')->group(function () {
@@ -25,7 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('groups', 'dpl.groups.index')->name('dpl.groups.index');
         Route::view('programs', 'dpl.programs.index')->name('dpl.programs.index');
         Route::view('documents', 'dpl.documents.index')->name('dpl.documents.index');
-        Route::view('daily-logs', 'dpl.daily-logs.index')->name('dpl.daily-logs.index');
+        Route::view('logbook', 'dpl.logbook.index')->name('dpl.logbook.index');
         Route::view('mentoring', 'dpl.mentoring.index')->name('dpl.mentoring.index');
         Route::view('grades', 'dpl.grades.index')->name('dpl.grades.index');
     });
@@ -35,7 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('programs', 'mahasiswa.programs.index')->name('programs.index');
         Route::view('lrk', 'mahasiswa.lrk.index')->name('lrk.index');
         Route::view('lpk', 'mahasiswa.lpk.index')->name('lpk.index');
-        Route::view('daily-logs', 'mahasiswa.daily-logs.index')->name('daily-logs.index');
+        Route::view('logbook', 'mahasiswa.logbook.index')->name('logbook.index');
         Route::view('mentoring-logs', 'mahasiswa.mentoring-logs.index')->name('mentoring-logs.index');
         Route::view('groups', 'mahasiswa.groups.index')->name('groups.index');
     });
