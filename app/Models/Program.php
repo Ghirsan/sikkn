@@ -33,6 +33,13 @@ class Program extends Model
         'timeline',
         'status',
         'revision_note',
+        'achievement',
+        'obstacle',
+        'solution',
+        'actual_result',
+        'realized_budget',
+        'lpk_status',
+        'lpk_revision_note',
     ];
 
     protected function casts(): array
@@ -40,7 +47,9 @@ class Program extends Model
         return [
             'type' => ProgramType::class,
             'status' => ProgramStatus::class,
+            'lpk_status' => ProgramStatus::class,
             'budget' => 'decimal:2',
+            'realized_budget' => 'decimal:2',
         ];
     }
 
@@ -76,13 +85,7 @@ class Program extends Model
         return in_array($this->status, [ProgramStatus::Draft, ProgramStatus::NeedsRevision]);
     }
 
-    /**
-     * Get the LPK for this program.
-     */
-    public function lpk(): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(Lpk::class);
-    }
+
 
     /**
      * Get the documentations for this program.
