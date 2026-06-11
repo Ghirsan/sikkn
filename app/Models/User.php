@@ -122,4 +122,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Grade::class, 'student_id');
     }
+
+    /**
+     * Get the program outputs produced by this student.
+     */
+    public function programOutputs(): HasMany
+    {
+        return $this->hasMany(ProgramOutput::class, 'student_id');
+    }
 }

@@ -6,40 +6,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ScheduleEvent extends Model
+class ProgramOutput extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'group_id',
         'program_id',
         'student_id',
+        'output_code',
+        'output_type',
         'title',
-        'date',
-        'week_number',
+        'file_path',
+        'url',
         'description',
-        'event_code',
-        'is_realized',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'date' => 'date',
-            'is_realized' => 'boolean',
-        ];
-    }
-
     /**
-     * Get the group this event belongs to.
-     */
-    public function group(): BelongsTo
-    {
-        return $this->belongsTo(Group::class);
-    }
-
-    /**
-     * Get the program this event is for.
+     * Get the program this output belongs to.
      */
     public function program(): BelongsTo
     {
@@ -47,7 +30,7 @@ class ScheduleEvent extends Model
     }
 
     /**
-     * Get the student responsible for this event.
+     * Get the student who produced this output.
      */
     public function student(): BelongsTo
     {

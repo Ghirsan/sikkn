@@ -22,6 +22,7 @@ class Group extends Model
         'partner_name',
         'village_head',
         'background',
+        'lpk_background',
         'location_map_path',
     ];
 

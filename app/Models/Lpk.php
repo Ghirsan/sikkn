@@ -16,6 +16,7 @@ class Lpk extends Model
         'achievement',
         'obstacle',
         'solution',
+        'actual_result',
         'realized_budget',
         'status',
         'revision_note',
