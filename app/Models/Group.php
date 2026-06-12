@@ -23,6 +23,8 @@ class Group extends Model
         'village_head',
         'background',
         'lpk_background',
+        'is_lrk_locked',
+        'is_lpk_locked',
         'location_map_path',
     ];
 
@@ -30,6 +32,8 @@ class Group extends Model
     {
         return [
             'type' => \App\Enums\GroupType::class,
+            'is_lrk_locked' => 'boolean',
+            'is_lpk_locked' => 'boolean',
         ];
     }
 
