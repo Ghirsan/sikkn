@@ -66,13 +66,9 @@
                             <flux:table.cell variant="strong">{{ $program->title }}</flux:table.cell>
                             <flux:table.cell>{{ $program->student->name }}</flux:table.cell>
                             <flux:table.cell>
-                                @if($program->lpk)
-                                    <flux:badge size="sm" :color="$program->lpk->status === \App\Enums\ProgramStatus::Approved ? 'green' : 'zinc'">
-                                        {{ $program->lpk->status->label() }}
-                                    </flux:badge>
-                                @else
-                                    <flux:badge size="sm" color="zinc">{{ __('Belum Dibuat') }}</flux:badge>
-                                @endif
+                                <flux:badge size="sm" :color="$program->lpk_status === \App\Enums\ProgramStatus::Approved ? 'green' : 'zinc'">
+                                    {{ $program->lpk_status->label() }}
+                                </flux:badge>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach

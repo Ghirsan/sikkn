@@ -13,11 +13,11 @@ class LpkDocuments extends Component
         $user = Auth::user();
         $group = $user->group;
 
-        $programs = $group ? $group->programs()->with('student', 'lpk')->where('status', ProgramStatus::Approved)->get() : collect();
+        $programs = $group ? $group->programs()->with('student')->where('status', ProgramStatus::Approved)->get() : collect();
         $totalPrograms = $group ? $group->programs()->count() : 0;
         
         $lpkApprovedCount = $programs->where(function ($program) {
-            return $program->lpk && $program->lpk->status === ProgramStatus::Approved;
+            return $program->lpk_status === ProgramStatus::Approved;
         })->count();
         
         $allLpkApproved = $totalPrograms > 0 && $lpkApprovedCount === $totalPrograms;

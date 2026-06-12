@@ -15,7 +15,6 @@ class LpkPdfController extends Controller
             'dpls',
             'students',
             'programs.student',
-            'programs.lpk',
         ]);
 
         $pdf = Pdf::loadView('pdf.lpk', [

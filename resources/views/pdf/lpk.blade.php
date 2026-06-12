@@ -32,9 +32,9 @@
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $program->title }}</td>
                 <td>{{ $program->student->name }}</td>
-                <td>{{ $program->lpk ? $program->lpk->status->label() : 'Belum Dibuat' }}</td>
-                <td>{{ $program->lpk ? $program->lpk->achievement : '-' }}</td>
-                <td>{{ $program->lpk ? $program->lpk->obstacle : '-' }}</td>
+                <td>{{ $program->lpk_status->label() }}</td>
+                <td>{{ $program->achievement ?? '-' }}</td>
+                <td>{{ $program->obstacle ?? '-' }}</td>
             </tr>
             @endforeach
         </tbody>
