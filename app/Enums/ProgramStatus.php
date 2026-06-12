@@ -13,9 +13,9 @@ enum ProgramStatus: string
     {
         return match ($this) {
             self::Draft => 'Draft',
-            self::Submitted => 'Direview DPL',
-            self::NeedsRevision => 'Perlu Revisi',
-            self::Approved => 'Disetujui DPL',
+            self::Submitted => 'Diajukan',
+            self::NeedsRevision => 'Revisi',
+            self::Approved => 'Disetujui',
         };
     }
 

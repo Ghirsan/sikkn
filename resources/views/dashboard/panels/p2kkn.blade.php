@@ -67,11 +67,11 @@
                 <flux:text class="text-sm font-bold">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Direview DPL') }}</flux:text>
+                <flux:text class="text-sm">{{ __('Diajukan') }}</flux:text>
                 <flux:text class="text-sm font-bold text-amber-500">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Disetujui DPL') }}</flux:text>
+                <flux:text class="text-sm">{{ __('Disetujui') }}</flux:text>
                 <flux:text class="text-sm font-bold text-green-500">0</flux:text>
             </div>
             <div class="flex items-center justify-between">

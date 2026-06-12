@@ -29,7 +29,7 @@
                     <flux:icon name="arrow-path" class="size-5 text-red-500" />
                 </div>
                 <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Perlu Revisi') }}</flux:text>
+                    <flux:text class="text-sm text-neutral-500">{{ __('Revisi') }}</flux:text>
                     <flux:text class="text-2xl font-bold">{{ $stats['revision'] }}</flux:text>
                 </div>
             </div>
@@ -52,7 +52,7 @@
         <flux:select.option value="">{{ __('Semua Status') }}</flux:select.option>
         <flux:select.option value="submitted">{{ __('Menunggu Review') }}</flux:select.option>
         <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
-        <flux:select.option value="needs_revision">{{ __('Perlu Revisi') }}</flux:select.option>
+        <flux:select.option value="needs_revision">{{ __('Revisi') }}</flux:select.option>
         <flux:select.option value="draft">{{ __('Draft') }}</flux:select.option>
     </flux:select>
 

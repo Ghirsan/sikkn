@@ -28,7 +28,7 @@
                         <flux:icon name="clock" class="size-5 text-amber-500" />
                     </div>
                     <div>
-                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Direview DPL') }}</flux:text>
+                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Diajukan') }}</flux:text>
                         <flux:text class="text-2xl font-bold">0</flux:text>
                     </div>
                 </div>
@@ -66,8 +66,8 @@
             <flux:select size="sm" placeholder="{{ __('Semua Status') }}" class="w-48">
                 <flux:select.option>{{ __('Semua Status') }}</flux:select.option>
                 <flux:select.option>{{ __('Draft') }}</flux:select.option>
-                <flux:select.option>{{ __('Direview DPL') }}</flux:select.option>
-                <flux:select.option>{{ __('Disetujui DPL') }}</flux:select.option>
+                <flux:select.option>{{ __('Diajukan') }}</flux:select.option>
+                <flux:select.option>{{ __('Disetujui') }}</flux:select.option>
             </flux:select>
             <flux:select size="sm" placeholder="{{ __('Semua Jenis') }}" class="w-48">
                 <flux:select.option>{{ __('Semua Jenis') }}</flux:select.option>

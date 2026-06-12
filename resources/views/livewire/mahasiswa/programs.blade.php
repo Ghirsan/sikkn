@@ -18,7 +18,7 @@
                     <flux:icon name="clock" class="size-5 text-amber-500" />
                 </div>
                 <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Direview DPL') }}</flux:text>
+                    <flux:text class="text-sm text-neutral-500">{{ __('Diajukan') }}</flux:text>
                     <flux:text class="text-2xl font-bold">{{ $stats['submitted'] }}</flux:text>
                 </div>
             </div>
@@ -29,7 +29,7 @@
                     <flux:icon name="arrow-path" class="size-5 text-red-500" />
                 </div>
                 <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Perlu Revisi') }}</flux:text>
+                    <flux:text class="text-sm text-neutral-500">{{ __('Revisi') }}</flux:text>
                     <flux:text class="text-2xl font-bold">{{ $stats['needs_revision'] }}</flux:text>
                 </div>
             </div>

@@ -18,7 +18,7 @@
                     <flux:icon name="check-circle" class="size-5 text-green-500" />
                 </div>
                 <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Disetujui DPL') }}</flux:text>
+                    <flux:text class="text-sm text-neutral-500">{{ __('Disetujui') }}</flux:text>
                     <flux:text class="text-2xl font-bold">{{ $stats['approved'] }}</flux:text>
                 </div>
             </div>
