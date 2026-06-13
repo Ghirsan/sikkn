@@ -10,7 +10,10 @@
     <flux:card>
         <div class="flex items-center justify-between">
             <flux:heading size="lg">{{ __('Dosen Pembimbing Lapangan') }}</flux:heading>
-            <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau NIP...') }}" size="sm" class="w-64" />
+            <div class="flex items-center gap-3">
+                <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau NIP...') }}" size="sm" class="w-64" />
+                <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah DPL') }}</flux:button>
+            </div>
         </div>
 
         <flux:separator />

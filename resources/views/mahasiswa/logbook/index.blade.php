@@ -5,7 +5,6 @@
                 <flux:heading size="xl">{{ __('Logbook') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Catat aktivitas harian KKN Anda di lapangan.') }}</flux:text>
             </div>
-            <flux:button variant="filled" icon="plus">{{ __('Tambah Entri') }}</flux:button>
         </div>
         <flux:separator />
         <livewire:mahasiswa.logbook />

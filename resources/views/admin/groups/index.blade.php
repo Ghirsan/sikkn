@@ -5,7 +5,6 @@
                 <flux:heading size="xl">{{ __('Kelompok KKN') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Kelola tim kerja mahasiswa, penugasan DPL, dan lokasi KKN.') }}</flux:text>
             </div>
-            <flux:button variant="filled" icon="plus">{{ __('Buat Kelompok') }}</flux:button>
         </div>
         <flux:separator />
         <livewire:admin.groups />

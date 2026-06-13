@@ -8,7 +8,10 @@
 
     {{-- Mentoring Logs --}}
     <flux:card>
-        <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
+        <div class="flex items-center justify-between">
+            <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
+            <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Catatan') }}</flux:button>
+        </div>
 
         <flux:separator />
 

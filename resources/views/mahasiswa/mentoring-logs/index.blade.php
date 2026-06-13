@@ -5,7 +5,6 @@
                 <flux:heading size="xl">{{ __('Buku Pembimbingan') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Catat sesi konsultasi dan pembimbingan bersama DPL.') }}</flux:text>
             </div>
-            <flux:button variant="filled" icon="plus">{{ __('Tambah Catatan') }}</flux:button>
         </div>
         <flux:separator />
         <livewire:mahasiswa.mentoring-logs />

@@ -5,10 +5,6 @@
                 <flux:heading size="xl">{{ __('Peserta KKN') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Database mahasiswa peserta Kuliah Kerja Nyata.') }}</flux:text>
             </div>
-            <div class="flex gap-2">
-                <flux:button variant="ghost" icon="arrow-up-tray">{{ __('Import Excel') }}</flux:button>
-                <flux:button variant="filled" icon="plus">{{ __('Tambah Peserta') }}</flux:button>
-            </div>
         </div>
         <flux:separator />
         <livewire:admin.students />

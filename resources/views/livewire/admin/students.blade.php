@@ -6,6 +6,8 @@
             <div class="flex items-center gap-3">
                 <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa terdaftar') }}</flux:badge>
                 <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau Prodi...') }}" size="sm" class="w-72" />
+                <flux:button variant="ghost" size="sm" icon="arrow-up-tray">{{ __('Import Excel') }}</flux:button>
+                <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Peserta') }}</flux:button>
             </div>
         </div>
 

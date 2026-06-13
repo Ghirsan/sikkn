@@ -5,7 +5,6 @@
                 <flux:heading size="xl">{{ __('Program Kerja Saya') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Kelola usulan program kerja KKN Anda.') }}</flux:text>
             </div>
-            <flux:button variant="filled" icon="plus">{{ __('Ajukan Program') }}</flux:button>
         </div>
         <flux:separator />
         <livewire:mahasiswa.programs />
