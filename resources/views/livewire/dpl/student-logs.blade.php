@@ -7,10 +7,11 @@
     </div>
 
     {{-- Logs --}}
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Catatan Harian Mahasiswa') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($logs->isEmpty())
             <x-empty-state icon="book-open" :heading="__('Belum Ada Logbook')" />

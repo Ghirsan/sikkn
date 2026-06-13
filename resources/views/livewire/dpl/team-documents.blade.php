@@ -1,12 +1,11 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     @forelse($groupData as $data)
-        <flux:card>
-            <div class="flex items-center justify-between">
-                <flux:heading size="lg">{{ $data->group->name }} — {{ $data->group->village }}</flux:heading>
-                <flux:badge :color="$data->allApproved ? 'green' : 'zinc'">{{ $data->allApproved ? __('Siap PDF') : $data->approvedCount.'/'.$data->totalPrograms.' approved' }}</flux:badge>
-            </div>
+        <div class="mb-4 flex items-center justify-between">
+            <flux:heading size="lg">{{ $data->group->name }} — {{ $data->group->village }}</flux:heading>
+            <flux:badge :color="$data->allApproved ? 'green' : 'zinc'">{{ $data->allApproved ? __('Siap PDF') : $data->approvedCount.'/'.$data->totalPrograms.' approved' }}</flux:badge>
+        </div>
 
-            <flux:separator />
+        <flux:card class="mb-8">
 
             <div class="grid gap-4 md:grid-cols-2">
                 <flux:card class="border border-neutral-200 dark:border-neutral-700">

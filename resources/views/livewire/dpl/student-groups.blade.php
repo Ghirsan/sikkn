@@ -8,16 +8,15 @@
 
     {{-- Groups --}}
     @forelse($groups as $group)
-        <flux:card>
-            <div class="flex items-center justify-between">
-                <div>
-                    <flux:heading size="lg">{{ $group->name }}</flux:heading>
-                    <flux:text>{{ $group->location }}</flux:text>
-                </div>
-                <flux:badge color="zinc">{{ $group->students->count() }} {{ __('mahasiswa') }}</flux:badge>
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <flux:heading size="lg">{{ $group->name }}</flux:heading>
+                <flux:text>{{ $group->location }}</flux:text>
             </div>
+            <flux:badge color="zinc">{{ $group->students->count() }} {{ __('mahasiswa') }}</flux:badge>
+        </div>
 
-            <flux:separator />
+        <flux:card class="mb-8">
 
             <flux:table>
                 <flux:table.columns>

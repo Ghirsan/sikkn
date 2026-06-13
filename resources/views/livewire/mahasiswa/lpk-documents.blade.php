@@ -24,10 +24,11 @@
     @endif
 
     {{-- LPK Details --}}
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Rincian Pelaksanaan (LPK)') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($programs->isEmpty())
             <x-empty-state icon="document-text" :heading="__('Belum Ada Program')" />

@@ -1,17 +1,16 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Students Table --}}
-    <flux:card>
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
-            <div class="flex items-center gap-3">
-                <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa terdaftar') }}</flux:badge>
-                <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau Prodi...') }}" size="sm" class="w-72" />
-                <flux:button variant="ghost" size="sm" icon="arrow-up-tray">{{ __('Import Excel') }}</flux:button>
-                <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Peserta') }}</flux:button>
-            </div>
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
+        <div class="flex items-center gap-3">
+            <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa terdaftar') }}</flux:badge>
+            <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau Prodi...') }}" size="sm" class="w-72" />
+            <flux:button variant="ghost" size="sm" icon="arrow-up-tray">{{ __('Import Excel') }}</flux:button>
+            <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Peserta') }}</flux:button>
         </div>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($students->isEmpty())
             <x-empty-state icon="academic-cap" :heading="__('Tidak Ada Data Mahasiswa')" />

@@ -38,10 +38,11 @@
     @endif
 
     {{-- Periods Table --}}
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Periode') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($periods->isEmpty())
             <x-empty-state icon="calendar" :heading="__('Belum Ada Periode')" />

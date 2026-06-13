@@ -7,20 +7,19 @@
     </div>
 
     {{-- Logs Table --}}
-    <flux:card>
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg">{{ __('Catatan Harian') }}</flux:heading>
-            <div class="flex items-center gap-3">
-                @if($logs->isNotEmpty())
-                    <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $student)" target="_blank">
-                        {{ __('Cetak Logbook') }}
-                    </flux:button>
-                @endif
-                <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Entri') }}</flux:button>
-            </div>
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Catatan Harian') }}</flux:heading>
+        <div class="flex items-center gap-3">
+            @if($logs->isNotEmpty())
+                <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $student)" target="_blank">
+                    {{ __('Cetak Logbook') }}
+                </flux:button>
+            @endif
+            <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Entri') }}</flux:button>
         </div>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($logs->isEmpty())
             <x-empty-state icon="book-open" :heading="__('Belum Ada Catatan')" :description="__('Mulai catat aktivitas harian KKN Anda.')" />

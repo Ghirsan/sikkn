@@ -17,10 +17,11 @@
     </flux:select>
 
     {{-- Programs --}}
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($programs->isEmpty())
             <x-empty-state icon="light-bulb" :heading="__('Tidak Ada Program')" />

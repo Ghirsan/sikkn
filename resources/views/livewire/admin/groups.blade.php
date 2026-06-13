@@ -7,16 +7,15 @@
     </div>
 
     {{-- Groups Table --}}
-    <flux:card>
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
-            <div class="flex items-center gap-3">
-                <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-64" />
-                <flux:button variant="filled" size="sm" icon="plus">{{ __('Buat Kelompok') }}</flux:button>
-            </div>
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
+        <div class="flex items-center gap-3">
+            <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-64" />
+            <flux:button variant="filled" size="sm" icon="plus">{{ __('Buat Kelompok') }}</flux:button>
         </div>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($groups->isEmpty())
             <x-empty-state icon="user-group" :heading="__('Tidak Ada Data Kelompok')" />

@@ -7,13 +7,12 @@
     </div>
 
     {{-- Mentoring Logs --}}
-    <flux:card>
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
-            <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Catatan') }}</flux:button>
-        </div>
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
+        <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Catatan') }}</flux:button>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($logs->isEmpty())
             <x-empty-state icon="clipboard-document-list" :heading="__('Belum Ada Catatan')" />

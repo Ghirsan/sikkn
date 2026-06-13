@@ -5,10 +5,11 @@
         <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
     </div>
 
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($logs->isEmpty())
             <x-empty-state icon="clipboard-document-list" :heading="__('Belum Ada Catatan')" />

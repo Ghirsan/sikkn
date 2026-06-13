@@ -11,10 +11,11 @@
     <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok...') }}" size="sm" class="w-72" />
 
     {{-- Documents Table --}}
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Status Dokumen Tim (LRK/LPK)') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($groupData->isEmpty())
             <x-empty-state icon="document-text" :heading="__('Tidak Ada Data Kelompok')" />

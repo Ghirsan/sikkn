@@ -32,13 +32,12 @@
         @endif
 
         {{-- Team Members --}}
-        <flux:card>
-            <div class="flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Anggota Kelompok') }} — {{ $group->name }}</flux:heading>
-                <flux:badge color="zinc">{{ $members->count() }} {{ __('anggota') }}</flux:badge>
-            </div>
+        <div class="flex items-center justify-between">
+            <flux:heading size="lg">{{ __('Anggota Kelompok') }} — {{ $group->name }}</flux:heading>
+            <flux:badge color="zinc">{{ $members->count() }} {{ __('anggota') }}</flux:badge>
+        </div>
 
-            <flux:separator />
+        <flux:card>
 
             <flux:table>
                 <flux:table.columns>

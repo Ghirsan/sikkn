@@ -8,24 +8,22 @@
     </div>
 
     {{-- Programs List --}}
-    <flux:card>
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg">{{ __('Daftar Program Kerja') }}</flux:heading>
-            <div class="flex items-center gap-3">
-                <flux:select wire:model.live="filterType" size="sm" placeholder="{{ __('Semua Jenis') }}" class="w-48">
-                    <flux:select.option value="">{{ __('Semua Jenis') }}</flux:select.option>
-                    @foreach($programTypes as $type)
-                        <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:button wire:click="create" x-data x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="plus">
-                    {{ __('Ajukan Program') }}
-                </flux:button>
-            </div>
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Daftar Program Kerja') }}</flux:heading>
+        <div class="flex items-center gap-3">
+            <flux:select wire:model.live="filterType" size="sm" placeholder="{{ __('Semua Jenis') }}" class="w-48">
+                <flux:select.option value="">{{ __('Semua Jenis') }}</flux:select.option>
+                @foreach($programTypes as $type)
+                    <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                @endforeach
+            </flux:select>
+            <flux:button wire:click="create" x-data x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="plus">
+                {{ __('Ajukan Program') }}
+            </flux:button>
         </div>
+    </div>
 
-        <flux:separator />
-
+    <flux:card>
         @if($programs->isEmpty())
             <x-empty-state icon="light-bulb" :heading="__('Belum Ada Program Kerja')" :description="__('Mulai dengan mengajukan program kerja KKN Anda.')" />
         @else

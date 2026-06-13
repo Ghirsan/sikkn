@@ -12,10 +12,11 @@
         <x-stat-card icon="clock" color="amber" :label="__('Belum Dinilai')" :value="$stats['ungraded']" />
     </div>
 
-    <flux:card>
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
+    </div>
 
-        <flux:separator />
+    <flux:card>
 
         @if($students->isEmpty())
             <x-empty-state icon="academic-cap" :heading="__('Belum Ada Mahasiswa')" />
