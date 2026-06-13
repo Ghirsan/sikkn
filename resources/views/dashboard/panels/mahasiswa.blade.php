@@ -47,10 +47,10 @@
     <flux:card>
         <flux:heading size="lg" class="mb-4">{{ __('Aksi Cepat') }}</flux:heading>
         <div class="grid gap-2">
-            <flux:button href="{{ route('mahasiswa.programs') }}" wire:navigate variant="filled" icon="plus" class="justify-start">{{ __('Usulkan Program Kerja') }}</flux:button>
-            <flux:button variant="ghost" icon="book-open" class="justify-start">{{ __('Isi Logbook') }}</flux:button>
-            <flux:button variant="ghost" icon="clipboard-document-list" class="justify-start">{{ __('Isi Buku Pembimbingan') }}</flux:button>
-            <flux:button variant="ghost" icon="user-group" class="justify-start">{{ __('Lihat Kelompok Saya') }}</flux:button>
+            <flux:button href="{{ route('programs.index') }}" wire:navigate variant="filled" icon="plus" class="justify-start">{{ __('Usulkan Program Kerja') }}</flux:button>
+            <flux:button href="{{ route('logbook.index') }}" wire:navigate variant="ghost" icon="book-open" class="justify-start">{{ __('Isi Logbook') }}</flux:button>
+            <flux:button href="{{ route('mentoring-logs.index') }}" wire:navigate variant="ghost" icon="clipboard-document-list" class="justify-start">{{ __('Isi Buku Pembimbingan') }}</flux:button>
+            <flux:button href="{{ route('groups.index') }}" wire:navigate variant="ghost" icon="user-group" class="justify-start">{{ __('Lihat Kelompok Saya') }}</flux:button>
         </div>
     </flux:card>
 </div>
@@ -59,7 +59,7 @@
 <flux:card>
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Program Kerja Saya') }}</flux:heading>
-        <flux:button href="{{ route('mahasiswa.programs') }}" wire:navigate variant="filled" size="sm" icon="plus">{{ __('Usulkan Program') }}</flux:button>
+        <flux:button href="{{ route('programs.index') }}" wire:navigate variant="filled" size="sm" icon="plus">{{ __('Usulkan Program') }}</flux:button>
     </div>
 
     <flux:separator />
