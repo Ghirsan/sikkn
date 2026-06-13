@@ -11,6 +11,7 @@ use Livewire\Component;
 class Programs extends Component
 {
     public string $filterType = '';
+    public bool $showFormModal = false;
 
     public function render()
     {

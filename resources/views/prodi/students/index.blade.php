@@ -11,39 +11,9 @@
 
         {{-- Summary Stats --}}
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-                <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
-                        <flux:icon name="academic-cap" class="size-5 text-purple-500" />
-                    </div>
-                    <div>
-                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Peserta Prodi') }}</flux:text>
-                        <flux:text class="text-2xl font-bold">0</flux:text>
-                    </div>
-                </div>
-            </div>
-            <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-                <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                        <flux:icon name="user-group" class="size-5 text-green-500" />
-                    </div>
-                    <div>
-                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Sudah Berkelompok') }}</flux:text>
-                        <flux:text class="text-2xl font-bold">0</flux:text>
-                    </div>
-                </div>
-            </div>
-            <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-                <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                        <flux:icon name="clipboard-document-check" class="size-5 text-amber-500" />
-                    </div>
-                    <div>
-                        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Sudah Dinilai') }}</flux:text>
-                        <flux:text class="text-2xl font-bold">0</flux:text>
-                    </div>
-                </div>
-            </div>
+            <x-stat-card icon="academic-cap" color="purple" :label="__('Total Peserta Prodi')" value="0" />
+            <x-stat-card icon="user-group" color="green" :label="__('Sudah Berkelompok')" value="0" />
+            <x-stat-card icon="clipboard-document-check" color="amber" :label="__('Sudah Dinilai')" value="0" />
         </div>
 
         {{-- Filter Bar --}}
@@ -58,20 +28,15 @@
         </div>
 
         {{-- Students Table --}}
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                <div class="flex items-center justify-between">
-                    <flux:heading size="lg">{{ __('Daftar Mahasiswa KKN') }}</flux:heading>
-                    <flux:badge color="zinc">{{ __('0 mahasiswa') }}</flux:badge>
-                </div>
+        <flux:card>
+            <div class="flex items-center justify-between">
+                <flux:heading size="lg">{{ __('Daftar Mahasiswa KKN') }}</flux:heading>
+                <flux:badge color="zinc">{{ __('0 mahasiswa') }}</flux:badge>
             </div>
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="academic-cap" class="mx-auto size-12 text-neutral-300 dark:text-neutral-600" />
-                <flux:heading size="lg" class="mt-4">{{ __('Belum Ada Data Mahasiswa') }}</flux:heading>
-                <flux:text class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                    {{ __('Data mahasiswa KKN dari Program Studi Anda akan tampil di sini setelah periode KKN aktif.') }}
-                </flux:text>
-            </div>
-        </div>
+
+            <flux:separator />
+
+            <x-empty-state icon="academic-cap" :heading="__('Belum Ada Data Mahasiswa')" :description="__('Data mahasiswa KKN dari Program Studi Anda akan tampil di sini setelah periode KKN aktif.')" />
+        </flux:card>
     </div>
 </x-layouts::app>

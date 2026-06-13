@@ -1,61 +1,24 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     @if(!$periodCompleted)
-        <flux:card class="border-2 border-dashed border-amber-300 bg-amber-50/50 dark:border-amber-700 dark:bg-amber-900/10">
-            <div class="flex items-start gap-3">
-                <flux:icon name="exclamation-triangle" class="size-6 shrink-0 text-amber-600" />
-                <div>
-                    <flux:heading size="lg">{{ __('Penilaian Belum Dibuka') }}</flux:heading>
-                    <flux:text class="mt-1 text-sm text-neutral-600">{{ __('Formulir penilaian akan terbuka setelah masa pelaksanaan KKN berakhir.') }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
+        <flux:callout variant="warning" icon="exclamation-triangle">
+            <flux:callout.heading>{{ __('Penilaian Belum Dibuka') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('Formulir penilaian akan terbuka setelah masa pelaksanaan KKN berakhir.') }}</flux:callout.text>
+        </flux:callout>
     @endif
 
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                    <flux:icon name="academic-cap" class="size-5 text-blue-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Total Mahasiswa') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                    <flux:icon name="check-circle" class="size-5 text-green-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Sudah Dinilai') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['graded'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                    <flux:icon name="clock" class="size-5 text-amber-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Belum Dinilai') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['ungraded'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
+        <x-stat-card icon="academic-cap" color="blue" :label="__('Total Mahasiswa')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Dinilai')" :value="$stats['graded']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Belum Dinilai')" :value="$stats['ungraded']" />
     </div>
 
-    <flux:card class="!p-0">
-        <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-            <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
-        </div>
+    <flux:card>
+        <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
+
+        <flux:separator />
+
         @if($students->isEmpty())
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="academic-cap" class="mx-auto size-12 text-neutral-300" />
-                <flux:heading size="lg" class="mt-4">{{ __('Belum Ada Mahasiswa') }}</flux:heading>
-            </div>
+            <x-empty-state icon="academic-cap" :heading="__('Belum Ada Mahasiswa')" />
         @else
             <flux:table>
                 <flux:table.columns>

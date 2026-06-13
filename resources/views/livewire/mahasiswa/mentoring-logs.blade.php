@@ -1,51 +1,19 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
-                    <flux:icon name="clipboard-document-list" class="size-5 text-purple-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Total Sesi') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                    <flux:icon name="check-circle" class="size-5 text-green-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Sudah Difeedback') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['reviewed'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                    <flux:icon name="clock" class="size-5 text-amber-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Menunggu Feedback') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['pending'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
+        <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Difeedback')" :value="$stats['reviewed']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Feedback')" :value="$stats['pending']" />
     </div>
 
     {{-- Mentoring Logs --}}
-    <flux:card class="!p-0">
-        <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-            <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
-        </div>
+    <flux:card>
+        <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
+
+        <flux:separator />
+
         @if($logs->isEmpty())
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="clipboard-document-list" class="mx-auto size-12 text-neutral-300" />
-                <flux:heading size="lg" class="mt-4">{{ __('Belum Ada Catatan') }}</flux:heading>
-            </div>
+            <x-empty-state icon="clipboard-document-list" :heading="__('Belum Ada Catatan')" />
         @else
             <flux:table>
                 <flux:table.columns>
@@ -63,9 +31,7 @@
                             <flux:table.cell>
                                 <div class="text-sm text-neutral-600">{{ $log->discussion_summary }}</div>
                                 @if($log->dpl_feedback)
-                                    <div class="mt-2 rounded-lg border border-green-200 bg-green-50 p-2 text-xs text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
-                                        <strong>{{ __('Feedback DPL:') }}</strong> {{ $log->dpl_feedback }}
-                                    </div>
+                                    <flux:callout variant="success" icon="chat-bubble-left-right" class="mt-2" :heading="__('Feedback DPL: ') . $log->dpl_feedback" />
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>

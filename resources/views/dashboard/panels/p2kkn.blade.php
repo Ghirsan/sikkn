@@ -4,85 +4,38 @@
 
 {{-- Stat Cards --}}
 <div class="grid auto-rows-min gap-4 md:grid-cols-4">
-    <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-        <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                <flux:icon name="calendar" class="size-5 text-amber-500" />
-            </div>
-            <div>
-                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Periode Aktif') }}</flux:text>
-                <flux:text class="text-2xl font-bold">-</flux:text>
-            </div>
-        </div>
-        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Periode KKN berjalan') }}</flux:text>
-    </div>
-
-    <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-        <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                <flux:icon name="academic-cap" class="size-5 text-blue-500" />
-            </div>
-            <div>
-                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Peserta KKN') }}</flux:text>
-                <flux:text class="text-2xl font-bold">0</flux:text>
-            </div>
-        </div>
-        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Total mahasiswa terdaftar') }}</flux:text>
-    </div>
-
-    <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-        <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                <flux:icon name="user-circle" class="size-5 text-green-500" />
-            </div>
-            <div>
-                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('DPL') }}</flux:text>
-                <flux:text class="text-2xl font-bold">0</flux:text>
-            </div>
-        </div>
-        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Dosen pembimbing lapangan') }}</flux:text>
-    </div>
-
-    <div class="rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-        <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
-                <flux:icon name="user-group" class="size-5 text-purple-500" />
-            </div>
-            <div>
-                <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Kelompok') }}</flux:text>
-                <flux:text class="text-2xl font-bold">0</flux:text>
-            </div>
-        </div>
-        <flux:text class="mt-2 text-xs text-neutral-400">{{ __('Total tim KKN') }}</flux:text>
-    </div>
+    <x-stat-card icon="calendar" color="amber" :label="__('Periode Aktif')" value="-" />
+    <x-stat-card icon="academic-cap" color="blue" :label="__('Peserta KKN')" value="0" />
+    <x-stat-card icon="user-circle" color="green" :label="__('DPL')" value="0" />
+    <x-stat-card icon="user-group" color="purple" :label="__('Kelompok')" value="0" />
 </div>
 
 <div class="grid gap-4 md:grid-cols-2">
     {{-- Document Lifecycle Overview --}}
-    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
+    <flux:card>
         <flux:heading size="lg" class="mb-4">{{ __('Status Dokumen (Program Kerja)') }}</flux:heading>
         <div class="space-y-3">
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Draft Mahasiswa') }}</flux:text>
-                <flux:text class="text-sm font-bold">0</flux:text>
+                <flux:text>{{ __('Draft Mahasiswa') }}</flux:text>
+                <flux:text variant="strong">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Diajukan') }}</flux:text>
-                <flux:text class="text-sm font-bold text-amber-500">0</flux:text>
+                <flux:text>{{ __('Diajukan') }}</flux:text>
+                <flux:text variant="strong" color="amber">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('Disetujui') }}</flux:text>
-                <flux:text class="text-sm font-bold text-green-500">0</flux:text>
+                <flux:text>{{ __('Disetujui') }}</flux:text>
+                <flux:text variant="strong" color="green">0</flux:text>
             </div>
             <div class="flex items-center justify-between">
-                <flux:text class="text-sm">{{ __('PDF Final Terbentuk') }}</flux:text>
-                <flux:text class="text-sm font-bold text-blue-500">0</flux:text>
+                <flux:text>{{ __('PDF Final Terbentuk') }}</flux:text>
+                <flux:text variant="strong" color="blue">0</flux:text>
             </div>
         </div>
-    </div>
+    </flux:card>
 
     {{-- Quick Actions --}}
-    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
+    <flux:card>
         <flux:heading size="lg" class="mb-4">{{ __('Aksi Cepat') }}</flux:heading>
         <div class="grid gap-2">
             <flux:button variant="filled" icon="document-text" class="justify-start">{{ __('Lihat Rancangan Dokumen') }}</flux:button>
@@ -91,29 +44,26 @@
             <flux:button variant="ghost" icon="user-group" class="justify-start">{{ __('Kelola Kelompok') }}</flux:button>
             <flux:button variant="ghost" icon="calendar" class="justify-start">{{ __('Kelola Periode') }}</flux:button>
         </div>
-    </div>
+    </flux:card>
 </div>
 
 {{-- DPL & Mahasiswa Lists --}}
 <div class="grid gap-4 md:grid-cols-2">
-    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-        <flux:heading size="lg" class="mb-4">{{ __('Daftar DPL') }}</flux:heading>
-        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">
-            {{ __('Belum ada DPL terdaftar pada periode ini.') }}
-        </flux:text>
-    </div>
-    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-        <flux:heading size="lg" class="mb-4">{{ __('Daftar Peserta KKN') }}</flux:heading>
-        <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">
-            {{ __('Belum ada mahasiswa peserta KKN pada periode ini.') }}
-        </flux:text>
-    </div>
+    <flux:card>
+        <flux:heading size="lg">{{ __('Daftar DPL') }}</flux:heading>
+        <flux:separator />
+        <flux:text>{{ __('Belum ada DPL terdaftar pada periode ini.') }}</flux:text>
+    </flux:card>
+    <flux:card>
+        <flux:heading size="lg">{{ __('Daftar Peserta KKN') }}</flux:heading>
+        <flux:separator />
+        <flux:text>{{ __('Belum ada mahasiswa peserta KKN pada periode ini.') }}</flux:text>
+    </flux:card>
 </div>
 
 {{-- Rancangan Dokumen Per Tim --}}
-<div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-    <flux:heading size="lg" class="mb-4">{{ __('Rancangan Dokumen Per Tim') }}</flux:heading>
-    <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">
-        {{ __('Rancangan dokumen tiap tim KKN beserta status lifecycle akan ditampilkan di sini.') }}
-    </flux:text>
-</div>
+<flux:card>
+    <flux:heading size="lg">{{ __('Rancangan Dokumen Per Tim') }}</flux:heading>
+    <flux:separator />
+    <flux:text>{{ __('Rancangan dokumen tiap tim KKN beserta status lifecycle akan ditampilkan di sini.') }}</flux:text>
+</flux:card>

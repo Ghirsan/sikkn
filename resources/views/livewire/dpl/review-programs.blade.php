@@ -1,50 +1,10 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-4">
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                    <flux:icon name="clock" class="size-5 text-amber-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Menunggu Review') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['pending'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                    <flux:icon name="check-circle" class="size-5 text-green-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Disetujui') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['approved'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30">
-                    <flux:icon name="arrow-path" class="size-5 text-red-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Revisi') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['revision'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                    <flux:icon name="document-text" class="size-5 text-blue-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Total') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Review')" :value="$stats['pending']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Disetujui')" :value="$stats['approved']" />
+        <x-stat-card icon="arrow-path" color="red" :label="__('Revisi')" :value="$stats['revision']" />
+        <x-stat-card icon="document-text" color="blue" :label="__('Total')" :value="$stats['total']" />
     </div>
 
     {{-- Filter --}}
@@ -57,15 +17,13 @@
     </flux:select>
 
     {{-- Programs --}}
-    <flux:card class="!p-0">
-        <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-            <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
-        </div>
+    <flux:card>
+        <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
+
+        <flux:separator />
+
         @if($programs->isEmpty())
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="light-bulb" class="mx-auto size-12 text-neutral-300" />
-                <flux:heading size="lg" class="mt-4">{{ __('Tidak Ada Program') }}</flux:heading>
-            </div>
+            <x-empty-state icon="light-bulb" :heading="__('Tidak Ada Program')" />
         @else
             <flux:table>
                 <flux:table.columns>
@@ -92,16 +50,16 @@
                                         <strong>{{ __('Catatan:') }}</strong> {{ $program->revision_note }}
                                     </div>
                                 @endif
-                                
+
                                 @if($revisingProgramId === $program->id)
-                                    <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                                    <flux:card class="mt-3 border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
                                         <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
                                         @error('revisionNote') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
                                         <div class="mt-3 flex gap-2">
                                             <flux:button wire:click="submitRevision" size="sm" variant="filled">{{ __('Kirim') }}</flux:button>
                                             <flux:button wire:click="$set('revisingProgramId', 0)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
                                         </div>
-                                    </div>
+                                    </flux:card>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>

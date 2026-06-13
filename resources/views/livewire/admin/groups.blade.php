@@ -1,55 +1,22 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Summary Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
-                    <flux:icon name="user-group" class="size-5 text-purple-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Kelompok') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                    <flux:icon name="check-circle" class="size-5 text-green-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Sudah Ada DPL') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['with_dpl'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                    <flux:icon name="exclamation-triangle" class="size-5 text-amber-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum Ada DPL') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['without_dpl'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
+        <x-stat-card icon="user-group" color="purple" :label="__('Total Kelompok')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Ada DPL')" :value="$stats['with_dpl']" />
+        <x-stat-card icon="exclamation-triangle" color="amber" :label="__('Belum Ada DPL')" :value="$stats['without_dpl']" />
     </div>
 
     {{-- Groups Table --}}
-    <flux:card class="!p-0">
-        <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-            <div class="flex items-center justify-between">
-                <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
-                <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-64" />
-            </div>
+    <flux:card>
+        <div class="flex items-center justify-between">
+            <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
+            <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-64" />
         </div>
 
+        <flux:separator />
+
         @if($groups->isEmpty())
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="user-group" class="mx-auto size-12 text-neutral-300 dark:text-neutral-600" />
-                <flux:heading size="lg" class="mt-4">{{ __('Tidak Ada Data Kelompok') }}</flux:heading>
-            </div>
+            <x-empty-state icon="user-group" :heading="__('Tidak Ada Data Kelompok')" />
         @else
             <flux:table>
                 <flux:table.columns>
@@ -73,13 +40,13 @@
                             <flux:table.cell>{{ $group->village }}, {{ $group->district }}</flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex items-center gap-2">
-                                    <flux:icon name="academic-cap" class="size-4 text-neutral-400" />
+                                    <flux:icon.academic-cap variant="micro" class="text-neutral-400" />
                                     {{ $group->students_count }}
                                 </div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex items-center gap-2">
-                                    <flux:icon name="user" class="size-4 text-neutral-400" />
+                                    <flux:icon.user variant="micro" class="text-neutral-400" />
                                     @if($group->dpls->isNotEmpty())
                                         {{ $group->dpls->pluck('name')->join(', ') }}
                                     @else

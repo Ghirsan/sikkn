@@ -1,36 +1,28 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     @if($group)
         {{-- Location Card --}}
-        <flux:card class="border-2 border-dashed border-green-300 bg-green-50/50 dark:border-green-700 dark:bg-green-900/10">
-            <div class="flex items-start gap-3">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-                    <flux:icon name="map-pin" class="size-5 text-green-600" />
-                </div>
-                <div>
-                    <flux:text class="text-xs font-medium uppercase tracking-wider text-green-600">{{ __('Lokasi Penugasan KKN') }}</flux:text>
-                    <flux:heading size="lg">{{ $group->village }}, {{ $group->district }}</flux:heading>
-                    <flux:text class="mt-1 text-sm text-neutral-500">{{ $group->regency }}, {{ $group->province }}</flux:text>
-                    @if($period)
-                        <flux:text class="mt-1 text-xs text-neutral-400">{{ __('Periode:') }} {{ $period->name }} {{ $period->year }} ({{ $period->start_date->format('d M') }} — {{ $period->end_date->format('d M Y') }})</flux:text>
-                    @endif
-                </div>
-            </div>
-        </flux:card>
+        <flux:callout color="green" icon="map-pin">
+            <flux:callout.heading>{{ $group->village }}, {{ $group->district }}</flux:callout.heading>
+            <flux:callout.text>
+                {{ $group->regency }}, {{ $group->province }}
+                @if($period)
+                    <br>{{ __('Periode:') }} {{ $period->name }} {{ $period->year }} ({{ $period->start_date->format('d M') }} — {{ $period->end_date->format('d M Y') }})
+                @endif
+            </flux:callout.text>
+        </flux:callout>
 
         {{-- DPL Info --}}
         @if($dpls->isNotEmpty())
             <flux:card>
-                <flux:text class="text-xs font-medium uppercase tracking-wider text-neutral-500">{{ __('Dosen Pembimbing Lapangan') }}</flux:text>
+                <flux:text variant="subtle" class="text-xs uppercase tracking-wider">{{ __('Dosen Pembimbing Lapangan') }}</flux:text>
                 <div class="mt-3 space-y-3">
                     @foreach($dpls as $dplUser)
                         <div class="flex items-center gap-3">
-                            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                                <flux:icon name="user-circle" class="size-5 text-blue-500" />
-                            </div>
+                            <flux:icon.user-circle variant="mini" class="text-blue-500" />
                             <div>
                                 <flux:heading size="sm">{{ $dplUser->name }}</flux:heading>
                                 @if($dplUser->nip)
-                                    <flux:text class="text-sm text-neutral-500">NIP: {{ $dplUser->nip }}</flux:text>
+                                    <flux:text>NIP: {{ $dplUser->nip }}</flux:text>
                                 @endif
                             </div>
                         </div>
@@ -40,13 +32,14 @@
         @endif
 
         {{-- Team Members --}}
-        <flux:card class="!p-0">
-            <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                <div class="flex items-center justify-between">
-                    <flux:heading size="lg">{{ __('Anggota Kelompok') }} — {{ $group->name }}</flux:heading>
-                    <flux:badge color="zinc">{{ $members->count() }} {{ __('anggota') }}</flux:badge>
-                </div>
+        <flux:card>
+            <div class="flex items-center justify-between">
+                <flux:heading size="lg">{{ __('Anggota Kelompok') }} — {{ $group->name }}</flux:heading>
+                <flux:badge color="zinc">{{ $members->count() }} {{ __('anggota') }}</flux:badge>
             </div>
+
+            <flux:separator />
+
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
@@ -69,9 +62,7 @@
         </flux:card>
     @else
         <flux:card class="text-center">
-            <flux:icon name="user-group" class="mx-auto size-12 text-neutral-300" />
-            <flux:heading size="lg" class="mt-4">{{ __('Belum Ada Kelompok') }}</flux:heading>
-            <flux:text class="mt-2 text-sm text-neutral-500">{{ __('Anda belum tergabung dalam kelompok KKN.') }}</flux:text>
+            <x-empty-state icon="user-group" :heading="__('Belum Ada Kelompok')" :description="__('Anda belum tergabung dalam kelompok KKN.')" />
         </flux:card>
     @endif
 </div>

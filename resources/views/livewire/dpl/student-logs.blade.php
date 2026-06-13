@@ -1,51 +1,19 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                    <flux:icon name="clock" class="size-5 text-amber-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Menunggu Persetujuan') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['pending'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                    <flux:icon name="check-circle" class="size-5 text-green-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Disetujui') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['approved'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
-        <flux:card>
-            <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                    <flux:icon name="book-open" class="size-5 text-blue-500" />
-                </div>
-                <div>
-                    <flux:text class="text-sm text-neutral-500">{{ __('Total Entri') }}</flux:text>
-                    <flux:text class="text-2xl font-bold">{{ $stats['total'] }}</flux:text>
-                </div>
-            </div>
-        </flux:card>
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Persetujuan')" :value="$stats['pending']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Disetujui')" :value="$stats['approved']" />
+        <x-stat-card icon="book-open" color="blue" :label="__('Total Entri')" :value="$stats['total']" />
     </div>
 
     {{-- Logs --}}
-    <flux:card class="!p-0">
-        <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-            <flux:heading size="lg">{{ __('Catatan Harian Mahasiswa') }}</flux:heading>
-        </div>
+    <flux:card>
+        <flux:heading size="lg">{{ __('Catatan Harian Mahasiswa') }}</flux:heading>
+
+        <flux:separator />
+
         @if($logs->isEmpty())
-            <div class="px-6 py-12 text-center">
-                <flux:icon name="book-open" class="mx-auto size-12 text-neutral-300" />
-                <flux:heading size="lg" class="mt-4">{{ __('Belum Ada Logbook') }}</flux:heading>
-            </div>
+            <x-empty-state icon="book-open" :heading="__('Belum Ada Logbook')" />
         @else
             <flux:table>
                 <flux:table.columns>
