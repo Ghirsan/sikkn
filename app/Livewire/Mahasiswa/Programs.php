@@ -207,11 +207,22 @@ class Programs extends Component
         }
 
         $this->js('$flux.modal("program-modal").close()');
+        \Flux::toast('Data program berhasil disimpan.', variant: 'success');
     }
 
-    public function deleteParticipant(int $participantId)
+    public ?int $participantToDelete = null;
+
+    public function confirmDelete(int $participantId)
     {
-        $participant = \App\Models\ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($participantId);
+        $this->participantToDelete = $participantId;
+        $this->js('$flux.modal("delete-participant").show()');
+    }
+
+    public function deleteParticipant()
+    {
+        if (!$this->participantToDelete) return;
+
+        $participant = \App\Models\ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantToDelete);
         if ($participant->status === ProgramStatus::Draft) {
             $program = $participant->program;
             $participant->delete();
@@ -221,6 +232,10 @@ class Programs extends Component
                 $program->delete();
             }
         }
+
+        $this->participantToDelete = null;
+        $this->js('$flux.modal("delete-participant").close()');
+        \Flux::toast('Data program berhasil dihapus.', variant: 'success');
     }
 
     // ─── 3. PELAKSANAAN (LPK Phase) ───────────────────────────────
@@ -261,6 +276,7 @@ class Programs extends Component
         ]);
 
         $this->js('$flux.modal("program-modal").close()');
+        \Flux::toast('LPK berhasil diajukan.', variant: 'success');
     }
 
     // ─── GENERAL ACTIONS ──────────────────────────────────────────
@@ -270,6 +286,7 @@ class Programs extends Component
         $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($participantId);
         if ($participant->status === ProgramStatus::Draft) {
             $participant->update(['status' => ProgramStatus::Submitted]);
+            \Flux::toast('Program (LRK) berhasil diajukan ke DPL.', variant: 'success');
         }
     }
 

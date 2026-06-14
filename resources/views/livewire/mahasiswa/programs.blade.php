@@ -124,7 +124,7 @@
                                         <flux:button wire:click="openForm({{ $program->id }}, {{ $myRole->id ?? 'null' }})" x-on:click="$flux.modal('program-modal').show()" variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Detail') }}</flux:button>
                                         @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
                                             <flux:button wire:click="submitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
-                                            <flux:button wire:click="deleteParticipant({{ $myRole->id }})" icon="trash" variant="danger" size="sm" wire:confirm="{{ __('Yakin ingin menghapus?') }}">{{ __('Hapus') }}</flux:button>
+                                            <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                         @endif
                                     @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
                                         <flux:button wire:click="isiLpk({{ $myRole->id }})" x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="clipboard-document-check">{{ __('Lapor LPK') }}</flux:button>
@@ -191,7 +191,7 @@
                                         @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
                                             <flux:button wire:click="submitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
                                             @if($program->student_id === Auth::id())
-                                                <flux:button wire:click="deleteParticipant({{ $myRole->id }})" icon="trash" variant="danger" size="sm" wire:confirm="{{ __('Yakin ingin menghapus?') }}">{{ __('Hapus') }}</flux:button>
+                                                <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                             @endif
                                         @endif
                                     @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
@@ -270,5 +270,26 @@
                 <flux:button type="button" variant="ghost" x-on:click="$flux.modal('program-modal').close()">{{ __('Batal') }}</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    {{-- Delete Confirmation Modal --}}
+    <flux:modal name="delete-participant" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Hapus Program?') }}</flux:heading>
+                <flux:text class="mt-2">
+                    {{ __('Anda akan menghapus data program ini.') }}<br>
+                    {{ __('Tindakan ini tidak dapat dibatalkan.') }}
+                </flux:text>
+            </div>
+
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="deleteParticipant" variant="danger">{{ __('Hapus Program') }}</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>
