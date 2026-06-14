@@ -144,7 +144,7 @@ class KKNSeeder extends Seeder
         // Group 1 — All Approved (Fully structured for LRK test)
         $prog1 = Program::create([
             'group_id' => $group1->id,
-            'student_id' => $students[0]->id,
+            'student_id' => $students[0]->id, // Monodisiplin owner
             'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
             'type' => ProgramType::SosialKemasyarakatan,
             'target' => 'Meningkatkan kemampuan literasi digital warga desa',
@@ -153,6 +153,9 @@ class KKNSeeder extends Seeder
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Workshop dan pendampingan langsung',
             'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
+        ]);
+        $prog1->participants()->create([
+            'student_id' => $students[0]->id,
             'role_in_program' => 'Ketua Pelaksana',
             'responsibility' => 'Menyusun materi dan mengkoordinasi peserta',
             'status' => ProgramStatus::Approved,
@@ -160,7 +163,7 @@ class KKNSeeder extends Seeder
 
         $prog2 = Program::create([
             'group_id' => $group1->id,
-            'student_id' => $students[1]->id,
+            'student_id' => null, // Multidisiplin master
             'title' => 'Pembuatan Website Profil Desa',
             'type' => ProgramType::Multidisiplin,
             'theme' => 'Digitalisasi Layanan Desa',
@@ -171,26 +174,34 @@ class KKNSeeder extends Seeder
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Pengembangan website dan pelatihan admin',
             'output_target' => 'Website profil desa aktif dan terkelola',
+        ]);
+        $prog2->participants()->create([
+            'student_id' => $students[1]->id,
+            'role_in_program' => 'Koordinator IT',
+            'responsibility' => 'Membangun sistem dan hosting',
             'status' => ProgramStatus::Approved,
         ]);
 
         $prog3 = Program::create([
             'group_id' => $group1->id,
-            'student_id' => $students[2]->id,
+            'student_id' => null, // Multidisiplin master
             'title' => 'Video Dokumenter Potensi UMKM Desa',
             'type' => ProgramType::Multidisiplin,
             'theme' => 'Video Profil Desa Sukamakmur',
             'multidisciplinary_number' => 3, // MD 3 = Video Format
-            'role_in_program' => 'Sutradara & Editor',
-            'responsibility' => 'Mengambil footage dan editing akhir',
             'storyboard' => "Scene 1: Wawancara Kepala Desa\nScene 2: Aktivitas UMKM Kripik Singkong\nScene 3: Pemandangan Sawah Desa",
             'video_script' => "Opening: Selamat datang di Desa Sukamakmur...\nVoice Over: Desa ini memiliki banyak potensi...",
+        ]);
+        $prog3->participants()->create([
+            'student_id' => $students[2]->id,
+            'role_in_program' => 'Sutradara & Editor',
+            'responsibility' => 'Mengambil footage dan editing akhir',
             'status' => ProgramStatus::Approved,
         ]);
 
         $prog4 = Program::create([
             'group_id' => $group1->id,
-            'student_id' => $students[3]->id,
+            'student_id' => null, // Multidisiplin master
             'title' => 'Perbaikan Saluran Irigasi Persawahan',
             'type' => ProgramType::Multidisiplin,
             'theme' => 'Ketahanan Pangan Desa',
@@ -199,6 +210,11 @@ class KKNSeeder extends Seeder
             'target_audience' => 'Petani Desa Sukamakmur',
             'method' => 'Kerja bakti dan pembuatan saluran sekunder',
             'output_target' => 'Aliran air sawah lancar',
+        ]);
+        $prog4->participants()->create([
+            'student_id' => $students[3]->id,
+            'role_in_program' => 'Koordinator Lapangan',
+            'responsibility' => 'Mengatur logistik dan material',
             'status' => ProgramStatus::Approved,
         ]);
 
@@ -227,7 +243,7 @@ class KKNSeeder extends Seeder
         ]);
 
         // Group 2 — all approved (ready for PDF)
-        Program::create([
+        $g2p1 = Program::create([
             'group_id' => $group2->id,
             'student_id' => $students[4]->id,
             'title' => 'Bimbingan Belajar Matematika Anak SD',
@@ -238,11 +254,14 @@ class KKNSeeder extends Seeder
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Bimbingan belajar kelompok',
             'output_target' => '20 siswa meningkat nilai matematikanya',
+        ]);
+        $g2p1->participants()->create([
+            'student_id' => $students[4]->id,
             'timeline' => 'Minggu ke-1 s/d ke-6',
             'status' => ProgramStatus::Approved,
         ]);
 
-        Program::create([
+        $g2p2 = Program::create([
             'group_id' => $group2->id,
             'student_id' => $students[5]->id,
             'title' => 'English Fun Day untuk Anak-Anak',
@@ -253,13 +272,16 @@ class KKNSeeder extends Seeder
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Permainan edukatif dan lagu',
             'output_target' => '15 anak menguasai 50 kosakata dasar',
+        ]);
+        $g2p2->participants()->create([
+            'student_id' => $students[5]->id,
             'timeline' => 'Minggu ke-2 s/d ke-5',
             'status' => ProgramStatus::Approved,
         ]);
 
-        Program::create([
+        $g2p3 = Program::create([
             'group_id' => $group2->id,
-            'student_id' => $students[6]->id,
+            'student_id' => null, // Multidisiplin
             'title' => 'Pelatihan Komputer Dasar untuk Perangkat Desa',
             'type' => ProgramType::Multidisiplin,
             'target' => 'Meningkatkan kemampuan IT perangkat desa',
@@ -268,6 +290,9 @@ class KKNSeeder extends Seeder
             'source_of_fund' => 'Dana Mandiri',
             'method' => 'Workshop hands-on',
             'output_target' => '10 perangkat desa mampu mengoperasikan aplikasi perkantoran',
+        ]);
+        $g2p3->participants()->create([
+            'student_id' => $students[6]->id,
             'timeline' => 'Minggu ke-3 s/d ke-5',
             'status' => ProgramStatus::Approved,
         ]);

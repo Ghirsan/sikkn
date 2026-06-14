@@ -10,95 +10,198 @@ use Livewire\Component;
 
 class Programs extends Component
 {
-    public string $filterType = '';
+    // Form Type State
+    public string $formMode = 'edit_program'; // 'edit_program', 'edit_peran', 'lpk'
     
-    // Form State
-    public ?int $programId = null;
+    // Core IDs
+    public ?int $programId = null; // ID in programs table
+    public ?int $participantId = null; // ID in program_participants table
+    
+    // Program Fields (Programs Table)
     public string $title = '';
-    public string $type = 'sosial_kemasyarakatan';
-    public string $theme = '';
+    public string $type = 'lainnya';
     public string $problem_potential = '';
-    public string $target = '';
+    public string $location = '';
+    public string $target_audience = '';
+    public string $output_target = '';
+    public string $method = '';
 
-    protected function rules()
-    {
-        return [
-            'title' => 'required|string|max:255',
-            'type' => 'required|string',
-            'theme' => 'nullable|string|max:255',
-            'problem_potential' => 'nullable|string',
-            'target' => 'nullable|string',
-        ];
-    }
+    // Participant Fields (Participants Table - LRK Phase)
+    public string $role_in_program = '';
+    public string $responsibility = '';
 
-    public function create()
+    // Participant Fields (Participants Table - LPK Phase)
+    public string $achievement = '';
+    public string $obstacle = '';
+    public string $solution = '';
+
+    protected function resetForms()
     {
-        $this->reset(['programId', 'title', 'theme', 'problem_potential', 'target']);
-        $this->type = ProgramType::SosialKemasyarakatan->value; // default
+        $this->reset([
+            'programId', 'participantId', 
+            'title', 'problem_potential', 'location', 'target_audience', 'output_target', 'method',
+            'role_in_program', 'responsibility',
+            'achievement', 'obstacle', 'solution'
+        ]);
+        $this->type = ProgramType::Lainnya->value;
         $this->resetValidation();
     }
 
-    public function edit(int $id)
+    private function isVideoProfile(?string $title, ?string $theme): bool
     {
-        $program = Program::where('student_id', Auth::id())->findOrFail($id);
-        
-        // Ensure only editable programs can be edited
-        if (!$program->isEditable()) {
-            return;
-        }
+        if (!$title && !$theme) return false;
+        return str_contains(strtolower($title ?? ''), 'video profile') || 
+               str_contains(strtolower($theme ?? ''), 'video profile') ||
+               str_contains(strtolower($title ?? ''), 'video profil') ||
+               str_contains(strtolower($theme ?? ''), 'video profil') ||
+               str_contains(strtolower($title ?? ''), 'video dokumenter');
+    }
 
+    // ─── 1. SOSMAS & LAINNYA (Program Individu & Tambahan) ────────
+
+    public function createLainnya()
+    {
+        $this->formMode = 'create_individual';
+        $this->resetForms();
+        $this->type = ProgramType::Lainnya->value;
+    }
+
+    public function createSosmas()
+    {
+        $this->formMode = 'create_individual';
+        $this->resetForms();
+        $this->type = ProgramType::SosialKemasyarakatan->value;
+    }
+
+    // ─── 2. EDIT FORM (Dynamic based on Program Type) ─────────────
+
+    public function openForm(int $programId, ?int $participantId = null)
+    {
+        $this->resetForms();
+        $program = Program::where('group_id', Auth::user()->group_id)->findOrFail($programId);
+        
         $this->programId = $program->id;
-        $this->title = $program->title;
+        $this->participantId = $participantId;
         $this->type = $program->type->value;
-        $this->theme = $program->theme ?? '';
-        $this->problem_potential = $program->problem_potential ?? '';
-        $this->target = $program->target ?? '';
-        $this->resetValidation();
-    }
-
-    public function save()
-    {
-        $this->validate();
-
-        $user = Auth::user();
         
-        // If student is not in a group yet, they shouldn't create a program. Let's assume group_id exists for now.
-        $studentGroup = \App\Models\GroupStudent::where('student_id', $user->id)->first();
-        if (!$studentGroup) {
-            session()->flash('error', __('Anda harus masuk ke dalam kelompok terlebih dahulu sebelum mengajukan program.'));
-            return;
+        $isVideoProfile = $this->isVideoProfile($program->title, $program->theme);
+
+        // Determine Form Mode based on Type
+        if ($program->type === ProgramType::SosialKemasyarakatan || $program->type === ProgramType::Lainnya) {
+            $this->formMode = 'create_individual'; // Individual
+            $this->title = $program->title;
+        } elseif ($isVideoProfile) {
+            $this->formMode = 'edit_peran'; // Video Profile is shared, just fill role
+            $this->title = $program->title; // Read-only
+        } else {
+            $this->formMode = 'edit_program'; // Multidisiplin
+            $this->title = $program->title;
+            $this->problem_potential = $program->problem_potential ?? '';
+            $this->location = $program->location ?? '';
+            $this->method = $program->method ?? '';
+            $this->target_audience = $program->target_audience ?? '';
+            $this->output_target = $program->output_target ?? '';
         }
 
-        if ($this->programId) {
-            $program = Program::where('student_id', $user->id)->findOrFail($this->programId);
-            
-            if (!$program->isEditable()) {
-                return;
+        // Load existing participant data if joining/editing
+        if ($participantId) {
+            $participant = $program->participants()->where('student_id', Auth::id())->findOrFail($participantId);
+            $this->role_in_program = $participant->role_in_program ?? '';
+            $this->responsibility = $participant->responsibility ?? '';
+        } else {
+            // Check if already joined
+            $participant = $program->participants()->where('student_id', Auth::id())->first();
+            if ($participant) {
+                $this->participantId = $participant->id;
+                $this->role_in_program = $participant->role_in_program ?? '';
+                $this->responsibility = $participant->responsibility ?? '';
             }
+        }
+    }
 
-            $program->update([
-                'title' => $this->title,
-                'type' => $this->type,
-                'theme' => $this->theme,
-                'problem_potential' => $this->problem_potential,
-                'target' => $this->target,
-                // If it was needs_revision, maybe change it back to Draft or Submitted? Usually editing a NeedsRevision draft changes it.
-                // We leave status as is, or set to Draft.
+    public function saveForm()
+    {
+        $user = Auth::user();
+        if (!$user->group_id) return;
+
+        // Validation based on mode
+        if ($this->formMode === 'edit_peran') {
+            $this->validate([
+                'role_in_program' => 'required|string',
+                'responsibility' => 'required|string',
             ]);
-            
-            // If they fixed a revision, maybe we clear the note? 
-            if ($program->status === ProgramStatus::NeedsRevision) {
-                $program->update(['status' => ProgramStatus::Draft, 'revision_note' => null]);
+        } elseif ($this->formMode === 'create_individual') {
+            $this->validate([
+                'title' => 'required|string|max:255',
+                'role_in_program' => 'required|string',
+                'responsibility' => 'required|string',
+            ]);
+        } else {
+            $this->validate([
+                'title' => 'required|string|max:255',
+                'problem_potential' => 'required|string',
+                'location' => 'required|string',
+                'method' => 'required|string',
+                'target_audience' => 'required|string',
+                'output_target' => 'required|string',
+            ]);
+        }
+
+        // 1. Handle Program Creation/Update
+        if ($this->programId) {
+            $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
+            if ($this->formMode === 'edit_program') {
+                $program->update([
+                    'title' => $this->title,
+                    'problem_potential' => $this->problem_potential,
+                    'location' => $this->location,
+                    'method' => $this->method,
+                    'target_audience' => $this->target_audience,
+                    'output_target' => $this->output_target,
+                ]);
+            } elseif ($this->formMode === 'create_individual') {
+                $program->update([
+                    'title' => $this->title,
+                ]);
             }
         } else {
-            Program::create([
+            if ($this->formMode === 'create_individual') {
+                // If it's Sosmas, check max 1
+                if ($this->type === ProgramType::SosialKemasyarakatan->value) {
+                    $existingSosmas = Program::where('student_id', $user->id)
+                        ->where('type', ProgramType::SosialKemasyarakatan)
+                        ->exists();
+
+                    if ($existingSosmas) {
+                        $this->addError('title', 'Maksimal 1 program sosial kemasyarakatan yang diizinkan.');
+                        return;
+                    }
+                }
+
+                // Creating new Individual program (Sosmas or Lainnya)
+                $program = Program::create([
+                    'student_id' => $user->id,
+                    'group_id' => $user->group_id,
+                    'title' => $this->title,
+                    'type' => $this->type, // Will be either Sosmas or Lainnya based on state
+                ]);
+            }
+        }
+
+        // 2. Handle Participant Creation/Update
+        if ($this->participantId) {
+            $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
+            $participant->update([
+                'role_in_program' => $this->role_in_program,
+                'responsibility' => $this->responsibility,
+                'status' => ProgramStatus::Draft,
+                'revision_note' => null,
+            ]);
+        } else {
+            $program->participants()->create([
                 'student_id' => $user->id,
-                'group_id' => $studentGroup->group_id,
-                'title' => $this->title,
-                'type' => $this->type,
-                'theme' => $this->theme,
-                'problem_potential' => $this->problem_potential,
-                'target' => $this->target,
+                'role_in_program' => $this->role_in_program,
+                'responsibility' => $this->responsibility,
                 'status' => ProgramStatus::Draft,
             ]);
         }
@@ -106,21 +209,67 @@ class Programs extends Component
         $this->js('$flux.modal("program-modal").close()');
     }
 
-    public function delete(int $id)
+    public function deleteParticipant(int $participantId)
     {
-        $program = Program::where('student_id', Auth::id())->findOrFail($id);
-        
-        if ($program->status === ProgramStatus::Draft) {
-            $program->delete();
+        $participant = \App\Models\ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($participantId);
+        if ($participant->status === ProgramStatus::Draft) {
+            $program = $participant->program;
+            $participant->delete();
+            
+            // If it's an individual program, delete the program entirely
+            if ($program->student_id === Auth::id()) {
+                $program->delete();
+            }
         }
     }
 
-    public function submitProgram(int $id)
+    // ─── 3. PELAKSANAAN (LPK Phase) ───────────────────────────────
+
+    public function isiLpk(int $participantId)
     {
-        $program = Program::where('student_id', Auth::id())->findOrFail($id);
+        $this->formMode = 'lpk';
+        $this->resetForms();
+
+        $participant = \App\Models\ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($participantId);
         
-        if ($program->status === ProgramStatus::Draft) {
-            $program->update(['status' => ProgramStatus::Submitted]);
+        if ($participant->status !== ProgramStatus::Approved) return;
+
+        $this->participantId = $participant->id;
+        $this->title = $participant->program->title; // Read-only
+
+        $this->achievement = $participant->achievement ?? '';
+        $this->obstacle = $participant->obstacle ?? '';
+        $this->solution = $participant->solution ?? '';
+    }
+
+    public function saveLpk()
+    {
+        $this->validate([
+            'achievement' => 'required|string',
+            'obstacle' => 'required|string',
+            'solution' => 'required|string',
+        ]);
+
+        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantId);
+        
+        $participant->update([
+            'achievement' => $this->achievement,
+            'obstacle' => $this->obstacle,
+            'solution' => $this->solution,
+            'lpk_status' => ProgramStatus::Submitted,
+            'lpk_revision_note' => null,
+        ]);
+
+        $this->js('$flux.modal("program-modal").close()');
+    }
+
+    // ─── GENERAL ACTIONS ──────────────────────────────────────────
+
+    public function submitLrk(int $participantId)
+    {
+        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($participantId);
+        if ($participant->status === ProgramStatus::Draft) {
+            $participant->update(['status' => ProgramStatus::Submitted]);
         }
     }
 
@@ -128,23 +277,21 @@ class Programs extends Component
     {
         $user = Auth::user();
 
-        $query = Program::where('student_id', $user->id);
+        // All Group Programs
+        $allPrograms = Program::where('group_id', $user->group_id)
+            ->with(['participants' => function($q) use ($user) {
+                $q->where('student_id', $user->id);
+            }])
+            ->get();
 
-        if ($this->filterType) {
-            $query->where('type', $this->filterType);
-        }
-
-        $programs = $query->latest()->get();
+        $multidisiplinPrograms = $allPrograms->where('type', ProgramType::Multidisiplin);
+        $sosmasPrograms = $allPrograms->where('type', ProgramType::SosialKemasyarakatan)->where('student_id', $user->id);
+        $lainnyaPrograms = $allPrograms->where('type', ProgramType::Lainnya)->where('student_id', $user->id);
 
         return view('livewire.mahasiswa.programs', [
-            'programs' => $programs,
-            'stats' => [
-                'draft' => Program::where('student_id', $user->id)->where('status', ProgramStatus::Draft)->count(),
-                'submitted' => Program::where('student_id', $user->id)->where('status', ProgramStatus::Submitted)->count(),
-                'needs_revision' => Program::where('student_id', $user->id)->where('status', ProgramStatus::NeedsRevision)->count(),
-                'approved' => Program::where('student_id', $user->id)->where('status', ProgramStatus::Approved)->count(),
-            ],
-            'programTypes' => ProgramType::cases(),
+            'multidisiplinPrograms' => $multidisiplinPrograms,
+            'sosmasPrograms' => $sosmasPrograms,
+            'lainnyaPrograms' => $lainnyaPrograms,
         ]);
     }
 }

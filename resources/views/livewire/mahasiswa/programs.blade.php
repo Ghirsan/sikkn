@@ -1,101 +1,273 @@
-<div class="flex h-full w-full flex-1 flex-col gap-6">
-    {{-- Status Stats --}}
-    <div class="grid auto-rows-min gap-4 md:grid-cols-4">
-        <x-stat-card icon="pencil-square" color="neutral" :label="__('Draft')" :value="$stats['draft']" />
-        <x-stat-card icon="clock" color="amber" :label="__('Diajukan')" :value="$stats['submitted']" />
-        <x-stat-card icon="arrow-path" color="red" :label="__('Revisi')" :value="$stats['needs_revision']" />
-        <x-stat-card icon="check-circle" color="green" :label="__('Disetujui')" :value="$stats['approved']" />
+<div class="flex h-full w-full flex-1 flex-col gap-8">
+
+    {{-- 1. Program Multidisiplin --}}
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <flux:heading size="lg">{{ __('1. Program Multidisiplin') }}</flux:heading>
+                <flux:text class="text-sm">{{ __('Isi detail Potensi, Usulan Program, Metode, dan Luaran untuk program multidisiplin kelompok Anda.') }}</flux:text>
+            </div>
+        </div>
+
+        <flux:card>
+            @if($multidisiplinPrograms->isEmpty())
+                <x-empty-state icon="light-bulb" :heading="__('Belum Ada Program')" :description="__('DPL belum menetapkan kuota program multidisiplin.')" />
+            @else
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column>{{ __('Usulan Program') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Aksi') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach($multidisiplinPrograms as $program)
+                            @php $myRole = $program->participants->first(); @endphp
+                            <flux:table.row :key="$program->id">
+                                <flux:table.cell>
+                                    <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title ?: '(Belum Diisi)' }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole)
+                                        <flux:badge size="sm" :color="$myRole->status->color()" inset="top bottom">{{ $myRole->status->label() }}</flux:badge>
+                                        @if($myRole->revision_note)
+                                            <div class="mt-1 text-xs text-red-600">Revisi: {{ $myRole->revision_note }}</div>
+                                        @endif
+                                    @else
+                                        <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Diisi') }}</flux:badge>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Approved)
+                                        <flux:badge size="sm" :color="$myRole->lpk_status->color()" inset="top bottom">{{ $myRole->lpk_status->label() }}</flux:badge>
+                                    @else
+                                        <span class="text-sm text-neutral-400">-</span>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if(!$myRole || $myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision)
+                                        <flux:button wire:click="openForm({{ $program->id }}, {{ $myRole->id ?? 'null' }})" x-on:click="$flux.modal('program-modal').show()" variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Detail') }}</flux:button>
+                                        @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
+                                            <flux:button wire:click="submitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                        @endif
+                                    @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
+                                        <flux:button wire:click="isiLpk({{ $myRole->id }})" x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="clipboard-document-check">{{ __('Lapor LPK') }}</flux:button>
+                                    @endif
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            @endif
+        </flux:card>
     </div>
 
-    {{-- Programs List --}}
-    <div class="flex items-center justify-between">
-        <flux:heading size="lg">{{ __('Daftar Program Kerja') }}</flux:heading>
-        <div class="flex items-center gap-3">
-            <flux:select wire:model.live="filterType" size="sm" placeholder="{{ __('Semua Jenis') }}" class="w-48">
-                <flux:select.option value="">{{ __('Semua Jenis') }}</flux:select.option>
-                @foreach($programTypes as $type)
-                    <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:button wire:click="create" x-data x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="plus">
-                {{ __('Ajukan Program') }}
+    {{-- 2. Program Sosial Kemasyarakatan --}}
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <flux:heading size="lg">{{ __('2. Program Sosial Kemasyarakatan') }}</flux:heading>
+                <flux:text class="text-sm">{{ __('Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Maksimal 1 program.') }}</flux:text>
+            </div>
+            @if($sosmasPrograms->isEmpty())
+                <flux:button wire:click="createSosmas" x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="plus">
+                    {{ __('Tambah Program') }}
+                </flux:button>
+            @endif
+        </div>
+
+        <flux:card>
+            @if($sosmasPrograms->isEmpty())
+                <x-empty-state icon="users" :heading="__('Belum Ada Program')" :description="__('Silakan buat program Sosial Kemasyarakatan Anda.')" />
+            @else
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
+                        <flux:table.column>{{ __('Peran Saya') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Aksi') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach($sosmasPrograms as $program)
+                            @php $myRole = $program->participants->first(); @endphp
+                            <flux:table.row :key="$program->id">
+                                <flux:table.cell>
+                                    <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole && $myRole->role_in_program)
+                                        <span class="text-sm">{{ $myRole->role_in_program }}</span>
+                                    @else
+                                        <span class="text-sm text-neutral-400">-</span>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole)
+                                        <flux:badge size="sm" :color="$myRole->status->color()" inset="top bottom">{{ $myRole->status->label() }}</flux:badge>
+                                        @if($myRole->revision_note)
+                                            <div class="mt-1 text-xs text-red-600">Revisi: {{ $myRole->revision_note }}</div>
+                                        @endif
+                                    @else
+                                        <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Diisi') }}</flux:badge>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Approved)
+                                        <flux:badge size="sm" :color="$myRole->lpk_status->color()" inset="top bottom">{{ $myRole->lpk_status->label() }}</flux:badge>
+                                    @else
+                                        <span class="text-sm text-neutral-400">-</span>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if(!$myRole || $myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision)
+                                        <flux:button wire:click="openForm({{ $program->id }}, {{ $myRole->id ?? 'null' }})" x-on:click="$flux.modal('program-modal').show()" variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Detail') }}</flux:button>
+                                        @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
+                                            <flux:button wire:click="submitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                            <flux:button wire:click="deleteParticipant({{ $myRole->id }})" icon="trash" variant="danger" size="sm" wire:confirm="{{ __('Yakin ingin menghapus?') }}">{{ __('Hapus') }}</flux:button>
+                                        @endif
+                                    @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
+                                        <flux:button wire:click="isiLpk({{ $myRole->id }})" x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="clipboard-document-check">{{ __('Lapor LPK') }}</flux:button>
+                                    @endif
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            @endif
+        </flux:card>
+    </div>
+
+    {{-- 3. Program Lainnya --}}
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <flux:heading size="lg">{{ __('3. Program Lainnya (Bebas)') }}</flux:heading>
+                <flux:text class="text-sm">{{ __('Daftar program tambahan Anda.') }}</flux:text>
+            </div>
+            <flux:button wire:click="createLainnya" x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="plus">
+                {{ __('Tambah Program') }}
             </flux:button>
         </div>
+
+        <flux:card>
+            @if($lainnyaPrograms->isEmpty())
+                <x-empty-state icon="document-plus" :heading="__('Belum Ada Program Tambahan')" :description="__('Silakan tambah program jika ada kegiatan di luar program wajib.')" />
+            @else
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Aksi') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach($lainnyaPrograms as $program)
+                            @php $myRole = $program->participants->first(); @endphp
+                            <flux:table.row :key="$program->id">
+                                <flux:table.cell>
+                                    <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole)
+                                        <flux:badge size="sm" :color="$myRole->status->color()" inset="top bottom">{{ $myRole->status->label() }}</flux:badge>
+                                        @if($myRole->revision_note)
+                                            <div class="mt-1 text-xs text-red-600">Revisi: {{ $myRole->revision_note }}</div>
+                                        @endif
+                                    @else
+                                        <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Diisi') }}</flux:badge>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Approved)
+                                        <flux:badge size="sm" :color="$myRole->lpk_status->color()" inset="top bottom">{{ $myRole->lpk_status->label() }}</flux:badge>
+                                    @else
+                                        <span class="text-sm text-neutral-400">-</span>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if(!$myRole || $myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision)
+                                        <flux:button wire:click="openForm({{ $program->id }}, {{ $myRole->id ?? 'null' }})" x-on:click="$flux.modal('program-modal').show()" variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Detail') }}</flux:button>
+                                        @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
+                                            <flux:button wire:click="submitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                            @if($program->student_id === Auth::id())
+                                                <flux:button wire:click="deleteParticipant({{ $myRole->id }})" icon="trash" variant="danger" size="sm" wire:confirm="{{ __('Yakin ingin menghapus?') }}">{{ __('Hapus') }}</flux:button>
+                                            @endif
+                                        @endif
+                                    @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
+                                        <flux:button wire:click="isiLpk({{ $myRole->id }})" x-on:click="$flux.modal('program-modal').show()" variant="filled" size="sm" icon="clipboard-document-check">{{ __('Lapor LPK') }}</flux:button>
+                                    @endif
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            @endif
+        </flux:card>
     </div>
 
-    <flux:card>
-        @if($programs->isEmpty())
-            <x-empty-state icon="light-bulb" :heading="__('Belum Ada Program Kerja')" :description="__('Mulai dengan mengajukan program kerja KKN Anda.')" />
-        @else
-            <flux:table>
-                <flux:table.columns>
-                    <flux:table.column>{{ __('Program Kerja') }}</flux:table.column>
-                    <flux:table.column>{{ __('Jenis') }}</flux:table.column>
-                    <flux:table.column>{{ __('Status') }}</flux:table.column>
-                    <flux:table.column>{{ __('Terakhir Diperbarui') }}</flux:table.column>
-                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
-                </flux:table.columns>
-                <flux:table.rows>
-                    @foreach($programs as $program)
-                        <flux:table.row :key="$program->id">
-                            <flux:table.cell>
-                                <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
-                                @if($program->revision_note)
-                                    <flux:callout variant="danger" icon="arrow-path" class="mt-2" :heading="__('Revisi: ') . $program->revision_note" />
-                                @endif
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <flux:badge size="sm" color="zinc" inset="top bottom">{{ $program->type->label() }}</flux:badge>
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <flux:badge size="sm" :color="$program->status->color()" inset="top bottom">{{ $program->status->label() }}</flux:badge>
-                            </flux:table.cell>
-                            <flux:table.cell class="whitespace-nowrap text-sm text-neutral-500">
-                                {{ $program->updated_at->diffForHumans() }}
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                @if($program->status->value === 'draft' || $program->status->value === 'needs_revision')
-                                    <flux:dropdown>
-                                        <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
-                                        <flux:menu>
-                                            <flux:menu.item wire:click="edit({{ $program->id }})" x-on:click="$flux.modal('program-modal').show()" icon="pencil">{{ __('Edit') }}</flux:menu.item>
-                                            @if($program->status->value === 'draft')
-                                                <flux:menu.item wire:click="submitProgram({{ $program->id }})" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:menu.item>
-                                                <flux:menu.item wire:click="delete({{ $program->id }})" icon="trash" variant="danger" wire:confirm="{{ __('Yakin ingin menghapus program ini?') }}">{{ __('Hapus') }}</flux:menu.item>
-                                            @endif
-                                        </flux:menu>
-                                    </flux:dropdown>
-                                @endif
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endforeach
-                </flux:table.rows>
-            </flux:table>
-        @endif
-    </flux:card>
-
-    {{-- Modal Form --}}
+    {{-- Dynamic Modal Form --}}
     <flux:modal name="program-modal" class="md:w-3/4 lg:w-1/2">
-        <form wire:submit="save" class="flex flex-col gap-4">
-            <flux:heading size="lg">{{ $programId ? __('Edit Program') : __('Usulkan Program Baru') }}</flux:heading>
+        <form wire:submit="saveForm" class="flex flex-col gap-4">
             
-            <flux:input wire:model="title" label="{{ __('Judul Program') }}" placeholder="{{ __('Contoh: Penyuluhan Kesehatan Masyarakat') }}" />
+            @if($formMode === 'edit_program')
+                <flux:heading size="lg">{{ $programId ? __('Edit Program (Multidisiplin)') : __('Buat Program Baru') }}</flux:heading>
+                
+                <flux:input wire:model="title" label="{{ __('Usulan Program') }}" placeholder="{{ __('Contoh: Penyuluhan Kesehatan Masyarakat') }}" />
+                
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:textarea wire:model="problem_potential" label="{{ __('Potensi / Permasalahan') }}" placeholder="{{ __('Sebutkan potensi atau masalah') }}" rows="2" />
+                    <flux:textarea wire:model="location" label="{{ __('Lokasi / Narsum') }}" placeholder="{{ __('Sebutkan lokasi atau narasumber') }}" rows="2" />
+                </div>
+                
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:textarea wire:model="method" label="{{ __('Metode Pelaksanaan') }}" placeholder="{{ __('Metode yang digunakan') }}" rows="2" />
+                    <flux:textarea wire:model="target_audience" label="{{ __('Kelompok Sasaran') }}" placeholder="{{ __('Siapa kelompok sasarannya?') }}" rows="2" />
+                </div>
+                
+                <flux:textarea wire:model="output_target" label="{{ __('Luaran') }}" placeholder="{{ __('Luaran / Output yang diharapkan') }}" rows="2" />
             
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <flux:select wire:model="type" label="{{ __('Jenis Program') }}">
-                    @foreach(\App\Enums\ProgramType::cases() as $type)
-                        <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:input wire:model="theme" label="{{ __('Tema (Opsional)') }}" placeholder="{{ __('Contoh: Kesehatan Lingkungan') }}" />
-            </div>
+            @elseif($formMode === 'create_individual')
+                @if($type === \App\Enums\ProgramType::SosialKemasyarakatan->value)
+                    <flux:heading size="lg">{{ $programId ? __('Edit Program Sosmas') : __('Buat Program Sosmas') }}</flux:heading>
+                    <flux:input wire:model="title" label="{{ __('Nama Program Sosial Kemasyarakatan') }}" placeholder="{{ __('Contoh: Bakti Sosial Soshum') }}" />
+                @else
+                    <flux:heading size="lg">{{ $programId ? __('Edit Program Lainnya') : __('Buat Program Lainnya') }}</flux:heading>
+                    <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Lomba 17 Agustus') }}" />
+                @endif
+                
+                <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" class="mt-2" />
+                <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 
-            <flux:textarea wire:model="problem_potential" label="{{ __('Potensi / Masalah') }}" placeholder="{{ __('Deskripsikan potensi desa atau masalah yang ingin diselesaikan...') }}" rows="3" />
-            <flux:textarea wire:model="target" label="{{ __('Target Keluaran') }}" placeholder="{{ __('Apa hasil yang diharapkan dari program ini?') }}" rows="3" />
+            @elseif($formMode === 'edit_peran')
+                <flux:heading size="lg">{{ __('Isi Peran (Video Profile)') }}</flux:heading>
+                <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
+                    <flux:text variant="strong">{{ $title }}</flux:text>
+                    <flux:text class="text-xs">{{ __('Silakan isi peran spesifik Anda di dalam program ini.') }}</flux:text>
+                </div>
+                
+                <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" />
+                <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 
-            <div class="mt-2 flex justify-end gap-2">
+            @elseif($formMode === 'lpk')
+                <flux:heading size="lg">{{ __('Lapor Pelaksanaan (LPK)') }}</flux:heading>
+                <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
+                    <flux:text variant="strong">{{ $title }}</flux:text>
+                </div>
+
+                <flux:textarea wire:model="achievement" label="{{ __('Hasil yang Dicapai') }}" placeholder="{{ __('Ceritakan jalannya program dan hasil nyata yang didapat...') }}" rows="3" />
+                <flux:textarea wire:model="obstacle" label="{{ __('Hambatan') }}" placeholder="{{ __('Kendala apa saja yang terjadi di lapangan?') }}" rows="2" />
+                <flux:textarea wire:model="solution" label="{{ __('Solusi') }}" placeholder="{{ __('Bagaimana cara mengatasi kendala tersebut?') }}" rows="2" />
+
+            @endif
+
+            <div class="mt-4 flex justify-end gap-2">
+                @if($formMode === 'lpk')
+                    <flux:button type="button" wire:click="saveLpk" variant="filled">{{ __('Simpan LPK') }}</flux:button>
+                @else
+                    <flux:button type="submit" variant="filled">{{ __('Simpan LRK') }}</flux:button>
+                @endif
                 <flux:button type="button" variant="ghost" x-on:click="$flux.modal('program-modal').close()">{{ __('Batal') }}</flux:button>
-                <flux:button type="submit" variant="filled">{{ __('Simpan') }}</flux:button>
             </div>
         </form>
     </flux:modal>

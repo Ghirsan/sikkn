@@ -20,8 +20,6 @@ class Program extends Model
         'theme',
         'multidisciplinary_number',
         'problem_potential',
-        'role_in_program',
-        'responsibility',
         'target',
         'target_audience',
         'budget',
@@ -30,26 +28,13 @@ class Program extends Model
         'output_target',
         'storyboard',
         'video_script',
-        'timeline',
-        'status',
-        'revision_note',
-        'achievement',
-        'obstacle',
-        'solution',
-        'actual_result',
-        'realized_budget',
-        'lpk_status',
-        'lpk_revision_note',
     ];
 
     protected function casts(): array
     {
         return [
             'type' => ProgramType::class,
-            'status' => ProgramStatus::class,
-            'lpk_status' => ProgramStatus::class,
             'budget' => 'decimal:2',
-            'realized_budget' => 'decimal:2',
         ];
     }
 
@@ -62,11 +47,20 @@ class Program extends Model
     }
 
     /**
-     * Get the student who proposed this program.
+     * Get the student who proposed this program (if it is a monodisiplin program).
+     * For multidisciplin created by DPL, this is null.
      */
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    /**
+     * Get the participants of this program.
+     */
+    public function participants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProgramParticipant::class);
     }
 
     /**
@@ -75,14 +69,6 @@ class Program extends Model
     public function dates(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ProgramDate::class);
-    }
-
-    /**
-     * Check if this program can be edited.
-     */
-    public function isEditable(): bool
-    {
-        return in_array($this->status, [ProgramStatus::Draft, ProgramStatus::NeedsRevision]);
     }
 
 
