@@ -207,7 +207,7 @@ class Programs extends Component
         }
 
         $this->js('$flux.modal("program-modal").close()');
-        \Flux::toast('Data program berhasil disimpan.', variant: 'success');
+        \Flux\Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data program berhasil disimpan.');
     }
 
     public ?int $participantToDelete = null;
@@ -235,7 +235,7 @@ class Programs extends Component
 
         $this->participantToDelete = null;
         $this->js('$flux.modal("delete-participant").close()');
-        \Flux::toast('Data program berhasil dihapus.', variant: 'success');
+        \Flux\Flux::toast(variant: 'success', heading: 'Dihapus', text: 'Data program berhasil dihapus.');
     }
 
     // ─── 3. PELAKSANAAN (LPK Phase) ───────────────────────────────
@@ -276,7 +276,7 @@ class Programs extends Component
         ]);
 
         $this->js('$flux.modal("program-modal").close()');
-        \Flux::toast('LPK berhasil diajukan.', variant: 'success');
+        \Flux\Flux::toast(variant: 'success', heading: 'LPK Tersimpan', text: 'Laporan LPK Anda berhasil disimpan.');
     }
 
     // ─── GENERAL ACTIONS ──────────────────────────────────────────
@@ -286,7 +286,7 @@ class Programs extends Component
         $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($participantId);
         if ($participant->status === ProgramStatus::Draft) {
             $participant->update(['status' => ProgramStatus::Submitted]);
-            \Flux::toast('Program (LRK) berhasil diajukan ke DPL.', variant: 'success');
+            \Flux\Flux::toast(variant: 'success', heading: 'LRK Diajukan', text: 'Rencana program berhasil diajukan ke DPL.');
         }
     }
 
