@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Mahasiswa Routes
     Route::middleware('role:mahasiswa')->group(function () {
         Route::view('programs', 'mahasiswa.programs.index')->name('programs.index');
+        Route::view('programs/form', 'mahasiswa.programs.form')->name('programs.form');
         Route::view('lrk', 'mahasiswa.lrk.index')->name('lrk.index');
         Route::view('lpk', 'mahasiswa.lpk.index')->name('lpk.index');
         Route::view('logbook', 'mahasiswa.logbook.index')->name('logbook.index');
