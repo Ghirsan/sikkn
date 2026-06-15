@@ -41,5 +41,6 @@ class DatabaseSeeder extends Seeder
 
         // Seed KKN data (periods, groups, students, programs, logs)
         $this->call(KKNSeeder::class);
+        $this->call(GroupLeadershipSeeder::class);
     }
 }

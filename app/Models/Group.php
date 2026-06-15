@@ -94,6 +94,22 @@ class Group extends Model
     }
 
     /**
+     * Get the lead DPL assigned to this group.
+     */
+    public function leadDpl(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'lead_dpl_id');
+    }
+
+    /**
+     * Get the student leader of this group.
+     */
+    public function studentLeader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'student_leader_id');
+    }
+
+    /**
      * Get the full location string.
      */
     public function getLocationAttribute(): string

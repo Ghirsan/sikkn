@@ -73,6 +73,26 @@ class User extends Authenticatable
         return $this->role->isAdmin();
     }
 
+    /**
+     * Check if the user is the lead DPL for their group.
+     */
+    public function isLeadDpl(): bool
+    {
+        return $this->role === UserRole::Dpl 
+            && $this->group_id !== null 
+            && $this->id === $this->group->lead_dpl_id;
+    }
+
+    /**
+     * Check if the user is the student leader for their group.
+     */
+    public function isStudentLeader(): bool
+    {
+        return $this->role === UserRole::Mahasiswa 
+            && $this->group_id !== null 
+            && $this->id === $this->group->student_leader_id;
+    }
+
     // ── Relationships ────────────────────────────────────────────
 
     /**
