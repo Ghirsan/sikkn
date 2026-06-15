@@ -15,7 +15,7 @@
         </div>
         <flux:separator />
         
-        <div class="w-full lg:w-2/3">
+        <div class="w-full">
             <livewire:mahasiswa.program-form />
         </div>
     </div>
