@@ -64,13 +64,26 @@ class Programs extends Component
 
     // ─── GENERAL ACTIONS ──────────────────────────────────────────
 
-    public function submitLrk(int $participantId)
+    public ?int $participantToSubmit = null;
+
+    public function confirmSubmitLrk(int $participantId)
     {
-        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($participantId);
+        $this->participantToSubmit = $participantId;
+        $this->js('$flux.modal("submit-lrk").show()');
+    }
+
+    public function submitLrk()
+    {
+        if (!$this->participantToSubmit) return;
+
+        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
         if ($participant->status === ProgramStatus::Draft) {
             $participant->update(['status' => ProgramStatus::Submitted]);
             \Flux\Flux::toast(variant: 'success', heading: 'LRK Diajukan', text: 'Rencana program berhasil diajukan ke DPL.');
         }
+
+        $this->participantToSubmit = null;
+        $this->js('$flux.modal("submit-lrk").close()');
     }
 
     public function render()
