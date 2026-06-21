@@ -107,7 +107,6 @@
                     <flux:table.columns>
                         <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
-                        <flux:table.column>{{ __('Peran Saya') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Aksi') }}</flux:table.column>
@@ -123,13 +122,6 @@
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
                                     @if($program->execution_date)
                                         <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
-                                    @endif
-                                </flux:table.cell>
-                                <flux:table.cell>
-                                    @if($myRole && $myRole->role_in_program)
-                                        <span class="text-sm">{{ $myRole->role_in_program }}</span>
-                                    @else
-                                        <span class="text-sm text-neutral-400">-</span>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
