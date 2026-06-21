@@ -147,6 +147,7 @@ class KKNSeeder extends Seeder
             'student_id' => $students[0]->id, // Monodisiplin owner
             'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
             'type' => ProgramType::SosialKemasyarakatan,
+            'execution_date' => '2026-07-06',
             'target_audience' => 'Warga Desa Sukamakmur',
             'method' => 'Workshop dan pendampingan langsung',
             'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
@@ -161,8 +162,9 @@ class KKNSeeder extends Seeder
         $prog2 = Program::create([
             'group_id' => $group1->id,
             'student_id' => null, // Multidisiplin master
-            'title' => 'Pembuatan Website Profil Desa',
+            'title' => 'Pembuatan Profil Video Desa',
             'type' => ProgramType::Multidisiplin,
+            'execution_date' => '2026-07-06',
             'sequence' => 1,
             'problem_potential' => 'Tidak adanya media informasi resmi desa',
             'target_audience' => 'Perangkat Desa dan masyarakat umum',
@@ -181,6 +183,7 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Video Dokumenter Potensi UMKM Desa',
             'type' => ProgramType::Multidisiplin,
+            'execution_date' => '2026-07-15',
             'sequence' => 3, // MD 3 = Video Format
             'storyboard' => "Scene 1: Wawancara Kepala Desa\nScene 2: Aktivitas UMKM Kripik Singkong\nScene 3: Pemandangan Sawah Desa",
             'video_script' => "Opening: Selamat datang di Desa Sukamakmur...\nVoice Over: Desa ini memiliki banyak potensi...",
@@ -195,8 +198,9 @@ class KKNSeeder extends Seeder
         $prog4 = Program::create([
             'group_id' => $group1->id,
             'student_id' => null, // Multidisiplin master
-            'title' => 'Perbaikan Saluran Irigasi Persawahan',
-            'type' => ProgramType::Multidisiplin,
+            'title' => 'Kerja Bakti Membersihkan Irigasi Sawah',
+            'type' => ProgramType::Lainnya,
+            'execution_date' => '2026-07-20',
             'sequence' => 2,
             'problem_potential' => 'Saluran irigasi banyak yang tersumbat',
             'target_audience' => 'Petani Desa Sukamakmur',
@@ -210,36 +214,13 @@ class KKNSeeder extends Seeder
             'status' => ProgramStatus::Approved,
         ]);
 
-        // Add Program Dates as Schedule Events for Calendar (Table 8)
-        $dates = ['2026-07-06', '2026-07-07'];
-        foreach ($dates as $d) { \App\Models\ScheduleEvent::create(['group_id' => $group1->id, 'program_id' => $prog1->id, 'title' => 'Pelaksanaan: ' . $prog1->title, 'date' => $d]); }
-        $dates = ['2026-07-08', '2026-07-09', '2026-07-10'];
-        foreach ($dates as $d) { \App\Models\ScheduleEvent::create(['group_id' => $group1->id, 'program_id' => $prog2->id, 'title' => 'Pelaksanaan: ' . $prog2->title, 'date' => $d]); }
-        $dates = ['2026-07-15', '2026-07-16'];
-        foreach ($dates as $d) { \App\Models\ScheduleEvent::create(['group_id' => $group1->id, 'program_id' => $prog3->id, 'title' => 'Pelaksanaan: ' . $prog3->title, 'date' => $d]); }
-
-        // Add Schedule Events (Table 7)
-        \App\Models\ScheduleEvent::create([
-            'group_id' => $group1->id,
-            'title' => 'Upacara Penerjunan Mahasiswa KKN',
-            'date' => '2026-07-01',
-            'week_number' => 1,
-            'description' => 'Upacara pelepasan oleh Rektor Universitas',
-        ]);
-        \App\Models\ScheduleEvent::create([
-            'group_id' => $group1->id,
-            'title' => 'Observasi Lapangan dan Diskusi dengan Perangkat Desa',
-            'date' => '2026-07-02',
-            'week_number' => 1,
-            'description' => 'Survey pendahuluan di balai desa',
-        ]);
-
         // Group 2 — all approved (ready for PDF)
         $g2p1 = Program::create([
             'group_id' => $group2->id,
             'student_id' => $students[4]->id,
             'title' => 'Bimbingan Belajar Matematika Anak SD',
             'type' => ProgramType::SosialKemasyarakatan,
+            'execution_date' => '2026-07-22',
             'target_audience' => 'Siswa SD kelas 4-6 Desa Sidoharjo',
             'method' => 'Bimbingan belajar kelompok',
             'output_target' => '20 siswa meningkat nilai matematikanya',
@@ -252,8 +233,10 @@ class KKNSeeder extends Seeder
         $g2p2 = Program::create([
             'group_id' => $group2->id,
             'student_id' => $students[5]->id,
-            'title' => 'English Fun Day untuk Anak-Anak',
+            'title' => 'Sosialisasi Bahaya Stunting',
             'type' => ProgramType::SosialKemasyarakatan,
+            'execution_date' => '2026-07-08',
+            'sequence' => 1,
             'target_audience' => 'Anak-anak usia 7-12 tahun',
             'method' => 'Permainan edukatif dan lagu',
             'output_target' => '15 anak menguasai 50 kosakata dasar',

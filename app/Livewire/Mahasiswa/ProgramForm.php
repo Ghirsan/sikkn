@@ -33,6 +33,7 @@ class ProgramForm extends Component
     public string $target_audience = '';
     public string $output_target = '';
     public string $method = '';
+    public ?string $execution_date = null;
 
     // Participant Fields (Participants Table - LRK Phase)
     public string $role_in_program = '';
@@ -70,6 +71,7 @@ class ProgramForm extends Component
                 $this->method = $program->method ?? '';
                 $this->target_audience = $program->target_audience ?? '';
                 $this->output_target = $program->output_target ?? '';
+                $this->execution_date = $program->execution_date?->format('Y-m-d');
             }
 
             if ($this->participantId) {
@@ -127,6 +129,7 @@ class ProgramForm extends Component
                 'title' => 'required|string|max:255',
                 'role_in_program' => 'required|string',
                 'responsibility' => 'required|string',
+                'execution_date' => 'required|date',
             ]);
         } else {
             $this->validate([
@@ -136,6 +139,7 @@ class ProgramForm extends Component
                 'method' => 'required|string',
                 'target_audience' => 'required|string',
                 'output_target' => 'required|string',
+                'execution_date' => 'required|date',
             ]);
         }
 
@@ -150,10 +154,12 @@ class ProgramForm extends Component
                     'method' => $this->method,
                     'target_audience' => $this->target_audience,
                     'output_target' => $this->output_target,
+                    'execution_date' => $this->execution_date,
                 ]);
             } elseif ($this->formMode === 'create_individual') {
                 $program->update([
                     'title' => $this->title,
+                    'execution_date' => $this->execution_date,
                 ]);
             }
         } else {
@@ -178,6 +184,7 @@ class ProgramForm extends Component
                     'group_id' => $user->group_id,
                     'title' => $this->title,
                     'type' => $this->type,
+                    'execution_date' => $this->execution_date,
                     'sequence' => $nextSequence,
                 ]);
                 $this->programId = $program->id;

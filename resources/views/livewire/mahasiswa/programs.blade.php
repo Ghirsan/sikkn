@@ -36,6 +36,9 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title ?: '(Belum Diisi)' }}</span>
+                                    @if($program->execution_date)
+                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     @if($myRole)
@@ -118,6 +121,9 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                    @if($program->execution_date)
+                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     @if($myRole && $myRole->role_in_program)
@@ -205,6 +211,9 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                    @if($program->execution_date)
+                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     @if($myRole)
@@ -312,8 +321,16 @@
                         <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
                         <flux:text>{{ $this->selectedProgram->getProgramCodeFor($this->selectedParticipant?->student_id) }}</flux:text>
                     </div>
-
                     <div>
+                        <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
+                        <flux:text>
+                            @if($this->selectedProgram->execution_date)
+                                {{ \Carbon\Carbon::parse($this->selectedProgram->execution_date)->format('d M Y') }}
+                            @else
+                                -
+                            @endif
+                        </flux:text>
+                    </div>                    <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
                         <flux:text>{{ $this->selectedProgram->problem_potential ?: '-' }}</flux:text>
                     </div>

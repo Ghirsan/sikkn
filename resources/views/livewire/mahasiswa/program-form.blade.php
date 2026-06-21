@@ -14,8 +14,8 @@
                 <flux:textarea wire:model="method" label="{{ __('Metode Pelaksanaan') }}" placeholder="{{ __('Metode yang digunakan') }}" rows="2" />
                 <flux:textarea wire:model="target_audience" label="{{ __('Kelompok Sasaran') }}" placeholder="{{ __('Siapa kelompok sasarannya?') }}" rows="2" />
             </div>
-            
             <flux:textarea wire:model="output_target" label="{{ __('Luaran') }}" placeholder="{{ __('Luaran / Output yang diharapkan') }}" rows="2" />
+            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" />
         @elseif($formMode === 'create_individual')
             @if($type === \App\Enums\ProgramType::SosialKemasyarakatan->value)
                 <flux:input wire:model="title" label="{{ __('Nama Program Sosial Kemasyarakatan') }}" placeholder="{{ __('Contoh: Bakti Sosial Soshum') }}" />
@@ -23,6 +23,7 @@
                 <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Lomba 17 Agustus') }}" />
             @endif
             
+            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" class="mt-2" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" class="mt-2" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 
