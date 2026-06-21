@@ -29,6 +29,45 @@ class Program extends Model
         ];
     }
 
+    protected static function booted()
+    {
+        static::deleted(function ($program) {
+            static::resequencePrograms($program->group_id, $program->type, $program->student_id);
+        });
+    }
+
+    public static function resequencePrograms($groupId, $type, $studentId = null)
+    {
+        if (!$groupId || !$type) return;
+
+        // Ambil sisa program di kelompok dan tipe yang sama, urutkan dari yang pertama dibuat
+        $query = static::where('group_id', $groupId)->where('type', $type);
+        
+        if ($studentId) {
+            $query->where('student_id', $studentId);
+        } else {
+            $query->whereNull('student_id');
+        }
+
+        $programs = $query->orderBy('id')->get();
+
+        $seq = 1;
+        foreach ($programs as $prog) {
+            if ($prog->sequence !== $seq) {
+                $prog->sequence = $seq;
+                $prog->saveQuietly(); // Hindari trigger event update berulang jika ada
+
+                // Perbarui kode partisipan yang berkaitan dengan program ini
+                foreach ($prog->participants as $participant) {
+                    $participant->setRelation('program', $prog);
+                    $participant->participant_code = ProgramParticipant::generateParticipantCode($participant);
+                    $participant->saveQuietly();
+                }
+            }
+            $seq++;
+        }
+    }
+
     /**
      * Get the formatted program code.
      * Format: {Type}{Sequence}M{Student_ID}
