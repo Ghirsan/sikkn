@@ -14,13 +14,11 @@ class LrkPdfController extends Controller
             'period',
             'dpls',
             'students',
-            'programs.student',
-            'programs.dates',
+            'programs.participants',
             'scheduleEvents',
             'surveyDocuments',
         ]);
 
-        $programs = $group->programs->where('status', \App\Enums\ProgramStatus::Approved);
         $period = $group->period;
 
         $calendar = [];
@@ -33,13 +31,15 @@ class LrkPdfController extends Controller
             });
 
             $programsByDate = [];
-            foreach ($programs as $program) {
-                foreach ($program->dates as $pDate) {
-                    $dateStr = $pDate->date->format('Y-m-d');
-                    if (!isset($programsByDate[$dateStr])) {
-                        $programsByDate[$dateStr] = [];
+            foreach ($group->programs as $program) {
+                foreach ($program->participants as $participant) {
+                    if ($participant->status === \App\Enums\ProgramStatus::Approved && $participant->execution_date) {
+                        $dateStr = $participant->execution_date->format('Y-m-d');
+                        if (!isset($programsByDate[$dateStr])) {
+                            $programsByDate[$dateStr] = [];
+                        }
+                        $programsByDate[$dateStr][] = $participant;
                     }
-                    $programsByDate[$dateStr][] = $program;
                 }
             }
 
@@ -59,14 +59,24 @@ class LrkPdfController extends Controller
             }
         }
 
+        $approvedParticipants = collect();
+        foreach ($group->programs as $program) {
+            foreach ($program->participants as $participant) {
+                if ($participant->status === \App\Enums\ProgramStatus::Approved) {
+                    $participant->program = $program;
+                    $approvedParticipants->push($participant);
+                }
+            }
+        }
+
         $pdf = Pdf::loadView('pdf.lrk', [
             'group' => $group,
             'period' => $period,
             'dpls' => $group->dpls,
             'students' => $group->students,
-            'multidisiplin' => $programs->where('type', \App\Enums\ProgramType::Multidisiplin),
-            'sosialKemasyarakatan' => $programs->where('type', \App\Enums\ProgramType::SosialKemasyarakatan),
-            'lainnya' => $programs->where('type', \App\Enums\ProgramType::Lainnya),
+            'multidisiplin' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::Multidisiplin),
+            'sosialKemasyarakatan' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::SosialKemasyarakatan),
+            'lainnya' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::Lainnya),
             'scheduleEvents' => $group->scheduleEvents->sortBy('date'),
             'surveyDocuments' => $group->surveyDocuments->sortBy('sort_order'),
             'calendar' => $calendar,

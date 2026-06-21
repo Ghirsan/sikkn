@@ -18,12 +18,6 @@ class Program extends Model
         'title',
         'type',
         'sequence',
-        'execution_date',
-        'problem_potential',
-        'location',
-        'target_audience',
-        'method',
-        'output_target',
         'storyboard',
         'video_script',
     ];
@@ -32,7 +26,6 @@ class Program extends Model
     {
         return [
             'type' => ProgramType::class,
-            'execution_date' => 'date',
         ];
     }
 

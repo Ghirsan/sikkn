@@ -19,7 +19,22 @@ class ProgramParticipant extends Model
         'solution',
         'lpk_status',
         'lpk_revision_note',
+        'execution_date',
+        'problem_potential',
+        'location',
+        'method',
+        'target_audience',
+        'output_target',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => \App\Enums\ProgramStatus::class,
+            'lpk_status' => \App\Enums\ProgramStatus::class,
+            'execution_date' => 'date',
+        ];
+    }
 
     protected static function booted()
     {
@@ -48,13 +63,7 @@ class ProgramParticipant extends Model
         return "{$typePrefix}{$sequence}M{$participant->student_id}";
     }
 
-    protected function casts(): array
-    {
-        return [
-            'status' => \App\Enums\ProgramStatus::class,
-            'lpk_status' => \App\Enums\ProgramStatus::class,
-        ];
-    }
+
 
     public function program()
     {

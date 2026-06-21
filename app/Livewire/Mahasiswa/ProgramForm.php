@@ -66,24 +66,40 @@ class ProgramForm extends Component
             } else {
                 $this->formMode = 'edit_program';
                 $this->title = $program->title;
-                $this->problem_potential = $program->problem_potential ?? '';
-                $this->location = $program->location ?? '';
-                $this->method = $program->method ?? '';
-                $this->target_audience = $program->target_audience ?? '';
-                $this->output_target = $program->output_target ?? '';
-                $this->execution_date = $program->execution_date?->format('Y-m-d');
             }
 
             if ($this->participantId) {
                 $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
                 $this->role_in_program = $participant->role_in_program ?? '';
                 $this->responsibility = $participant->responsibility ?? '';
+                if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
+                    $this->execution_date = $participant->execution_date?->format('Y-m-d');
+                }
+                if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
+                    $this->problem_potential = $participant->problem_potential ?? '';
+                    $this->location = $participant->location ?? '';
+                    $this->method = $participant->method ?? '';
+                    $this->target_audience = $participant->target_audience ?? '';
+                    $this->output_target = $participant->output_target ?? '';
+                    $this->execution_date = $participant->execution_date?->format('Y-m-d');
+                }
             } else {
                 $participant = $program->participants()->where('student_id', $user->id)->first();
                 if ($participant) {
                     $this->participantId = $participant->id;
                     $this->role_in_program = $participant->role_in_program ?? '';
                     $this->responsibility = $participant->responsibility ?? '';
+                    if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
+                        $this->execution_date = $participant->execution_date?->format('Y-m-d');
+                    }
+                    if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
+                        $this->problem_potential = $participant->problem_potential ?? '';
+                        $this->location = $participant->location ?? '';
+                        $this->method = $participant->method ?? '';
+                        $this->target_audience = $participant->target_audience ?? '';
+                        $this->output_target = $participant->output_target ?? '';
+                        $this->execution_date = $participant->execution_date?->format('Y-m-d');
+                    }
                 }
             }
         } elseif ($this->action === 'lpk' && $this->participantId) {
@@ -123,6 +139,7 @@ class ProgramForm extends Component
             $this->validate([
                 'role_in_program' => 'required|string',
                 'responsibility' => 'required|string',
+                'execution_date' => 'required|date',
             ]);
         } elseif ($this->formMode === 'create_individual') {
             $this->validate([
@@ -146,20 +163,9 @@ class ProgramForm extends Component
         // 1. Handle Program Creation/Update
         if ($this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
-            if ($this->formMode === 'edit_program') {
+            if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
                 $program->update([
                     'title' => $this->title,
-                    'problem_potential' => $this->problem_potential,
-                    'location' => $this->location,
-                    'method' => $this->method,
-                    'target_audience' => $this->target_audience,
-                    'output_target' => $this->output_target,
-                    'execution_date' => $this->execution_date,
-                ]);
-            } elseif ($this->formMode === 'create_individual') {
-                $program->update([
-                    'title' => $this->title,
-                    'execution_date' => $this->execution_date,
                 ]);
             }
         } else {
@@ -184,7 +190,6 @@ class ProgramForm extends Component
                     'group_id' => $user->group_id,
                     'title' => $this->title,
                     'type' => $this->type,
-                    'execution_date' => $this->execution_date,
                     'sequence' => $nextSequence,
                 ]);
                 $this->programId = $program->id;
@@ -194,19 +199,50 @@ class ProgramForm extends Component
         // 2. Handle Participant Creation/Update
         if ($this->participantId) {
             $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
-            $participant->update([
+            
+            $participantData = [
                 'role_in_program' => $this->role_in_program,
                 'responsibility' => $this->responsibility,
                 'status' => ProgramStatus::Draft,
                 'revision_note' => null,
-            ]);
+            ];
+
+            if ($this->formMode === 'edit_peran') {
+                $participantData['execution_date'] = $this->execution_date;
+            }
+
+            if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
+                $participantData['problem_potential'] = $this->problem_potential;
+                $participantData['location'] = $this->location;
+                $participantData['method'] = $this->method;
+                $participantData['target_audience'] = $this->target_audience;
+                $participantData['output_target'] = $this->output_target;
+                $participantData['execution_date'] = $this->execution_date;
+            }
+            
+            $participant->update($participantData);
         } else {
-            $program->participants()->create([
+            $participantData = [
                 'student_id' => $user->id,
                 'role_in_program' => $this->role_in_program,
                 'responsibility' => $this->responsibility,
                 'status' => ProgramStatus::Draft,
-            ]);
+            ];
+
+            if ($this->formMode === 'edit_peran') {
+                $participantData['execution_date'] = $this->execution_date;
+            }
+
+            if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
+                $participantData['problem_potential'] = $this->problem_potential;
+                $participantData['location'] = $this->location;
+                $participantData['method'] = $this->method;
+                $participantData['target_audience'] = $this->target_audience;
+                $participantData['output_target'] = $this->output_target;
+                $participantData['execution_date'] = $this->execution_date;
+            }
+
+            $program->participants()->create($participantData);
         }
 
         session()->flash('success', 'Data program berhasil disimpan.');

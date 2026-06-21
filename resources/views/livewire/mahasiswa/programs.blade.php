@@ -36,8 +36,8 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title ?: '(Belum Diisi)' }}</span>
-                                    @if($program->execution_date)
-                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
+                                    @if($myRole && $myRole->execution_date)
+                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($myRole->execution_date)->format('d M Y') }}</div>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
@@ -120,8 +120,8 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
-                                    @if($program->execution_date)
-                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
+                                    @if($myRole && $myRole->execution_date)
+                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($myRole->execution_date)->format('d M Y') }}</div>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
@@ -203,8 +203,8 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
-                                    @if($program->execution_date)
-                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($program->execution_date)->format('d M Y') }}</div>
+                                    @if($myRole && $myRole->execution_date)
+                                        <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($myRole->execution_date)->format('d M Y') }}</div>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
@@ -313,42 +313,42 @@
                         <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
                         <flux:text>{{ $this->selectedProgram->getProgramCodeFor($this->selectedParticipant?->student_id) }}</flux:text>
                     </div>
-                    @if($this->selectedProgram->execution_date)
+                    @if($this->selectedParticipant && $this->selectedParticipant->execution_date)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
                         <flux:text>
-                            {{ \Carbon\Carbon::parse($this->selectedProgram->execution_date)->format('d M Y') }}
+                            {{ \Carbon\Carbon::parse($this->selectedParticipant->execution_date)->format('d M Y') }}
                         </flux:text>
                     </div>
                     @endif
-                    @if($this->selectedProgram->problem_potential)
+                    @if($this->selectedParticipant && $this->selectedParticipant->problem_potential)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->problem_potential }}</flux:text>
+                        <flux:text>{{ $this->selectedParticipant->problem_potential }}</flux:text>
                     </div>
                     @endif
-                    @if($this->selectedProgram->location)
+                    @if($this->selectedParticipant && $this->selectedParticipant->location)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->location }}</flux:text>
+                        <flux:text>{{ $this->selectedParticipant->location }}</flux:text>
                     </div>
                     @endif
-                    @if($this->selectedProgram->method)
+                    @if($this->selectedParticipant && $this->selectedParticipant->method)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->method }}</flux:text>
+                        <flux:text>{{ $this->selectedParticipant->method }}</flux:text>
                     </div>
                     @endif
-                    @if($this->selectedProgram->target_audience)
+                    @if($this->selectedParticipant && $this->selectedParticipant->target_audience)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->target_audience }}</flux:text>
+                        <flux:text>{{ $this->selectedParticipant->target_audience }}</flux:text>
                     </div>
                     @endif
-                    @if($this->selectedProgram->output_target)
+                    @if($this->selectedParticipant && $this->selectedParticipant->output_target)
                     <div class="sm:col-span-2">
                         <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->output_target }}</flux:text>
+                        <flux:text>{{ $this->selectedParticipant->output_target }}</flux:text>
                     </div>
                     @endif
                 </div>

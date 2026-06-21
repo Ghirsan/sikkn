@@ -32,7 +32,7 @@
                 <flux:text variant="strong">{{ $title }}</flux:text>
                 <flux:text class="text-xs">{{ __('Silakan isi peran spesifik Anda di dalam program ini.') }}</flux:text>
             </div>
-            
+            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 

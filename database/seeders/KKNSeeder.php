@@ -147,16 +147,16 @@ class KKNSeeder extends Seeder
             'student_id' => $students[0]->id, // Monodisiplin owner
             'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
             'type' => ProgramType::SosialKemasyarakatan,
-            'execution_date' => '2026-07-06',
-            'target_audience' => 'Warga Desa Sukamakmur',
-            'method' => 'Workshop dan pendampingan langsung',
-            'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
         ]);
         $prog1->participants()->create([
             'student_id' => $students[0]->id,
             'role_in_program' => 'Ketua Pelaksana',
             'responsibility' => 'Menyusun materi dan mengkoordinasi peserta',
             'status' => ProgramStatus::Approved,
+            'execution_date' => '2026-07-06',
+            'target_audience' => 'Warga Desa Sukamakmur',
+            'method' => 'Workshop dan pendampingan langsung',
+            'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
         ]);
 
         $prog2 = Program::create([
@@ -164,18 +164,18 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Pembuatan Profil Video Desa',
             'type' => ProgramType::Multidisiplin,
-            'execution_date' => '2026-07-06',
             'sequence' => 1,
-            'problem_potential' => 'Tidak adanya media informasi resmi desa',
-            'target_audience' => 'Perangkat Desa dan masyarakat umum',
-            'method' => 'Pengembangan website dan pelatihan admin',
-            'output_target' => 'Website profil desa aktif dan terkelola',
         ]);
         $prog2->participants()->create([
             'student_id' => $students[1]->id,
             'role_in_program' => 'Koordinator IT',
             'responsibility' => 'Membangun sistem dan hosting',
             'status' => ProgramStatus::Approved,
+            'execution_date' => '2026-07-06',
+            'problem_potential' => 'Tidak adanya media informasi resmi desa',
+            'target_audience' => 'Perangkat Desa dan masyarakat umum',
+            'method' => 'Pengembangan website dan pelatihan admin',
+            'output_target' => 'Website profil desa aktif dan terkelola',
         ]);
 
         $prog3 = Program::create([
@@ -183,7 +183,6 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Video Dokumenter Potensi UMKM Desa',
             'type' => ProgramType::Multidisiplin,
-            'execution_date' => '2026-07-15',
             'sequence' => 3, // MD 3 = Video Format
             'storyboard' => "Scene 1: Wawancara Kepala Desa\nScene 2: Aktivitas UMKM Kripik Singkong\nScene 3: Pemandangan Sawah Desa",
             'video_script' => "Opening: Selamat datang di Desa Sukamakmur...\nVoice Over: Desa ini memiliki banyak potensi...",
@@ -193,6 +192,7 @@ class KKNSeeder extends Seeder
             'role_in_program' => 'Sutradara & Editor',
             'responsibility' => 'Mengambil footage dan editing akhir',
             'status' => ProgramStatus::Approved,
+            'execution_date' => '2026-07-15',
         ]);
 
         $prog4 = Program::create([
@@ -200,18 +200,18 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Kerja Bakti Membersihkan Irigasi Sawah',
             'type' => ProgramType::Lainnya,
-            'execution_date' => '2026-07-20',
             'sequence' => 2,
-            'problem_potential' => 'Saluran irigasi banyak yang tersumbat',
-            'target_audience' => 'Petani Desa Sukamakmur',
-            'method' => 'Kerja bakti dan pembuatan saluran sekunder',
-            'output_target' => 'Aliran air sawah lancar',
         ]);
         $prog4->participants()->create([
             'student_id' => $students[3]->id,
             'role_in_program' => 'Koordinator Lapangan',
             'responsibility' => 'Mengatur logistik dan material',
             'status' => ProgramStatus::Approved,
+            'execution_date' => '2026-07-20',
+            'problem_potential' => 'Saluran irigasi banyak yang tersumbat',
+            'target_audience' => 'Petani Desa Sukamakmur',
+            'method' => 'Kerja bakti dan pembuatan saluran sekunder',
+            'output_target' => 'Aliran air sawah lancar',
         ]);
 
         // Group 2 — all approved (ready for PDF)
@@ -220,14 +220,14 @@ class KKNSeeder extends Seeder
             'student_id' => $students[4]->id,
             'title' => 'Bimbingan Belajar Matematika Anak SD',
             'type' => ProgramType::SosialKemasyarakatan,
-            'execution_date' => '2026-07-22',
-            'target_audience' => 'Siswa SD kelas 4-6 Desa Sidoharjo',
-            'method' => 'Bimbingan belajar kelompok',
-            'output_target' => '20 siswa meningkat nilai matematikanya',
         ]);
         $g2p1->participants()->create([
             'student_id' => $students[4]->id,
             'status' => ProgramStatus::Approved,
+            'execution_date' => '2026-07-22',
+            'target_audience' => 'Siswa SD kelas 4-6 Desa Sidoharjo',
+            'method' => 'Bimbingan belajar kelompok',
+            'output_target' => '20 siswa meningkat nilai matematikanya',
         ]);
 
         $g2p2 = Program::create([
@@ -235,15 +235,15 @@ class KKNSeeder extends Seeder
             'student_id' => $students[5]->id,
             'title' => 'Sosialisasi Bahaya Stunting',
             'type' => ProgramType::SosialKemasyarakatan,
-            'execution_date' => '2026-07-08',
             'sequence' => 1,
-            'target_audience' => 'Anak-anak usia 7-12 tahun',
-            'method' => 'Permainan edukatif dan lagu',
-            'output_target' => '15 anak menguasai 50 kosakata dasar',
         ]);
         $g2p2->participants()->create([
             'student_id' => $students[5]->id,
             'status' => ProgramStatus::Approved,
+            'execution_date' => '2026-07-08',
+            'target_audience' => 'Anak-anak usia 7-12 tahun',
+            'method' => 'Permainan edukatif dan lagu',
+            'output_target' => '15 anak menguasai 50 kosakata dasar',
         ]);
 
         $g2p3 = Program::create([
@@ -251,13 +251,13 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin
             'title' => 'Pelatihan Komputer Dasar untuk Perangkat Desa',
             'type' => ProgramType::Multidisiplin,
-            'target_audience' => 'Perangkat Desa Sidoharjo',
-            'method' => 'Workshop hands-on',
-            'output_target' => '10 perangkat desa mampu mengoperasikan aplikasi perkantoran',
         ]);
         $g2p3->participants()->create([
             'student_id' => $students[6]->id,
             'status' => ProgramStatus::Approved,
+            'target_audience' => 'Perangkat Desa Sidoharjo',
+            'method' => 'Workshop hands-on',
+            'output_target' => '10 perangkat desa mampu mengoperasikan aplikasi perkantoran',
         ]);
 
         // ── 7. Daily Logs — Minggu 1 (Andi — student[0]) ──────────
