@@ -54,7 +54,7 @@ class ProgramForm extends Component
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
             $this->type = $program->type->value;
             
-            $isVideoProfile = $this->isVideoProfile($program->title, $program->theme);
+            $isVideoProfile = $this->isVideoProfile($program->title);
 
             if ($program->type === ProgramType::SosialKemasyarakatan || $program->type === ProgramType::Lainnya) {
                 $this->formMode = 'create_individual';
@@ -99,14 +99,12 @@ class ProgramForm extends Component
         }
     }
 
-    private function isVideoProfile(?string $title, ?string $theme): bool
+    private function isVideoProfile(?string $title): bool
     {
-        if (!$title && !$theme) return false;
-        return str_contains(strtolower($title ?? ''), 'video profile') || 
-               str_contains(strtolower($theme ?? ''), 'video profile') ||
-               str_contains(strtolower($title ?? ''), 'video profil') ||
-               str_contains(strtolower($theme ?? ''), 'video profil') ||
-               str_contains(strtolower($title ?? ''), 'video dokumenter');
+        if (!$title) return false;
+        return str_contains(strtolower($title), 'video profile') || 
+               str_contains(strtolower($title), 'video profil') ||
+               str_contains(strtolower($title), 'video dokumenter');
     }
 
     public function save()
@@ -171,11 +169,16 @@ class ProgramForm extends Component
                     }
                 }
 
+                $nextSequence = Program::where('student_id', $user->id)
+                    ->where('type', $this->type)
+                    ->max('sequence') + 1;
+
                 $program = Program::create([
                     'student_id' => $user->id,
                     'group_id' => $user->group_id,
                     'title' => $this->title,
                     'type' => $this->type,
+                    'sequence' => $nextSequence,
                 ]);
                 $this->programId = $program->id;
             }

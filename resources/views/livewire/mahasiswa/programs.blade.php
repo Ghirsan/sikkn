@@ -21,6 +21,7 @@
             @else
                 <flux:table>
                     <flux:table.columns>
+                        <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Usulan Program') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
@@ -30,6 +31,9 @@
                         @foreach($multidisiplinPrograms as $program)
                             @php $myRole = $program->participants->first(); @endphp
                             <flux:table.row :key="$program->id">
+                                <flux:table.cell>
+                                    <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $program->getProgramCodeFor($myRole?->student_id) }}</span>
+                                </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title ?: '(Belum Diisi)' }}</span>
                                 </flux:table.cell>
@@ -98,6 +102,7 @@
             @else
                 <flux:table>
                     <flux:table.columns>
+                        <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
                         <flux:table.column>{{ __('Peran Saya') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
@@ -108,6 +113,9 @@
                         @foreach($sosmasPrograms as $program)
                             @php $myRole = $program->participants->first(); @endphp
                             <flux:table.row :key="$program->id">
+                                <flux:table.cell>
+                                    <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $program->getProgramCodeFor($myRole?->student_id) }}</span>
+                                </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
                                 </flux:table.cell>
@@ -182,6 +190,7 @@
             @else
                 <flux:table>
                     <flux:table.columns>
+                        <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
@@ -191,6 +200,9 @@
                         @foreach($lainnyaPrograms as $program)
                             @php $myRole = $program->participants->first(); @endphp
                             <flux:table.row :key="$program->id">
+                                <flux:table.cell>
+                                    <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $program->getProgramCodeFor($myRole?->student_id) }}</span>
+                                </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
                                 </flux:table.cell>
@@ -296,6 +308,11 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
+                        <flux:text>{{ $this->selectedProgram->getProgramCodeFor($this->selectedParticipant?->student_id) }}</flux:text>
+                    </div>
+
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
                         <flux:text>{{ $this->selectedProgram->problem_potential ?: '-' }}</flux:text>

@@ -16,7 +16,6 @@
             </div>
             
             <flux:textarea wire:model="output_target" label="{{ __('Luaran') }}" placeholder="{{ __('Luaran / Output yang diharapkan') }}" rows="2" />
-
         @elseif($formMode === 'create_individual')
             @if($type === \App\Enums\ProgramType::SosialKemasyarakatan->value)
                 <flux:input wire:model="title" label="{{ __('Nama Program Sosial Kemasyarakatan') }}" placeholder="{{ __('Contoh: Bakti Sosial Soshum') }}" />

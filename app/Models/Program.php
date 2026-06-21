@@ -17,13 +17,10 @@ class Program extends Model
         'student_id',
         'title',
         'type',
-        'theme',
-        'multidisciplinary_number',
+        'sequence',
         'problem_potential',
-        'target',
+        'location',
         'target_audience',
-        'budget',
-        'source_of_fund',
         'method',
         'output_target',
         'storyboard',
@@ -34,8 +31,49 @@ class Program extends Model
     {
         return [
             'type' => ProgramType::class,
-            'budget' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Get the formatted program code.
+     * Format: {Type}{Sequence}M{Student_ID}
+     * Example: M1M1, SK1M2, L1M3
+     */
+    public function getProgramCodeFor(?int $studentId = null): string
+    {
+        if (! $studentId) {
+            $studentId = $this->student_id;
+        }
+
+        // Jika student_id di tabel programs kosong (seperti pada program Multidisiplin)
+        // maka otomatis mengambil ID user yang sedang login (mahasiswa terkait).
+        if (! $studentId && auth()->check()) {
+            $studentId = auth()->id();
+        }
+
+        if ($studentId) {
+            $participant = $this->participants()->where('student_id', $studentId)->first();
+            if ($participant && $participant->participant_code) {
+                return $participant->participant_code;
+            }
+        }
+
+        $typePrefix = match ($this->type) {
+            ProgramType::Multidisiplin => 'M',
+            ProgramType::SosialKemasyarakatan => 'SK',
+            ProgramType::Lainnya => 'L',
+            default => 'X',
+        };
+
+        $sequence = $this->sequence ?? 1;
+        $studentId = $studentId ?? 0;
+
+        return "{$typePrefix}{$sequence}M{$studentId}";
+    }
+
+    public function getProgramCodeAttribute(): string
+    {
+        return $this->getProgramCodeFor();
     }
 
     /**
@@ -63,13 +101,7 @@ class Program extends Model
         return $this->hasMany(ProgramParticipant::class);
     }
 
-    /**
-     * Get the dates for this program.
-     */
-    public function dates(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(ProgramDate::class);
-    }
+
 
 
 

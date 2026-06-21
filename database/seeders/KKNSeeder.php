@@ -147,10 +147,7 @@ class KKNSeeder extends Seeder
             'student_id' => $students[0]->id, // Monodisiplin owner
             'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
             'type' => ProgramType::SosialKemasyarakatan,
-            'target' => 'Meningkatkan kemampuan literasi digital warga desa',
             'target_audience' => 'Warga Desa Sukamakmur',
-            'budget' => 500000,
-            'source_of_fund' => 'Dana Mandiri',
             'method' => 'Workshop dan pendampingan langsung',
             'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
         ]);
@@ -166,12 +163,9 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Pembuatan Website Profil Desa',
             'type' => ProgramType::Multidisiplin,
-            'theme' => 'Digitalisasi Layanan Desa',
-            'multidisciplinary_number' => 1,
+            'sequence' => 1,
             'problem_potential' => 'Tidak adanya media informasi resmi desa',
             'target_audience' => 'Perangkat Desa dan masyarakat umum',
-            'budget' => 300000,
-            'source_of_fund' => 'Dana Mandiri',
             'method' => 'Pengembangan website dan pelatihan admin',
             'output_target' => 'Website profil desa aktif dan terkelola',
         ]);
@@ -187,8 +181,7 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Video Dokumenter Potensi UMKM Desa',
             'type' => ProgramType::Multidisiplin,
-            'theme' => 'Video Profil Desa Sukamakmur',
-            'multidisciplinary_number' => 3, // MD 3 = Video Format
+            'sequence' => 3, // MD 3 = Video Format
             'storyboard' => "Scene 1: Wawancara Kepala Desa\nScene 2: Aktivitas UMKM Kripik Singkong\nScene 3: Pemandangan Sawah Desa",
             'video_script' => "Opening: Selamat datang di Desa Sukamakmur...\nVoice Over: Desa ini memiliki banyak potensi...",
         ]);
@@ -204,8 +197,7 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin master
             'title' => 'Perbaikan Saluran Irigasi Persawahan',
             'type' => ProgramType::Multidisiplin,
-            'theme' => 'Ketahanan Pangan Desa',
-            'multidisciplinary_number' => 2,
+            'sequence' => 2,
             'problem_potential' => 'Saluran irigasi banyak yang tersumbat',
             'target_audience' => 'Petani Desa Sukamakmur',
             'method' => 'Kerja bakti dan pembuatan saluran sekunder',
@@ -218,13 +210,13 @@ class KKNSeeder extends Seeder
             'status' => ProgramStatus::Approved,
         ]);
 
-        // Add Program Dates for Calendar (Table 8)
+        // Add Program Dates as Schedule Events for Calendar (Table 8)
         $dates = ['2026-07-06', '2026-07-07'];
-        foreach ($dates as $d) { \App\Models\ProgramDate::create(['program_id' => $prog1->id, 'date' => $d]); }
+        foreach ($dates as $d) { \App\Models\ScheduleEvent::create(['group_id' => $group1->id, 'program_id' => $prog1->id, 'title' => 'Pelaksanaan: ' . $prog1->title, 'date' => $d]); }
         $dates = ['2026-07-08', '2026-07-09', '2026-07-10'];
-        foreach ($dates as $d) { \App\Models\ProgramDate::create(['program_id' => $prog2->id, 'date' => $d]); }
+        foreach ($dates as $d) { \App\Models\ScheduleEvent::create(['group_id' => $group1->id, 'program_id' => $prog2->id, 'title' => 'Pelaksanaan: ' . $prog2->title, 'date' => $d]); }
         $dates = ['2026-07-15', '2026-07-16'];
-        foreach ($dates as $d) { \App\Models\ProgramDate::create(['program_id' => $prog3->id, 'date' => $d]); }
+        foreach ($dates as $d) { \App\Models\ScheduleEvent::create(['group_id' => $group1->id, 'program_id' => $prog3->id, 'title' => 'Pelaksanaan: ' . $prog3->title, 'date' => $d]); }
 
         // Add Schedule Events (Table 7)
         \App\Models\ScheduleEvent::create([
@@ -248,16 +240,12 @@ class KKNSeeder extends Seeder
             'student_id' => $students[4]->id,
             'title' => 'Bimbingan Belajar Matematika Anak SD',
             'type' => ProgramType::SosialKemasyarakatan,
-            'target' => 'Meningkatkan kemampuan berhitung anak SD',
             'target_audience' => 'Siswa SD kelas 4-6 Desa Sidoharjo',
-            'budget' => 250000,
-            'source_of_fund' => 'Dana Mandiri',
             'method' => 'Bimbingan belajar kelompok',
             'output_target' => '20 siswa meningkat nilai matematikanya',
         ]);
         $g2p1->participants()->create([
             'student_id' => $students[4]->id,
-            'timeline' => 'Minggu ke-1 s/d ke-6',
             'status' => ProgramStatus::Approved,
         ]);
 
@@ -266,16 +254,12 @@ class KKNSeeder extends Seeder
             'student_id' => $students[5]->id,
             'title' => 'English Fun Day untuk Anak-Anak',
             'type' => ProgramType::SosialKemasyarakatan,
-            'target' => 'Mengenalkan bahasa Inggris melalui permainan',
             'target_audience' => 'Anak-anak usia 7-12 tahun',
-            'budget' => 150000,
-            'source_of_fund' => 'Dana Mandiri',
             'method' => 'Permainan edukatif dan lagu',
             'output_target' => '15 anak menguasai 50 kosakata dasar',
         ]);
         $g2p2->participants()->create([
             'student_id' => $students[5]->id,
-            'timeline' => 'Minggu ke-2 s/d ke-5',
             'status' => ProgramStatus::Approved,
         ]);
 
@@ -284,16 +268,12 @@ class KKNSeeder extends Seeder
             'student_id' => null, // Multidisiplin
             'title' => 'Pelatihan Komputer Dasar untuk Perangkat Desa',
             'type' => ProgramType::Multidisiplin,
-            'target' => 'Meningkatkan kemampuan IT perangkat desa',
             'target_audience' => 'Perangkat Desa Sidoharjo',
-            'budget' => 400000,
-            'source_of_fund' => 'Dana Mandiri',
             'method' => 'Workshop hands-on',
             'output_target' => '10 perangkat desa mampu mengoperasikan aplikasi perkantoran',
         ]);
         $g2p3->participants()->create([
             'student_id' => $students[6]->id,
-            'timeline' => 'Minggu ke-3 s/d ke-5',
             'status' => ProgramStatus::Approved,
         ]);
 
