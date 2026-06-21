@@ -313,43 +313,56 @@
                         <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
                         <flux:text>{{ $this->selectedProgram->getProgramCodeFor($this->selectedParticipant?->student_id) }}</flux:text>
                     </div>
+                    @if($this->selectedProgram->execution_date)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
                         <flux:text>
-                            @if($this->selectedProgram->execution_date)
-                                {{ \Carbon\Carbon::parse($this->selectedProgram->execution_date)->format('d M Y') }}
-                            @else
-                                -
-                            @endif
+                            {{ \Carbon\Carbon::parse($this->selectedProgram->execution_date)->format('d M Y') }}
                         </flux:text>
-                    </div>                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->problem_potential ?: '-' }}</flux:text>
                     </div>
+                    @endif
+                    @if($this->selectedProgram->problem_potential)
+                    <div>
+                        <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
+                        <flux:text>{{ $this->selectedProgram->problem_potential }}</flux:text>
+                    </div>
+                    @endif
+                    @if($this->selectedProgram->location)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->location ?: '-' }}</flux:text>
+                        <flux:text>{{ $this->selectedProgram->location }}</flux:text>
                     </div>
+                    @endif
+                    @if($this->selectedProgram->method)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->method ?: '-' }}</flux:text>
+                        <flux:text>{{ $this->selectedProgram->method }}</flux:text>
                     </div>
+                    @endif
+                    @if($this->selectedProgram->target_audience)
                     <div>
                         <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->target_audience ?: '-' }}</flux:text>
+                        <flux:text>{{ $this->selectedProgram->target_audience }}</flux:text>
                     </div>
+                    @endif
+                    @if($this->selectedProgram->output_target)
                     <div class="sm:col-span-2">
                         <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
-                        <flux:text>{{ $this->selectedProgram->output_target ?: '-' }}</flux:text>
+                        <flux:text>{{ $this->selectedProgram->output_target }}</flux:text>
                     </div>
+                    @endif
                 </div>
 
                 @if($this->selectedParticipant)
                     <flux:separator variant="subtle" />
                     <div>
                         <flux:heading size="md" class="mb-2">{{ __('Peran Anda') }}</flux:heading>
-                        <flux:text variant="strong" class="mb-1">{{ $this->selectedParticipant->role_in_program ?: '-' }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->responsibility ?: '-' }}</flux:text>
+                        @if($this->selectedParticipant->role_in_program)
+                            <flux:text variant="strong" class="mb-1">{{ $this->selectedParticipant->role_in_program }}</flux:text>
+                        @endif
+                        @if($this->selectedParticipant->responsibility)
+                            <flux:text>{{ $this->selectedParticipant->responsibility }}</flux:text>
+                        @endif
                         
                         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -371,18 +384,24 @@
                         <div>
                             <flux:heading size="md" class="mb-2">{{ __('Laporan Pelaksanaan') }}</flux:heading>
                             <div class="grid grid-cols-1 gap-4">
+                                @if($this->selectedParticipant->achievement)
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Hasil yang Dicapai') }}</flux:text>
-                                    <flux:text>{{ $this->selectedParticipant->achievement ?: '-' }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->achievement }}</flux:text>
                                 </div>
+                                @endif
+                                @if($this->selectedParticipant->obstacle)
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Hambatan') }}</flux:text>
-                                    <flux:text>{{ $this->selectedParticipant->obstacle ?: '-' }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->obstacle }}</flux:text>
                                 </div>
+                                @endif
+                                @if($this->selectedParticipant->solution)
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Solusi') }}</flux:text>
-                                    <flux:text>{{ $this->selectedParticipant->solution ?: '-' }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->solution }}</flux:text>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     @endif
