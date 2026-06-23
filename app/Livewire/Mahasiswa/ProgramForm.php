@@ -197,51 +197,37 @@ class ProgramForm extends Component
         }
 
         // 2. Handle Participant Creation/Update
+        $participantData = [
+            'status' => ProgramStatus::Draft,
+        ];
+
+        // Ensure we preserve existing role/responsibility for edit_program
+        // or update them if provided in create_individual/edit_peran
+        $participantData['role_in_program'] = $this->role_in_program ?: null;
+        $participantData['responsibility'] = $this->responsibility ?: null;
+        
+        if ($this->formMode === 'edit_peran' || $this->formMode === 'create_individual') {
+            $participantData['execution_date'] = $this->execution_date ?: null;
+            $participantData['problem_potential'] = null;
+            $participantData['location'] = null;
+            $participantData['method'] = null;
+            $participantData['target_audience'] = null;
+            $participantData['output_target'] = null;
+        } elseif ($this->formMode === 'edit_program') {
+            $participantData['problem_potential'] = $this->problem_potential ?: null;
+            $participantData['location'] = $this->location ?: null;
+            $participantData['method'] = $this->method ?: null;
+            $participantData['target_audience'] = $this->target_audience ?: null;
+            $participantData['output_target'] = $this->output_target ?: null;
+            $participantData['execution_date'] = $this->execution_date ?: null;
+        }
+
         if ($this->participantId) {
             $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
-            
-            $participantData = [
-                'role_in_program' => $this->role_in_program,
-                'responsibility' => $this->responsibility,
-                'status' => ProgramStatus::Draft,
-                'revision_note' => null,
-            ];
-
-            if ($this->formMode === 'edit_peran') {
-                $participantData['execution_date'] = $this->execution_date;
-            }
-
-            if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
-                $participantData['problem_potential'] = $this->problem_potential;
-                $participantData['location'] = $this->location;
-                $participantData['method'] = $this->method;
-                $participantData['target_audience'] = $this->target_audience;
-                $participantData['output_target'] = $this->output_target;
-                $participantData['execution_date'] = $this->execution_date;
-            }
-            
+            $participantData['revision_note'] = null;
             $participant->update($participantData);
         } else {
-            $participantData = [
-                'student_id' => $user->id,
-                'role_in_program' => $this->role_in_program,
-                'responsibility' => $this->responsibility,
-                'status' => ProgramStatus::Draft,
-            ];
-
-            if ($this->formMode === 'edit_peran') {
-                $participantData['execution_date'] = $this->execution_date;
-            }
-
-            if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
-                $participantData['problem_potential'] = $this->problem_potential;
-                $participantData['location'] = $this->location;
-                $participantData['method'] = $this->method;
-                $participantData['target_audience'] = $this->target_audience;
-                $participantData['output_target'] = $this->output_target;
-                $participantData['execution_date'] = $this->execution_date;
-            }
-
+            $participantData['student_id'] = $user->id;
             $program->participants()->create($participantData);
         }
 

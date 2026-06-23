@@ -13,15 +13,20 @@ class LrkDocuments extends Component
         $user = Auth::user();
         $group = $user->group;
 
-        $programs = $group ? $group->programs()->with('student')->where('status', ProgramStatus::Approved)->get() : collect();
-        $totalPrograms = $group ? $group->programs()->count() : 0;
-        $approvedCount = $programs->count();
-        $allApproved = $totalPrograms > 0 && $approvedCount === $totalPrograms;
+        $participants = $group ? \App\Models\ProgramParticipant::with(['program', 'student'])
+            ->whereHas('program', function($q) use ($group) {
+                $q->where('group_id', $group->id);
+            })->get() : collect();
+
+        $totalParticipants = $participants->count();
+        $approvedParticipants = $participants->where('status', ProgramStatus::Approved);
+        $approvedCount = $approvedParticipants->count();
+        $allApproved = $totalParticipants > 0 && $approvedCount === $totalParticipants;
 
         return view('livewire.mahasiswa.lrk-documents', [
             'group' => $group,
-            'programs' => $programs,
-            'totalPrograms' => $totalPrograms,
+            'approvedParticipants' => $approvedParticipants,
+            'totalParticipants' => $totalParticipants,
             'approvedCount' => $approvedCount,
             'allApproved' => $allApproved,
         ]);

@@ -19,7 +19,7 @@
     @else
         <flux:callout variant="warning" icon="information-circle">
             <flux:callout.heading>{{ __('PDF LRK Belum Siap') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh rencana program kerja disetujui DPL.') }} {{ $approvedCount }}/{{ $totalPrograms }} {{ __('program disetujui') }}.</flux:callout.text>
+            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh rencana program kerja disetujui DPL.') }} {{ $approvedCount }}/{{ $totalParticipants }} {{ __('rencana disetujui') }}.</flux:callout.text>
         </flux:callout>
     @endif
 
@@ -30,22 +30,24 @@
 
     <flux:card>
 
-        @if($programs->isEmpty())
+        @if($approvedParticipants->isEmpty())
             <x-empty-state icon="document-text" :heading="__('Belum Ada Program Disetujui')" />
         @else
             <flux:table>
                 <flux:table.columns>
+                    <flux:table.column>{{ __('Kode') }}</flux:table.column>
                     <flux:table.column>{{ __('Program') }}</flux:table.column>
                     <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
                     <flux:table.column>{{ __('Jenis') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
-                    @foreach($programs as $program)
-                        <flux:table.row :key="$program->id">
-                            <flux:table.cell variant="strong">{{ $program->title }}</flux:table.cell>
-                            <flux:table.cell>{{ $program->student->name }}</flux:table.cell>
+                    @foreach($approvedParticipants as $participant)
+                        <flux:table.row :key="$participant->id">
+                            <flux:table.cell>{{ $participant->program->getProgramCodeFor($participant->student_id) }}</flux:table.cell>
+                            <flux:table.cell variant="strong">{{ $participant->program->title }}</flux:table.cell>
+                            <flux:table.cell>{{ $participant->student->name }}</flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" color="zinc">{{ $program->type->label() }}</flux:badge>
+                                <flux:badge size="sm" color="zinc">{{ $participant->program->type->label() }}</flux:badge>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
