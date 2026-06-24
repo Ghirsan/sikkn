@@ -85,7 +85,7 @@
                 <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
                     <div class="flex-1">
                         <flux:heading size="lg">{{ __('Program Sosial Kemasyarakatan') }}</flux:heading>
-                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Maksimal 1 program.') }}</flux:text>
+                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Wajib dibuat 1 program.') }}</flux:text>
                     </div>
                     <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
                     <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
@@ -176,8 +176,8 @@
             <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
                 <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
                     <div class="flex-1">
-                        <flux:heading size="lg">{{ __('Program Lainnya (Bebas)') }}</flux:heading>
-                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Daftar program tambahan Anda.') }}</flux:text>
+                        <flux:heading size="lg">{{ __('Program Lainnya') }}</flux:heading>
+                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Daftar program lainnya Anda. Wajib minimal 1 program.') }}</flux:text>
                     </div>
                     <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
                     <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
@@ -198,7 +198,7 @@
                         </div>
                         <flux:card>
             @if($lainnyaPrograms->isEmpty())
-                <x-empty-state icon="document-plus" :heading="__('Belum Ada Program Tambahan')" :description="__('Silakan tambah program jika ada kegiatan di luar program wajib.')" />
+                <x-empty-state icon="document-plus" :heading="__('Belum Ada Program')" :description="__('Silakan buat minimal 1 Program Lainnya.')" />
             @else
                 <flux:table>
                     <flux:table.columns>

@@ -185,7 +185,7 @@ class ProgramForm extends Component
         // 1. Handle Program Creation/Update
         if ($this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
-            if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual') {
+            if ($this->formMode === 'create_individual') {
                 $program->update([
                     'title' => $this->title,
                 ]);

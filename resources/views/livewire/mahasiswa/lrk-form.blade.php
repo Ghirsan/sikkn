@@ -20,7 +20,7 @@
 
                 <flux:textarea wire:model="program_sosmas_text" label="{{ __('Program Sosial Kemasyarakatan') }}" rows="4" placeholder="{{ __('Program sosial kemasyarakatan yang dirancang bertujuan untuk ...') }}" />
 
-                <flux:textarea wire:model="program_lainnya_text" label="{{ __('Program Lainnya (Bebas)') }}" rows="4" placeholder="{{ __('Selain program utama, kelompok juga merencanakan ...') }}" />
+                <flux:textarea wire:model="program_lainnya_text" label="{{ __('Program Lainnya') }}" rows="4" placeholder="{{ __('Selain program utama, kelompok juga merencanakan ...') }}" />
             </div>
         </div>
 

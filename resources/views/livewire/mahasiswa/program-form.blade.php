@@ -3,7 +3,10 @@
         
         @if($formMode === 'edit_program')
             
-            <flux:input wire:model="title" label="{{ __('Usulan Program') }}" placeholder="{{ __('Contoh: Penyuluhan Kesehatan Masyarakat') }}" />
+            <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
+                <flux:text variant="strong">{{ $title }}</flux:text>
+                <flux:text class="text-xs">{{ __('Silakan isi detail usulan program ini dari perspektif keilmuan Anda.') }}</flux:text>
+            </div>
             
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <flux:textarea wire:model="problem_potential" label="{{ __('Potensi / Permasalahan') }}" placeholder="{{ __('Sebutkan potensi atau masalah') }}" rows="2" />
