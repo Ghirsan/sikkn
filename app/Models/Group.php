@@ -26,6 +26,13 @@ class Group extends Model
         'is_lrk_locked',
         'is_lpk_locked',
         'location_map_path',
+        'program_multidisiplin_text',
+        'program_sosmas_text',
+        'program_lainnya_text',
+        'storyboard_text',
+        'video_script_text',
+        'survey_documentation_text',
+        'location_map_text',
     ];
 
     protected function casts(): array

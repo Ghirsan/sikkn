@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('programs', 'mahasiswa.programs.index')->name('programs.index');
         Route::view('programs/form', 'mahasiswa.programs.form')->name('programs.form');
         Route::view('lrk', 'mahasiswa.lrk.index')->name('lrk.index');
+        Route::view('lrk/form', 'mahasiswa.lrk.form')->name('lrk.form');
         Route::view('lpk', 'mahasiswa.lpk.index')->name('lpk.index');
         Route::view('logbook', 'mahasiswa.logbook.index')->name('logbook.index');
         Route::view('mentoring-logs', 'mahasiswa.mentoring-logs.index')->name('mentoring-logs.index');
