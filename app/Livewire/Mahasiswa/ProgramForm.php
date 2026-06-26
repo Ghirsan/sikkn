@@ -160,28 +160,6 @@ class ProgramForm extends Component
             ]);
         }
 
-        // Sequence Validation Check for UI Bypasses
-        if ($this->action === 'create' || ($this->action === 'edit' && $this->formMode === 'create_individual')) {
-            if ($this->type === ProgramType::SosialKemasyarakatan->value || $this->type === ProgramType::Lainnya->value) {
-                $multidisiplinPrograms = Program::where('group_id', $user->group_id)->where('type', ProgramType::Multidisiplin)->get();
-                foreach ($multidisiplinPrograms as $prog) {
-                    $part = $prog->participants()->where('student_id', $user->id)->first();
-                    if (!$part || empty($part->role_in_program) || empty($part->responsibility) || empty($part->execution_date)) {
-                        session()->flash('error', 'Gagal: Isi seluruh peran Multidisiplin terlebih dahulu.');
-                        return $this->redirect(route('programs.index'), navigate: true);
-                    }
-                }
-            }
-
-            if ($this->type === ProgramType::Lainnya->value) {
-                $hasSosmas = Program::where('student_id', $user->id)->where('type', ProgramType::SosialKemasyarakatan)->exists();
-                if (!$hasSosmas) {
-                    session()->flash('error', 'Gagal: Buat program Sosial Kemasyarakatan terlebih dahulu.');
-                    return $this->redirect(route('programs.index'), navigate: true);
-                }
-            }
-        }
-
         // 1. Handle Program Creation/Update
         if ($this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);

@@ -94,16 +94,9 @@
                     <div class="pt-4 flex flex-col gap-4">
                         @if($sosmasPrograms->isEmpty())
                             <div class="flex justify-end items-center gap-4">
-                                @if(!$isMultidisiplinFilled)
-                                    <div class="text-sm text-red-500">{{ __('Isi seluruh peran Multidisiplin terlebih dahulu.') }}</div>
-                                    <flux:button disabled variant="filled" size="sm" icon="plus">
-                                        {{ __('Tambah Program') }}
-                                    </flux:button>
-                                @else
-                                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::SosialKemasyarakatan->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
-                                        {{ __('Tambah Program') }}
-                                    </flux:button>
-                                @endif
+                                <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::SosialKemasyarakatan->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                                    {{ __('Tambah Program') }}
+                                </flux:button>
                             </div>
                         @endif
                         <flux:card>
@@ -185,16 +178,9 @@
                 <div x-show="open" x-collapse>
                     <div class="pt-4 flex flex-col gap-4">
                         <div class="flex justify-end items-center gap-4">
-                            @if(!$hasSosmas)
-                                <div class="text-sm text-red-500">{{ __('Buat program Sosial Kemasyarakatan terlebih dahulu.') }}</div>
-                                <flux:button disabled variant="filled" size="sm" icon="plus">
-                                    {{ __('Tambah Program') }}
-                                </flux:button>
-                            @else
-                                <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::Lainnya->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
-                                    {{ __('Tambah Program') }}
-                                </flux:button>
-                            @endif
+                            <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::Lainnya->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                                {{ __('Tambah Program') }}
+                            </flux:button>
                         </div>
                         <flux:card>
             @if($lainnyaPrograms->isEmpty())
