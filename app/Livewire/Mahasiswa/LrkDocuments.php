@@ -7,9 +7,17 @@ use App\Enums\ProgramType;
 use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class LrkDocuments extends Component
 {
+    use WithPagination;
+
+    public ?string $filterType = '';
+    public ?string $filterStatus = '';
+    public string $search = '';
+    public string $sortBy = 'execution_date';
+    public string $sortDirection = 'asc';
     public ?int $selectedProgramId = null;
     public ?int $selectedParticipantId = null;
 
@@ -17,7 +25,22 @@ class LrkDocuments extends Component
     {
         $this->selectedProgramId = $programId;
         $this->selectedParticipantId = $participantId;
+        $this->selectedParticipantId = $participantId;
         $this->js('$flux.modal("view-program").show()');
+    }
+
+    public function updatedFilterType() { $this->resetPage(); }
+    public function updatedFilterStatus() { $this->resetPage(); }
+    public function updatedSearch() { $this->resetPage(); }
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
     }
 
     #[\Livewire\Attributes\Computed]
@@ -105,14 +128,35 @@ class LrkDocuments extends Component
         // Ensure LRK is only ready if all participants are approved AND all students meet the minimum program requirements
         $allApproved = $totalParticipants > 0 && $approvedCount === $totalParticipants && $allStudentsMeetMinimumRequirements;
 
-        // Group participants by program type for the detail table
-        $multidisiplinParticipants = $participants->filter(fn($p) => $p->program->type === ProgramType::Multidisiplin)
-            ->sortBy(fn($p) => $p->program->sequence);
-        $sosmasParticipants = $participants->filter(fn($p) => $p->program->type === ProgramType::SosialKemasyarakatan)
-            ->sortBy(fn($p) => $p->program->sequence);
-        $lainnyaParticipants = $participants->filter(fn($p) => $p->program->type === ProgramType::Lainnya)
-            ->sortBy(fn($p) => $p->program->sequence);
+        // Query for the paginated detail table
+        $paginatedParticipants = collect();
+        if ($group) {
+            $query = ProgramParticipant::with(['program', 'student'])
+                ->join('programs', 'program_participants.program_id', '=', 'programs.id')
+                ->where('programs.group_id', $group->id)
+                ->select('program_participants.*');
 
+            if ($this->filterType) {
+                $query->where('programs.type', $this->filterType);
+            }
+            if ($this->filterStatus) {
+                $query->where('program_participants.status', $this->filterStatus);
+            }
+            if ($this->search) {
+                $query->where('programs.title', 'like', '%' . $this->search . '%')
+                      ->orWhere('program_participants.participant_code', 'like', '%' . $this->search . '%');
+            }
+
+            if ($this->sortBy === 'execution_date') {
+                $query->orderBy('program_participants.execution_date', $this->sortDirection);
+            }
+
+            $query->orderBy('programs.type')
+                  ->orderBy('programs.sequence')
+                  ->orderBy('program_participants.student_id');
+
+            $paginatedParticipants = $query->paginate(10);
+        }
         // Check if current user is group leader
         $isLeader = $group && $group->student_leader_id === $user->id;
 
@@ -131,9 +175,7 @@ class LrkDocuments extends Component
             'allApproved' => $allApproved,
             'progressPercent' => $progressPercent,
             'memberSummary' => $memberSummary,
-            'multidisiplinParticipants' => $multidisiplinParticipants,
-            'sosmasParticipants' => $sosmasParticipants,
-            'lainnyaParticipants' => $lainnyaParticipants,
+            'paginatedParticipants' => $paginatedParticipants,
             'isLeader' => $isLeader,
             'filledReportFields' => $filledReportFields,
             'totalReportFields' => $totalReportFields,

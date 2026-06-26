@@ -104,223 +104,84 @@
 
     {{-- ═══ 3. DAFTAR RENCANA PROGRAM KELOMPOK ═══ --}}
     <div>
-        <flux:heading size="lg" class="mb-4">{{ __('Rincian Rencana Program Kelompok') }}</flux:heading>
-
-        <div class="w-full">
-            <div class="block">
-
-                {{-- Program Multidisiplin --}}
-                <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
-                    <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
-                        <div class="flex-1">
-                            <flux:heading size="md">{{ __('Program Multidisiplin') }}</flux:heading>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <flux:badge size="sm" color="zinc">{{ $multidisiplinParticipants->count() }}</flux:badge>
-                            <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
-                            <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
-                        </div>
-                    </button>
-                    <div x-show="open" x-collapse>
-                        <div class="pt-4">
-                            <flux:card>
-                                @if($multidisiplinParticipants->isEmpty())
-                                    <x-empty-state icon="light-bulb" :heading="__('Belum Ada Program')" />
-                                @else
-                                    <flux:table>
-                                        <flux:table.columns>
-                                            <flux:table.column>{{ __('Kode') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Program') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Penanggung Jawab') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Jadwal') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Status') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Aksi') }}</flux:table.column>
-                                        </flux:table.columns>
-                                        <flux:table.rows>
-                                            @foreach($multidisiplinParticipants as $participant)
-                                                <flux:table.row :key="$participant->id">
-                                                    <flux:table.cell>
-                                                        <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $participant->participant_code }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Belum Diisi)') }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <span class="text-sm">{{ $participant->student->name }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        @if($participant->execution_date)
-                                                            <span class="text-sm">{{ $participant->execution_date->format('d M Y') }}</span>
-                                                        @else
-                                                            <span class="text-sm text-zinc-400">-</span>
-                                                        @endif
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
-                                                        @if($participant->revision_note)
-                                                            <div class="mt-1 text-xs text-red-600">{{ $participant->revision_note }}</div>
-                                                        @endif
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <div class="flex items-center gap-1">
-                                                            <flux:button wire:click="viewProgram({{ $participant->program->id }}, {{ $participant->id }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
-                                                            @if($participant->student_id === auth()->id() && $participant->isEditable())
-                                                                <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $participant->program->id, 'participantId' => $participant->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit') }}</flux:button>
-                                                            @endif
-                                                        </div>
-                                                    </flux:table.cell>
-                                                </flux:table.row>
-                                            @endforeach
-                                        </flux:table.rows>
-                                    </flux:table>
-                                @endif
-                            </flux:card>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Program Sosial Kemasyarakatan --}}
-                <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
-                    <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
-                        <div class="flex-1">
-                            <flux:heading size="md">{{ __('Program Sosial Kemasyarakatan') }}</flux:heading>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <flux:badge size="sm" color="zinc">{{ $sosmasParticipants->count() }}</flux:badge>
-                            <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
-                            <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
-                        </div>
-                    </button>
-                    <div x-show="open" x-collapse>
-                        <div class="pt-4">
-                            <flux:card>
-                                @if($sosmasParticipants->isEmpty())
-                                    <x-empty-state icon="users" :heading="__('Belum Ada Program')" />
-                                @else
-                                    <flux:table>
-                                        <flux:table.columns>
-                                            <flux:table.column>{{ __('Kode') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Program') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Penanggung Jawab') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Jadwal') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Status') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Aksi') }}</flux:table.column>
-                                        </flux:table.columns>
-                                        <flux:table.rows>
-                                            @foreach($sosmasParticipants as $participant)
-                                                <flux:table.row :key="$participant->id">
-                                                    <flux:table.cell>
-                                                        <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $participant->participant_code }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <span class="text-sm">{{ $participant->student->name }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        @if($participant->execution_date)
-                                                            <span class="text-sm">{{ $participant->execution_date->format('d M Y') }}</span>
-                                                        @else
-                                                            <span class="text-sm text-zinc-400">-</span>
-                                                        @endif
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
-                                                        @if($participant->revision_note)
-                                                            <div class="mt-1 text-xs text-red-600">{{ $participant->revision_note }}</div>
-                                                        @endif
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <div class="flex items-center gap-1">
-                                                            <flux:button wire:click="viewProgram({{ $participant->program->id }}, {{ $participant->id }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
-                                                            @if($participant->student_id === auth()->id() && $participant->isEditable())
-                                                                <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $participant->program->id, 'participantId' => $participant->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit') }}</flux:button>
-                                                            @endif
-                                                        </div>
-                                                    </flux:table.cell>
-                                                </flux:table.row>
-                                            @endforeach
-                                        </flux:table.rows>
-                                    </flux:table>
-                                @endif
-                            </flux:card>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Program Lainnya --}}
-                <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
-                    <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
-                        <div class="flex-1">
-                            <flux:heading size="md">{{ __('Program Lainnya') }}</flux:heading>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <flux:badge size="sm" color="zinc">{{ $lainnyaParticipants->count() }}</flux:badge>
-                            <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
-                            <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
-                        </div>
-                    </button>
-                    <div x-show="open" x-collapse>
-                        <div class="pt-4">
-                            <flux:card>
-                                @if($lainnyaParticipants->isEmpty())
-                                    <x-empty-state icon="document-plus" :heading="__('Belum Ada Program')" />
-                                @else
-                                    <flux:table>
-                                        <flux:table.columns>
-                                            <flux:table.column>{{ __('Kode') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Program') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Penanggung Jawab') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Jadwal') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Status') }}</flux:table.column>
-                                            <flux:table.column>{{ __('Aksi') }}</flux:table.column>
-                                        </flux:table.columns>
-                                        <flux:table.rows>
-                                            @foreach($lainnyaParticipants as $participant)
-                                                <flux:table.row :key="$participant->id">
-                                                    <flux:table.cell>
-                                                        <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $participant->participant_code }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <span class="text-sm">{{ $participant->student->name }}</span>
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        @if($participant->execution_date)
-                                                            <span class="text-sm">{{ $participant->execution_date->format('d M Y') }}</span>
-                                                        @else
-                                                            <span class="text-sm text-zinc-400">-</span>
-                                                        @endif
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
-                                                        @if($participant->revision_note)
-                                                            <div class="mt-1 text-xs text-red-600">{{ $participant->revision_note }}</div>
-                                                        @endif
-                                                    </flux:table.cell>
-                                                    <flux:table.cell>
-                                                        <div class="flex items-center gap-1">
-                                                            <flux:button wire:click="viewProgram({{ $participant->program->id }}, {{ $participant->id }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
-                                                            @if($participant->student_id === auth()->id() && $participant->isEditable())
-                                                                <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $participant->program->id, 'participantId' => $participant->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit') }}</flux:button>
-                                                            @endif
-                                                        </div>
-                                                    </flux:table.cell>
-                                                </flux:table.row>
-                                            @endforeach
-                                        </flux:table.rows>
-                                    </flux:table>
-                                @endif
-                            </flux:card>
-                        </div>
-                    </div>
-                </div>
-
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
+            <flux:heading size="lg">{{ __('Rincian Rencana Program Kelompok') }}</flux:heading>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full xl:w-auto">
+                <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari judul atau kode...') }}" class="w-full sm:w-48" />
+                
+                <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-40">
+                    <flux:select.option value="">Semua Jenis Program</flux:select.option>
+                    <flux:select.option value="multidisiplin">Multidisiplin</flux:select.option>
+                    <flux:select.option value="sosial_kemasyarakatan">Sosial Kemasyarakatan</flux:select.option>
+                    <flux:select.option value="lainnya">Lainnya</flux:select.option>
+                </flux:select>
+                
+                <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-40">
+                    <flux:select.option value="">Semua Status</flux:select.option>
+                    @foreach(\App\Enums\ProgramStatus::cases() as $status)
+                        <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
             </div>
         </div>
+
+        <flux:card>
+            @if($paginatedParticipants->isEmpty())
+                <x-empty-state icon="document-text" :heading="__('Belum Ada Program')" :description="__('Belum ada data program yang sesuai dengan filter.')" />
+            @else
+                <flux:table :paginate="$paginatedParticipants">
+                    <flux:table.columns>
+                        <flux:table.column>{{ __('Kode') }}</flux:table.column>
+                        <flux:table.column>{{ __('Program') }}</flux:table.column>
+                        <flux:table.column>{{ __('Jenis') }}</flux:table.column>
+                        <flux:table.column>{{ __('Penanggung Jawab') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'execution_date'" :direction="$sortDirection" wire:click="sort('execution_date')">{{ __('Jadwal') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status') }}</flux:table.column>
+                        <flux:table.column>{{ __('Aksi') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach($paginatedParticipants as $participant)
+                            <flux:table.row :key="$participant->id">
+                                <flux:table.cell>
+                                    <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $participant->participant_code }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Belum Diisi)') }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ $participant->program->type->label() }}</flux:badge>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <span class="text-sm">{{ $participant->student->name }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    @if($participant->execution_date)
+                                        <span class="text-sm">{{ $participant->execution_date->format('d M Y') }}</span>
+                                    @else
+                                        <span class="text-sm text-zinc-400">-</span>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
+                                    @if($participant->revision_note)
+                                        <div class="mt-1 text-xs text-red-600">{{ $participant->revision_note }}</div>
+                                    @endif
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <div class="flex items-center gap-1">
+                                        <flux:button wire:click="viewProgram({{ $participant->program->id }}, {{ $participant->id }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
+                                        @if($participant->student_id === auth()->id() && $participant->isEditable())
+                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $participant->program->id, 'participantId' => $participant->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit') }}</flux:button>
+                                        @endif
+                                    </div>
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            @endif
+        </flux:card>
     </div>
 
     {{-- ═══ VIEW PROGRAM MODAL ═══ --}}
