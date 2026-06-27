@@ -4,18 +4,11 @@
         <div class="block">
             
             {{-- Program Multidisiplin --}}
-            <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
-                <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
-                    <div class="flex-1">
-                        <flux:heading size="lg">{{ __('Program Multidisiplin') }}</flux:heading>
-                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Isi detail Potensi, Usulan Program, Metode, dan Luaran untuk program multidisiplin kelompok Anda.') }}</flux:text>
-                    </div>
-                    <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
-                    <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
-                </button>
-                <div x-show="open" x-collapse>
-                    <div class="pt-4">
-                        <flux:card>
+            <x-accordion 
+                heading="Program Multidisiplin" 
+                description="Isi detail Potensi, Usulan Program, Metode, dan Luaran untuk program multidisiplin kelompok Anda."
+            >
+                <flux:card>
             @if($multidisiplinPrograms->isEmpty())
                 <x-empty-state icon="light-bulb" :heading="__('Belum Ada Program')" :description="__('DPL belum menetapkan kuota program multidisiplin.')" />
             @else
@@ -75,24 +68,16 @@
                     </flux:table.rows>
                 </flux:table>
             @endif
-                        </flux:card>
-                    </div>
-                </div>
-            </div>
+                </flux:card>
+            </x-accordion>
 
             {{-- Program Sosial Kemasyarakatan --}}
-            <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
-                <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
-                    <div class="flex-1">
-                        <flux:heading size="lg">{{ __('Program Sosial Kemasyarakatan') }}</flux:heading>
-                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Wajib dibuat 1 program.') }}</flux:text>
-                    </div>
-                    <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
-                    <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
-                </button>
-                <div x-show="open" x-collapse>
-                    <div class="pt-4 flex flex-col gap-4">
-                        @if($sosmasPrograms->isEmpty())
+            <x-accordion 
+                heading="Program Sosial Kemasyarakatan" 
+                description="Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Wajib dibuat 1 program."
+                contentClass="pt-4 flex flex-col gap-4"
+            >
+                @if($sosmasPrograms->isEmpty())
                             <div class="flex justify-end items-center gap-4">
                                 <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::SosialKemasyarakatan->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
                                     {{ __('Tambah Program') }}
@@ -160,24 +145,16 @@
                     </flux:table.rows>
                 </flux:table>
             @endif
-                        </flux:card>
-                    </div>
-                </div>
-            </div>
+                </flux:card>
+            </x-accordion>
 
             {{-- Program Lainnya --}}
-            <div class="block pt-4 first:pt-0 pb-4 last:pb-0 border-b last:border-b-0 border-zinc-800/10 dark:border-white/10" x-data="{ open: true }">
-                <button type="button" @click="open = !open" class="group flex items-center w-full text-start text-sm font-medium justify-between [&>svg]:ms-6 text-zinc-800 dark:text-white cursor-pointer">
-                    <div class="flex-1">
-                        <flux:heading size="lg">{{ __('Program Lainnya') }}</flux:heading>
-                        <flux:text class="text-sm mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Daftar program lainnya Anda. Wajib minimal 1 program.') }}</flux:text>
-                    </div>
-                    <flux:icon.chevron-up variant="mini" x-show="open" class="shrink-0 text-zinc-800 dark:text-white" />
-                    <flux:icon.chevron-down variant="mini" x-show="!open" style="display: none;" class="shrink-0 text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-white" />
-                </button>
-                <div x-show="open" x-collapse>
-                    <div class="pt-4 flex flex-col gap-4">
-                        <div class="flex justify-end items-center gap-4">
+            <x-accordion 
+                heading="Program Lainnya" 
+                description="Daftar program lainnya Anda. Wajib minimal 1 program."
+                contentClass="pt-4 flex flex-col gap-4"
+            >
+                <div class="flex justify-end items-center gap-4">
                             <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::Lainnya->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
                                 {{ __('Tambah Program') }}
                             </flux:button>
@@ -245,10 +222,8 @@
                     </flux:table.rows>
                 </flux:table>
             @endif
-                        </flux:card>
-                    </div>
-                </div>
-            </div>
+                </flux:card>
+            </x-accordion>
 
         </div>
     </div>
