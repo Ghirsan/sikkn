@@ -1,12 +1,13 @@
 <flux:card>
     <form wire:submit="save" class="flex flex-col gap-4">
-        
         @if($formMode === 'edit_program')
             
-            <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
+            <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-4">
+                <flux:text class="text-xs text-zinc-500 mb-1">{{ __('Tema Multidisiplin') }}</flux:text>
                 <flux:text variant="strong">{{ $title }}</flux:text>
-                <flux:text class="text-xs">{{ __('Silakan isi detail usulan program ini dari perspektif keilmuan Anda.') }}</flux:text>
             </div>
+            
+            <flux:input wire:model="participant_title" label="{{ __('Usulan Program (Spesifik)') }}" placeholder="{{ __('Contoh: Penyuluhan Kesehatan Masyarakat') }}" class="mb-4" />
             
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <flux:textarea wire:model="problem_potential" label="{{ __('Potensi / Permasalahan') }}" placeholder="{{ __('Sebutkan potensi atau masalah') }}" rows="2" />

@@ -36,6 +36,7 @@ class ProgramForm extends Component
     public ?string $execution_date = null;
 
     // Participant Fields (Participants Table - LRK Phase)
+    public string $participant_title = '';
     public string $role_in_program = '';
     public string $responsibility = '';
 
@@ -70,6 +71,7 @@ class ProgramForm extends Component
 
             if ($this->participantId) {
                 $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
+                $this->participant_title = $participant->participant_title ?? '';
                 $this->role_in_program = $participant->role_in_program ?? '';
                 $this->responsibility = $participant->responsibility ?? '';
                 if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
@@ -87,6 +89,7 @@ class ProgramForm extends Component
                 $participant = $program->participants()->where('student_id', $user->id)->first();
                 if ($participant) {
                     $this->participantId = $participant->id;
+                    $this->participant_title = $participant->participant_title ?? '';
                     $this->role_in_program = $participant->role_in_program ?? '';
                     $this->responsibility = $participant->responsibility ?? '';
                     if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
@@ -150,7 +153,7 @@ class ProgramForm extends Component
             ]);
         } else {
             $this->validate([
-                'title' => 'required|string|max:255',
+                'participant_title' => 'required|string|max:255',
                 'problem_potential' => 'required|string',
                 'location' => 'required|string',
                 'method' => 'required|string',
@@ -208,12 +211,14 @@ class ProgramForm extends Component
         
         if ($this->formMode === 'edit_peran' || $this->formMode === 'create_individual') {
             $participantData['execution_date'] = $this->execution_date ?: null;
+            $participantData['participant_title'] = null;
             $participantData['problem_potential'] = null;
             $participantData['location'] = null;
             $participantData['method'] = null;
             $participantData['target_audience'] = null;
             $participantData['output_target'] = null;
         } elseif ($this->formMode === 'edit_program') {
+            $participantData['participant_title'] = $this->participant_title ?: null;
             $participantData['problem_potential'] = $this->problem_potential ?: null;
             $participantData['location'] = $this->location ?: null;
             $participantData['method'] = $this->method ?: null;

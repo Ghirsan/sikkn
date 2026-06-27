@@ -147,7 +147,16 @@
                                     <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $participant->participant_code }}</span>
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Belum Diisi)') }}</span>
+                                    @if($participant->program->type === \App\Enums\ProgramType::Multidisiplin)
+                                        @if($participant->program->sequence == 3)
+                                            <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Tema Belum Diisi)') }}</span>
+                                        @else
+                                            <div class="text-xs text-zinc-500 mb-0.5">{{ $participant->program->title ?: __('(Tema Belum Diisi)') }}</div>
+                                            <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->participant_title ?: __('(Usulan Spesifik Belum Diisi)') }}</span>
+                                        @endif
+                                    @else
+                                        <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Belum Diisi)') }}</span>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <flux:badge size="sm" color="zinc" inset="top bottom">{{ $participant->program->type->label() }}</flux:badge>

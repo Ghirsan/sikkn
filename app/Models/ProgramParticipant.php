@@ -10,6 +10,7 @@ class ProgramParticipant extends Model
         'program_id',
         'student_id',
         'participant_code',
+        'participant_title',
         'role_in_program',
         'responsibility',
         'status',

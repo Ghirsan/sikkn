@@ -30,7 +30,7 @@
             @foreach($programs as $index => $program)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $program->title }}</td>
+                <td>{{ ($program->program->type === \App\Enums\ProgramType::Multidisiplin && $program->program->sequence == 3) ? $program->program->title : ($program->participant_title ?: $program->program->title) }}</td>
                 <td>{{ $program->student->name }}</td>
                 <td>{{ $program->lpk_status->label() }}</td>
                 <td>{{ $program->achievement ?? '-' }}</td>

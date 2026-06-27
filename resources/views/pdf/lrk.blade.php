@@ -278,10 +278,10 @@
                                 <td>{{ $program->student->name }} / {{ $program->student->nim }} / {{ $program->student->fakultas }} / {{ $program->student->prodi }}</td>
                                 @if($number == 3)
                                     <td>{{ $program->role_in_program ?? '-' }}</td>
-                                    <td>{{ $program->responsibility ?? $program->title }}</td>
+                                <td>{{ $program->responsibility ?? ($program->participant_title ?: $program->program->title) }}</td>
                                 @else
                                     <td>{{ $program->problem_potential ?? '-' }}</td>
-                                    <td>{{ $program->title }}</td>
+                                    <td>{{ $program->participant_title ?: $program->program->title }}</td>
                                     <td>{{ $program->method ?? '-' }}<br>{{ $program->target_audience ?? '' }}</td>
                                     <td>{{ $program->output_target ?? '-' }}</td>
                                 @endif
@@ -340,7 +340,7 @@
                                 <td class="text-center">{{ $j + 1 }}.</td>
                                 <td>{{ $program->student->name }} / {{ $program->student->nim }} / {{ $program->student->fakultas }} / {{ $program->student->prodi }}</td>
                                 <td>{{ $program->role_in_program ?? '-' }}</td>
-                                <td>{{ $program->responsibility ?? $program->title }}</td>
+                                <td>{{ $program->responsibility ?? $program->program->title }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -368,7 +368,7 @@
                                 <td class="text-center">{{ $j + 1 }}.</td>
                                 <td>{{ $program->student->name }} / {{ $program->student->nim }} / {{ $program->student->fakultas }} / {{ $program->student->prodi }}</td>
                                 <td>{{ $program->role_in_program ?? '-' }}</td>
-                                <td>{{ $program->responsibility ?? $program->title }}</td>
+                                <td>{{ $program->responsibility ?? $program->program->title }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -403,7 +403,7 @@
                                 <td class="text-center">{{ $j + 1 }}.</td>
                                 <td>{{ $program->student->name }} / {{ $program->student->nim }} / {{ $program->student->fakultas }} / {{ $program->student->prodi }}</td>
                                 <td>{{ $program->role_in_program ?? '-' }}</td>
-                                <td>{{ $program->responsibility ?? $program->title }}</td>
+                                <td>{{ $program->responsibility ?? $program->program->title }}</td>
                             </tr>
                         @endforeach
                     </tbody>
