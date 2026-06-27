@@ -85,3 +85,16 @@
         @endif
     </div>
 </div>
+
+<flux:modal name="{{ $modalName }}" class="max-w-4xl w-full space-y-4">
+    <div>
+        <flux:heading size="lg">{{ __('Preview Gambar') }}</flux:heading>
+    </div>
+    <div>
+        @if($file)
+            <img src="{{ $file->temporaryUrl() }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
+        @elseif($existingPath)
+            <img src="{{ asset('storage/' . $existingPath) }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
+        @endif
+    </div>
+</flux:modal>

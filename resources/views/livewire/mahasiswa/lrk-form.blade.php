@@ -78,17 +78,4 @@
         </div>
 
     </form>
-
-    <flux:modal name="location-map-preview" class="max-w-4xl w-full space-y-4">
-        <div>
-            <flux:heading size="lg">{{ __('Preview Peta Lokasi') }}</flux:heading>
-        </div>
-        <div>
-            @if($location_map_image)
-                <img src="{{ $location_map_image->temporaryUrl() }}" alt="Peta Lokasi" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
-            @elseif($existing_map_path)
-                <img src="{{ asset('storage/' . $existing_map_path) }}" alt="Peta Lokasi" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
-            @endif
-        </div>
-    </flux:modal>
 </flux:card>
