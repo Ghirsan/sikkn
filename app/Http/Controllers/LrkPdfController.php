@@ -16,7 +16,6 @@ class LrkPdfController extends Controller
             'students',
             'programs.participants.student',
             'scheduleEvents',
-            'surveyDocuments',
         ]);
 
         $period = $group->period;
@@ -81,7 +80,6 @@ class LrkPdfController extends Controller
             'sosialKemasyarakatan' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::SosialKemasyarakatan),
             'lainnya' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::Lainnya),
             'scheduleEvents' => $group->scheduleEvents->sortBy('date'),
-            'surveyDocuments' => $group->surveyDocuments->sortBy('sort_order'),
             'calendar' => $calendar,
         ]);
 

@@ -92,13 +92,7 @@ class Group extends Model
         return $this->hasMany(ScheduleEvent::class);
     }
 
-    /**
-     * Get the survey documents for this group.
-     */
-    public function surveyDocuments(): HasMany
-    {
-        return $this->hasMany(SurveyDocument::class);
-    }
+
 
     /**
      * Get the lead DPL assigned to this group.
