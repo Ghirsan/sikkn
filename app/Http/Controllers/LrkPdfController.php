@@ -14,13 +14,14 @@ class LrkPdfController extends Controller
             'period',
             'dpls',
             'students',
-            'programs.participants',
+            'programs.participants.student',
             'scheduleEvents',
             'surveyDocuments',
         ]);
 
         $period = $group->period;
 
+        // Build calendar
         $calendar = [];
         if ($period && $period->start_date && $period->end_date) {
             $startDate = $period->start_date->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
@@ -38,6 +39,7 @@ class LrkPdfController extends Controller
                         if (!isset($programsByDate[$dateStr])) {
                             $programsByDate[$dateStr] = [];
                         }
+                        $participant->setRelation('program', $program);
                         $programsByDate[$dateStr][] = $participant;
                     }
                 }
@@ -59,11 +61,12 @@ class LrkPdfController extends Controller
             }
         }
 
+        // Build approved participants with program relation set
         $approvedParticipants = collect();
         foreach ($group->programs as $program) {
             foreach ($program->participants as $participant) {
                 if ($participant->status === \App\Enums\ProgramStatus::Approved) {
-                    $participant->program = $program;
+                    $participant->setRelation('program', $program);
                     $approvedParticipants->push($participant);
                 }
             }
@@ -81,6 +84,9 @@ class LrkPdfController extends Controller
             'surveyDocuments' => $group->surveyDocuments->sortBy('sort_order'),
             'calendar' => $calendar,
         ]);
+
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'sans-serif', 'isHtml5ParserEnabled' => true]);
 
         return $pdf->download('LRK_KKN_'.$group->name.'.pdf');
     }

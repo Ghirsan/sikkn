@@ -21,6 +21,9 @@ class LrkForm extends Component
     public $location_map_image; // For file upload
     public ?string $existing_map_path = null;
 
+    public $survey_document_image; // For file upload
+    public ?string $existing_survey_path = null;
+
     public function mount()
     {
         $user = Auth::user();
@@ -39,6 +42,7 @@ class LrkForm extends Component
         $this->survey_documentation_text = $group->survey_documentation_text ?? '';
         $this->location_map_text = $group->location_map_text ?? '';
         $this->existing_map_path = $group->location_map_path;
+        $this->existing_survey_path = $group->survey_document_path;
     }
 
     public function save()
@@ -53,6 +57,7 @@ class LrkForm extends Component
             'survey_documentation_text' => 'nullable|string',
             'location_map_text' => 'nullable|string',
             'location_map_image' => 'nullable|image|max:2048',
+            'survey_document_image' => 'nullable|image|max:2048',
         ]);
 
         $group = Auth::user()->group;
@@ -72,6 +77,12 @@ class LrkForm extends Component
             $path = $this->location_map_image->store('lrk/maps', 'public');
             $data['location_map_path'] = $path;
             $this->existing_map_path = $path;
+        }
+
+        if ($this->survey_document_image) {
+            $path = $this->survey_document_image->store('lrk/surveys', 'public');
+            $data['survey_document_path'] = $path;
+            $this->existing_survey_path = $path;
         }
 
         $group->update($data);

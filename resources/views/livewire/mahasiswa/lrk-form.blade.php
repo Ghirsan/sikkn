@@ -43,8 +43,21 @@
         {{-- Lampiran Dokumentasi Survey --}}
         <div>
             <flux:heading size="md" class="mb-2">{{ __('Lampiran Dokumentasi Survey') }}</flux:heading>
-            <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf keterangan untuk lampiran foto-foto dokumentasi survey lapangan.') }}</flux:text>
-            <flux:textarea wire:model="survey_documentation_text" rows="4" placeholder="{{ __('Dokumentasi survey dilakukan pada tanggal ... di lokasi ... Kegiatan meliputi ...') }}" />
+            <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf keterangan untuk lampiran foto-foto dokumentasi survey lapangan dan unggah gambarnya.') }}</flux:text>
+            
+            <div class="flex flex-col gap-4">
+                <flux:textarea wire:model="survey_documentation_text" rows="3" label="{{ __('Keterangan Survey') }}" placeholder="{{ __('Dokumentasi survey dilakukan pada tanggal ... di lokasi ... Kegiatan meliputi ...') }}" />
+
+                <div>
+                    <x-image-upload
+                        modelName="survey_document_image"
+                        :file="$survey_document_image"
+                        :existingPath="$existing_survey_path"
+                        label="Gambar Dokumentasi Survey"
+                        modalName="survey-doc-preview"
+                    />
+                </div>
+            </div>
         </div>
 
         <flux:separator />

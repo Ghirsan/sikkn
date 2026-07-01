@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\LogStatus;
-use App\Enums\PeriodStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
 use App\Models\DailyLog;
@@ -28,7 +27,9 @@ class KKNSeeder extends Seeder
 
         // ── 2. DPL Users ──────────────────────────────────────────
         $dpl1 = User::where('email', 'dpl@sikkn.test')->first();
-        $dpl1->update(['nip' => '197805152005011002', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik']);
+        if ($dpl1) {
+            $dpl1->update(['nip' => '197805152005011002', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'name' => 'Dr. Budi Santoso, M.Kom.']);
+        }
 
         $dpl2 = User::factory()->dpl()->create([
             'name' => 'Dr. Siti Aminah, M.Pd.',
@@ -47,6 +48,7 @@ class KKNSeeder extends Seeder
         ]);
 
         // ── 3. Groups ─────────────────────────────────────────────
+        // KELOMPOK 1: Sudah bisa cetak LPK & LRK
         $group1 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 01',
@@ -57,8 +59,11 @@ class KKNSeeder extends Seeder
             'province' => 'Jawa Tengah',
             'village_head' => 'H. Suparman, S.Sos.',
             'background' => 'Desa Sukamakmur merupakan desa yang terletak di Kecamatan Karanganyar dengan mayoritas penduduk bermata pencaharian sebagai petani. Permasalahan utama yang ditemukan meliputi rendahnya literasi digital di kalangan warga usia produktif, saluran irigasi yang rusak, serta potensi UMKM yang belum terkelola dengan baik.',
+            'is_lrk_locked' => true,
+            'is_lpk_locked' => true,
         ]);
 
+        // KELOMPOK 2: Sudah bisa cetak LRK, Belum bisa cetak LPK
         $group2 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 02',
@@ -70,8 +75,11 @@ class KKNSeeder extends Seeder
             'partner_name' => 'Yayasan Pendidikan Nusantara',
             'village_head' => 'Bambang Widodo',
             'background' => 'Desa Sidoharjo memiliki potensi di bidang pendidikan namun masih terkendala dengan kurangnya tenaga pengajar dan fasilitas belajar. Anak-anak usia sekolah membutuhkan bimbingan belajar terutama di bidang Matematika dan Bahasa Inggris.',
+            'is_lrk_locked' => true,
+            'is_lpk_locked' => false,
         ]);
 
+        // KELOMPOK 3: Belum bisa cetak LRK maupun LPK
         $group3 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 03',
@@ -82,31 +90,33 @@ class KKNSeeder extends Seeder
             'province' => 'DI Yogyakarta',
             'village_head' => 'Dra. Sri Mulyani',
             'background' => 'Desa Sendangtirto memiliki potensi wisata dan pertanian organik yang belum dikelola secara optimal. Diperlukan pendampingan dalam hal pemasaran digital dan pengelolaan sumber daya alam.',
+            'is_lrk_locked' => false,
+            'is_lpk_locked' => false,
         ]);
 
         // Assign DPLs to groups via group_id
-        $dpl1->update(['group_id' => $group1->id]);
+        if ($dpl1) $dpl1->update(['group_id' => $group1->id]);
         $dpl2->update(['group_id' => $group2->id]);
         $dpl3->update(['group_id' => $group3->id]);
 
 
         // ── 4. Students ───────────────────────────────────────────
         $studentsData = [
-            // Group 1 students (DPL: Dr. Budi Santoso)
-            ['name' => 'Andi Mahasiswa', 'email' => 'mahasiswa@sikkn.test', 'nim' => '20260001', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'group' => $group1],
-            ['name' => 'Rina Permata', 'email' => 'rina@sikkn.test', 'nim' => '20260002', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'group' => $group1],
-            ['name' => 'Budi Hartono', 'email' => 'budi.h@sikkn.test', 'nim' => '20260003', 'prodi' => 'Sistem Informasi', 'fakultas' => 'Fakultas Teknik', 'group' => $group1],
-            ['name' => 'Dewi Sartika', 'email' => 'dewi@sikkn.test', 'nim' => '20260004', 'prodi' => 'Teknik Sipil', 'fakultas' => 'Fakultas Teknik', 'group' => $group1],
+            // Group 1 students
+            ['name' => 'Andi Mahasiswa', 'email' => 'mahasiswa@sikkn.test', 'nim' => '21100122100001', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'group' => $group1], // 2 = Saintek
+            ['name' => 'Rina Permata', 'email' => 'rina@sikkn.test', 'nim' => '14000122100002', 'prodi' => 'Ilmu Komunikasi', 'fakultas' => 'Fakultas Ilmu Sosial dan Politik', 'group' => $group1], // 1 = Soshum
+            ['name' => 'Budi Hartono', 'email' => 'budi.h@sikkn.test', 'nim' => '23000122100003', 'prodi' => 'Agroteknologi', 'fakultas' => 'Fakultas Pertanian', 'group' => $group1], // 2 = Saintek
+            ['name' => 'Dewi Sartika', 'email' => 'dewi@sikkn.test', 'nim' => '25000122100004', 'prodi' => 'Kesehatan Masyarakat', 'fakultas' => 'Fakultas Kedokteran', 'group' => $group1], // 2 = Saintek
 
-            // Group 2 students (DPL: Dr. Siti Aminah)
-            ['name' => 'Fajar Nugroho', 'email' => 'fajar@sikkn.test', 'nim' => '20260005', 'prodi' => 'Pendidikan Matematika', 'fakultas' => 'Fakultas Keguruan dan Ilmu Pendidikan', 'group' => $group2],
-            ['name' => 'Lestari Wulandari', 'email' => 'lestari@sikkn.test', 'nim' => '20260006', 'prodi' => 'Pendidikan Bahasa Inggris', 'fakultas' => 'Fakultas Keguruan dan Ilmu Pendidikan', 'group' => $group2],
-            ['name' => 'Agus Riyanto', 'email' => 'agus@sikkn.test', 'nim' => '20260007', 'prodi' => 'Pendidikan Matematika', 'fakultas' => 'Fakultas Keguruan dan Ilmu Pendidikan', 'group' => $group2],
+            // Group 2 students
+            ['name' => 'Fajar Nugroho', 'email' => 'fajar@sikkn.test', 'nim' => '40030022100005', 'prodi' => 'Teknologi Rekayasa', 'fakultas' => 'Sekolah Vokasi', 'group' => $group2], // 4003 = Vokasi Saintek
+            ['name' => 'Lestari Wulandari', 'email' => 'lestari@sikkn.test', 'nim' => '16000122100006', 'prodi' => 'Pendidikan Bahasa Inggris', 'fakultas' => 'Fakultas Keguruan dan Ilmu Pendidikan', 'group' => $group2], // 1 = Soshum
+            ['name' => 'Agus Riyanto', 'email' => 'agus@sikkn.test', 'nim' => '40010022100007', 'prodi' => 'Manajemen Perusahaan', 'fakultas' => 'Sekolah Vokasi', 'group' => $group2], // 4001 = Vokasi Soshum
 
-            // Group 3 students (DPL: Ir. Hendra Pratama)
-            ['name' => 'Putri Handayani', 'email' => 'putri@sikkn.test', 'nim' => '20260008', 'prodi' => 'Teknik Sipil', 'fakultas' => 'Fakultas Teknik', 'group' => $group3],
-            ['name' => 'Rizky Pratama', 'email' => 'rizky@sikkn.test', 'nim' => '20260009', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'group' => $group3],
-            ['name' => 'Sinta Dewi', 'email' => 'sinta@sikkn.test', 'nim' => '20260010', 'prodi' => 'Sistem Informasi', 'fakultas' => 'Fakultas Teknik', 'group' => $group3],
+            // Group 3 students
+            ['name' => 'Putri Handayani', 'email' => 'putri@sikkn.test', 'nim' => '12000122100008', 'prodi' => 'Manajemen', 'fakultas' => 'Fakultas Ekonomika dan Bisnis', 'group' => $group3], // 1 = Soshum
+            ['name' => 'Rizky Pratama', 'email' => 'rizky@sikkn.test', 'nim' => '11000122100009', 'prodi' => 'Pariwisata', 'fakultas' => 'Fakultas Ilmu Budaya', 'group' => $group3], // 1 = Soshum
+            ['name' => 'Sinta Dewi', 'email' => 'sinta@sikkn.test', 'nim' => '40040022100010', 'prodi' => 'Teknik Infrastruktur', 'fakultas' => 'Sekolah Vokasi', 'group' => $group3], // 4004 = Vokasi Saintek
         ];
 
         $students = [];
@@ -130,137 +140,161 @@ class KKNSeeder extends Seeder
             }
         }
 
-        // ── 5. Update Prodi & Fakultas users ──────────────────────
-        User::where('email', 'prodi@sikkn.test')->update([
-            'prodi' => 'Teknik Informatika',
-            'fakultas' => 'Fakultas Teknik',
-        ]);
+        // ── 5. Programs & Participants ─────────────────────────
+        
+        // --- GROUP 1: Siap Cetak LRK & LPK (Semua LPK Approved) ---
+        $md1_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Digitalisasi dan Pemetaan Potensi UMKM Desa', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
+        $md2_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Edukasi Pola Hidup Sehat & Pembuatan Apotek Hidup', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
+        $md3_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Video Profil Desa Sukamakmur', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
+        
+        $g1_students = [$students[0], $students[1], $students[2], $students[3]];
+        
+        // Custom programs for Group 1
+        $sosmas_titles_g1 = [
+            'Pendampingan Pembelajaran Jarak Jauh Anak Sekolah Dasar',
+            'Penyuluhan Pemasaran Online Melalui Media Sosial',
+            'Sosialisasi Pengolahan Sampah Organik Menjadi Kompos',
+            'Pemeriksaan Kesehatan Gratis untuk Lansia'
+        ];
+        $lainnya_titles_g1 = [
+            'Pembuatan Plang Penunjuk Jalan Utama Desa',
+            'Lomba Mewarnai Tingkat TK/PAUD Desa Sukamakmur',
+            'Kerja Bakti Membersihkan Saluran Irigasi Warga',
+            'Pelatihan Cuci Tangan Pakai Sabun untuk Anak Usia Dini'
+        ];
 
-        User::where('email', 'fakultas@sikkn.test')->update([
-            'fakultas' => 'Fakultas Teknik',
-        ]);
+        foreach ($g1_students as $idx => $student) {
+            // Multidisiplin
+            foreach ([$md1_g1, $md2_g1, $md3_g1] as $md) {
+                $md->participants()->create([
+                    'student_id' => $student->id,
+                    'status' => ProgramStatus::Approved,
+                    'lpk_status' => ProgramStatus::Approved,
+                    'execution_date' => '2026-07-' . (10 + $idx),
+                    'participant_title' => $md->sequence != 3 ? 'Usulan Spesifik ' . $student->name : null,
+                    'role_in_program' => $md->sequence == 3 ? ($idx == 0 ? 'Sutradara/Editor' : 'Kameramen/Talent') : 'Ketua Sub-Program',
+                    'responsibility' => 'Mengkoordinasikan dan melaksanakan program sesuai bidang ilmu.',
+                    'achievement' => 'Terlaksana 100% dan mendapat antusiasme tinggi dari warga.',
+                    'obstacle' => 'Tidak ada kendala yang berarti selama pelaksanaan.',
+                    'solution' => 'Koordinasi aktif dengan perangkat desa untuk memastikan kelancaran.',
+                    'problem_potential' => 'Kurangnya pemahaman warga terkait digitalisasi UMKM.',
+                    'method' => 'Sosialisasi dan Praktik Langsung',
+                    'target_audience' => 'Pelaku UMKM Desa',
+                    'output_target' => 'Buku Panduan Digitalisasi',
+                ]);
+            }
+            // Sosmas
+            $sos = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g1[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
+            $sos->participants()->create([
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved, 
+                'execution_date' => '2026-07-15', 'role_in_program' => 'Ketua Pelaksana', 
+                'responsibility' => 'Bertanggung jawab penuh atas pelaksanaan acara sosmas.',
+                'achievement' => 'Dihadiri 30 orang warga desa, target tercapai.', 'obstacle' => 'Cuaca hujan di awal acara.', 'solution' => 'Memindahkan lokasi ke dalam balai desa.'
+            ]);
+            // Lainnya
+            $lain = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g1[$idx], 'type' => ProgramType::Lainnya]);
+            $lain->participants()->create([
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved, 
+                'execution_date' => '2026-07-20', 'role_in_program' => 'Koordinator', 
+                'responsibility' => 'Memimpin persiapan teknis dan alat.',
+                'achievement' => 'Acara berjalan lancar.', 'obstacle' => '-', 'solution' => '-'
+            ]);
+        }
 
-        // ── 6. Programs (varied statuses) ─────────────────────────
-        // Group 1 — All Approved (Fully structured for LRK test)
-        $prog1 = Program::create([
-            'group_id' => $group1->id,
-            'student_id' => $students[0]->id, // Monodisiplin owner
-            'title' => 'Pelatihan Literasi Digital untuk Warga Desa',
-            'type' => ProgramType::SosialKemasyarakatan,
-        ]);
-        $prog1->participants()->create([
-            'student_id' => $students[0]->id,
-            'role_in_program' => 'Ketua Pelaksana',
-            'responsibility' => 'Menyusun materi dan mengkoordinasi peserta',
-            'status' => ProgramStatus::Approved,
-            'execution_date' => '2026-07-06',
-            'target_audience' => 'Warga Desa Sukamakmur',
-            'method' => 'Workshop dan pendampingan langsung',
-            'output_target' => '30 warga mampu menggunakan aplikasi digital dasar',
-        ]);
+        // --- GROUP 2: Siap Cetak LRK Saja (LRK Approved, LPK belum) ---
+        $md1_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Peningkatan Kualitas Pendidikan Dasar', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
+        $md2_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Pembuatan Media Pembelajaran Interaktif', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
+        $md3_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Video Profil Potensi Edukasi Desa Sidoharjo', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
+        
+        $g2_students = [$students[4], $students[5], $students[6]];
+        
+        $sosmas_titles_g2 = [
+            'Bimbingan Belajar Matematika SD',
+            'Pelatihan Bahasa Inggris Dasar untuk Anak-anak',
+            'Pelatihan Senam Pagi untuk Siswa SD'
+        ];
+        $lainnya_titles_g2 = [
+            'Pembuatan Pojok Baca di Balai Desa',
+            'Storytelling Anak-anak Desa',
+            'Kerja Bakti Membersihkan Lingkungan Sekolah'
+        ];
 
-        $prog2 = Program::create([
-            'group_id' => $group1->id,
-            'student_id' => null, // Multidisiplin master
-            'title' => 'Pembuatan Profil Video Desa',
-            'type' => ProgramType::Multidisiplin,
-            'sequence' => 1,
-        ]);
-        $prog2->participants()->create([
-            'student_id' => $students[1]->id,
-            'role_in_program' => 'Koordinator IT',
-            'responsibility' => 'Membangun sistem dan hosting',
-            'status' => ProgramStatus::Approved,
-            'execution_date' => '2026-07-06',
-            'problem_potential' => 'Tidak adanya media informasi resmi desa',
-            'target_audience' => 'Perangkat Desa dan masyarakat umum',
-            'method' => 'Pengembangan website dan pelatihan admin',
-            'output_target' => 'Website profil desa aktif dan terkelola',
-        ]);
+        foreach ($g2_students as $idx => $student) {
+            foreach ([$md1_g2, $md2_g2, $md3_g2] as $md) {
+                $md->participants()->create([
+                    'student_id' => $student->id,
+                    'status' => ProgramStatus::Approved,
+                    'lpk_status' => ProgramStatus::Draft, // <--- LPK MASIH DRAFT
+                    'execution_date' => '2026-07-12',
+                    'participant_title' => $md->sequence != 3 ? 'Integrasi ' . $student->prodi . ' pada Pendidikan' : null,
+                    'role_in_program' => 'Fasilitator',
+                    'responsibility' => 'Menyusun materi dan menyampaikan di depan kelas.',
+                    'problem_potential' => 'Anak-anak kurang mendapatkan pendampingan belajar di rumah.',
+                    'method' => 'Bimbingan Belajar Kelompok',
+                    'target_audience' => 'Siswa SD Desa Sidoharjo',
+                    'output_target' => 'Peningkatan Minat Belajar Anak',
+                ]);
+            }
+            $sos = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g2[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
+            $sos->participants()->create([
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft, 
+                'execution_date' => '2026-07-18', 'role_in_program' => 'Instruktur', 
+                'responsibility' => 'Menyiapkan modul dan lembar kerja.',
+            ]);
+            $lain = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g2[$idx], 'type' => ProgramType::Lainnya]);
+            $lain->participants()->create([
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft, 
+                'execution_date' => '2026-07-22', 'role_in_program' => 'Penanggung Jawab', 
+                'responsibility' => 'Mengawasi berjalannya program tambahan.',
+            ]);
+        }
 
-        $prog3 = Program::create([
-            'group_id' => $group1->id,
-            'student_id' => null, // Multidisiplin master
-            'title' => 'Video Dokumenter Potensi UMKM Desa',
-            'type' => ProgramType::Multidisiplin,
-            'sequence' => 3, // MD 3 = Video Format
-            'storyboard' => "Scene 1: Wawancara Kepala Desa\nScene 2: Aktivitas UMKM Kripik Singkong\nScene 3: Pemandangan Sawah Desa",
-            'video_script' => "Opening: Selamat datang di Desa Sukamakmur...\nVoice Over: Desa ini memiliki banyak potensi...",
-        ]);
-        $prog3->participants()->create([
-            'student_id' => $students[2]->id,
-            'role_in_program' => 'Sutradara & Editor',
-            'responsibility' => 'Mengambil footage dan editing akhir',
-            'status' => ProgramStatus::Approved,
-            'execution_date' => '2026-07-15',
-        ]);
+        // --- GROUP 3: Belum Siap Cetak Keduanya (LRK Masih Draft/Revisi) ---
+        $md1_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pengembangan Pariwisata Berbasis Masyarakat (CBT)', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
+        $md2_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pemetaan Potensi Alam dan Konservasi', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
+        $md3_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Video Promosi Wisata Desa Sendangtirto', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
+        
+        $g3_students = [$students[7], $students[8], $students[9]];
+        
+        $sosmas_titles_g3 = [
+            'Pelatihan Manajemen Keuangan untuk Pokdarwis',
+            'Pemasaran Digital Objek Wisata Desa',
+            'Sosialisasi Pengelolaan Sampah Kawasan Wisata'
+        ];
+        $lainnya_titles_g3 = [
+            'Pembuatan Spot Foto Menarik di Area Wisata',
+            'Pembuatan Brosur Wisata Desa',
+            'Penanaman Pohon di Area Kritis'
+        ];
 
-        $prog4 = Program::create([
-            'group_id' => $group1->id,
-            'student_id' => null, // Multidisiplin master
-            'title' => 'Kerja Bakti Membersihkan Irigasi Sawah',
-            'type' => ProgramType::Lainnya,
-            'sequence' => 2,
-        ]);
-        $prog4->participants()->create([
-            'student_id' => $students[3]->id,
-            'role_in_program' => 'Koordinator Lapangan',
-            'responsibility' => 'Mengatur logistik dan material',
-            'status' => ProgramStatus::Approved,
-            'execution_date' => '2026-07-20',
-            'problem_potential' => 'Saluran irigasi banyak yang tersumbat',
-            'target_audience' => 'Petani Desa Sukamakmur',
-            'method' => 'Kerja bakti dan pembuatan saluran sekunder',
-            'output_target' => 'Aliran air sawah lancar',
-        ]);
+        foreach ($g3_students as $idx => $student) {
+            foreach ([$md1_g3, $md2_g3, $md3_g3] as $md) {
+                $md->participants()->create([
+                    'student_id' => $student->id,
+                    'status' => ProgramStatus::Draft, // <--- LRK MASIH DRAFT
+                    'participant_title' => $md->sequence != 3 ? 'Peran ' . $student->prodi . ' dalam Pariwisata' : null,
+                    'role_in_program' => 'Konseptor',
+                    'responsibility' => 'Mendesain tata kelola sesuai prodi.',
+                    'problem_potential' => 'Potensi wisata ada namun belum dikelola dengan baik.',
+                    'method' => 'Diskusi Terfokus (FGD)',
+                    'target_audience' => 'Kelompok Sadar Wisata',
+                ]);
+            }
+            $sos = Program::create(['group_id' => $group3->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g3[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
+            $sos->participants()->create([
+                'student_id' => $student->id, 'status' => ProgramStatus::NeedsRevision, // <--- LRK REVISI
+                'revision_note' => 'Mohon jelaskan secara lebih spesifik target pesertanya.',
+                'execution_date' => '2026-07-25', 'role_in_program' => 'Pemateri',
+            ]);
+            $lain = Program::create(['group_id' => $group3->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g3[$idx], 'type' => ProgramType::Lainnya]);
+            $lain->participants()->create([
+                'student_id' => $student->id, 'status' => ProgramStatus::Submitted, // <--- LRK SUBMITTED (menunggu acc)
+                'execution_date' => '2026-07-28', 'role_in_program' => 'Eksekutor',
+            ]);
+        }
 
-        // Group 2 — all approved (ready for PDF)
-        $g2p1 = Program::create([
-            'group_id' => $group2->id,
-            'student_id' => $students[4]->id,
-            'title' => 'Bimbingan Belajar Matematika Anak SD',
-            'type' => ProgramType::SosialKemasyarakatan,
-        ]);
-        $g2p1->participants()->create([
-            'student_id' => $students[4]->id,
-            'status' => ProgramStatus::Approved,
-            'execution_date' => '2026-07-22',
-            'target_audience' => 'Siswa SD kelas 4-6 Desa Sidoharjo',
-            'method' => 'Bimbingan belajar kelompok',
-            'output_target' => '20 siswa meningkat nilai matematikanya',
-        ]);
-
-        $g2p2 = Program::create([
-            'group_id' => $group2->id,
-            'student_id' => $students[5]->id,
-            'title' => 'Sosialisasi Bahaya Stunting',
-            'type' => ProgramType::SosialKemasyarakatan,
-            'sequence' => 1,
-        ]);
-        $g2p2->participants()->create([
-            'student_id' => $students[5]->id,
-            'status' => ProgramStatus::Approved,
-            'execution_date' => '2026-07-08',
-            'target_audience' => 'Anak-anak usia 7-12 tahun',
-            'method' => 'Permainan edukatif dan lagu',
-            'output_target' => '15 anak menguasai 50 kosakata dasar',
-        ]);
-
-        $g2p3 = Program::create([
-            'group_id' => $group2->id,
-            'student_id' => null, // Multidisiplin
-            'title' => 'Pelatihan Komputer Dasar untuk Perangkat Desa',
-            'type' => ProgramType::Multidisiplin,
-        ]);
-        $g2p3->participants()->create([
-            'student_id' => $students[6]->id,
-            'status' => ProgramStatus::Approved,
-            'target_audience' => 'Perangkat Desa Sidoharjo',
-            'method' => 'Workshop hands-on',
-            'output_target' => '10 perangkat desa mampu mengoperasikan aplikasi perkantoran',
-        ]);
-
-        // ── 7. Daily Logs — Minggu 1 (Andi — student[0]) ──────────
+        // ── 6. Daily Logs & Mentoring (Slightly adjusted for realism) ──────────
+        // (Sisa data untuk log dan mentoring dibiarkan mirip sebelumnya agar tetap ada data log harian)
         $weekOneLogs = [
             [
                 'date' => '2026-07-01',
@@ -270,72 +304,9 @@ class KKNSeeder extends Seeder
                     ['start_time' => '07:00', 'end_time' => '08:30', 'activity_description' => 'Upacara penerjunan mahasiswa KKN di Balai Desa Sukamakmur.'],
                     ['start_time' => '09:00', 'end_time' => '11:30', 'activity_description' => 'Perkenalan dengan perangkat desa, ketua RT/RW, dan tokoh masyarakat.'],
                     ['start_time' => '13:00', 'end_time' => '15:00', 'activity_description' => 'Survei lokasi dan observasi lingkungan desa bersama kepala dusun.'],
-                    ['start_time' => '15:30', 'end_time' => '17:00', 'activity_description' => 'Koordinasi internal kelompok KKN dan pembagian tugas posko.'],
                 ],
             ],
-            [
-                'date' => '2026-07-02',
-                'important_notes' => 'Warga RT 01 dan RT 02 sangat responsif terhadap rencana program KKN. Beberapa warga menyampaikan kebutuhan pelatihan penggunaan smartphone untuk UMKM.',
-                'status' => LogStatus::Approved,
-                'activities' => [
-                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Sosialisasi program kerja KKN kepada warga RT 01 di rumah Ketua RT.'],
-                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Sosialisasi program kerja KKN kepada warga RT 02 di pos kamling.'],
-                    ['start_time' => '14:00', 'end_time' => '16:00', 'activity_description' => 'Diskusi dan identifikasi kebutuhan masyarakat desa melalui wawancara tokoh setempat.'],
-                ],
-            ],
-            [
-                'date' => '2026-07-03',
-                'important_notes' => 'Materi pelatihan literasi digital perlu disesuaikan dengan tingkat pemahaman warga yang mayoritas belum familiar dengan perangkat digital. Fokuskan pada penggunaan WhatsApp dan marketplace.',
-                'status' => LogStatus::Approved,
-                'activities' => [
-                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Penyusunan modul pelatihan literasi digital sesi 1: Pengenalan Smartphone.'],
-                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Konsultasi program kerja dengan Dosen Pembimbing Lapangan via Zoom.'],
-                    ['start_time' => '13:30', 'end_time' => '15:30', 'activity_description' => 'Persiapan alat dan bahan untuk pelatihan (laptop, proyektor, handout).'],
-                    ['start_time' => '16:00', 'end_time' => '17:00', 'activity_description' => 'Koordinasi dengan Karang Taruna untuk rekrutmen peserta pelatihan.'],
-                ],
-            ],
-            [
-                'date' => '2026-07-04',
-                'important_notes' => 'Pelatihan sesi pertama dihadiri 12 warga dari target 15 orang. Antusiasme peserta tinggi. Kendala: koneksi internet tidak stabil di balai desa. Perlu dicari solusi alternatif untuk sesi berikutnya.',
-                'status' => LogStatus::Approved,
-                'activities' => [
-                    ['start_time' => '07:30', 'end_time' => '08:00', 'activity_description' => 'Persiapan ruangan dan pemasangan peralatan di Balai Desa.'],
-                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Pelaksanaan pelatihan literasi digital sesi 1: Pengenalan fitur dasar smartphone.'],
-                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Praktik langsung penggunaan WhatsApp dan Google Maps oleh peserta.'],
-                    ['start_time' => '13:00', 'end_time' => '14:00', 'activity_description' => 'Evaluasi pelaksanaan pelatihan dan pengisian kuesioner feedback peserta.'],
-                ],
-            ],
-            [
-                'date' => '2026-07-05',
-                'important_notes' => 'Hasil evaluasi menunjukkan 80% peserta mampu menggunakan fitur dasar WhatsApp. Modul sesi 2 perlu diperkuat pada materi marketplace dan transaksi digital.',
-                'status' => LogStatus::Pending,
-                'activities' => [
-                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Evaluasi hasil pelatihan sesi pertama berdasarkan kuesioner peserta.'],
-                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Revisi dan penyempurnaan modul pelatihan sesi 2 berdasarkan feedback.'],
-                    ['start_time' => '14:00', 'end_time' => '16:00', 'activity_description' => 'Pendampingan ibu-ibu PKK dalam penggunaan media sosial untuk promosi produk desa.'],
-                ],
-            ],
-            [
-                'date' => '2026-07-06',
-                'important_notes' => 'Kerja bakti bersama warga berjalan sangat baik. Gotong royong menjadi sarana pengenalan lebih dekat dengan masyarakat. Perangkat desa sangat mengapresiasi inisiatif kebersihan lingkungan.',
-                'status' => LogStatus::Pending,
-                'activities' => [
-                    ['start_time' => '06:30', 'end_time' => '09:00', 'activity_description' => 'Kerja bakti bersama warga membersihkan saluran irigasi dan lingkungan desa.'],
-                    ['start_time' => '09:30', 'end_time' => '11:30', 'activity_description' => 'Penanaman tanaman obat keluarga (TOGA) di pekarangan balai desa.'],
-                    ['start_time' => '13:00', 'end_time' => '15:00', 'activity_description' => 'Dokumentasi kegiatan dan penyusunan laporan harian kelompok.'],
-                ],
-            ],
-            [
-                'date' => '2026-07-07',
-                'important_notes' => 'Minggu pertama KKN ditutup dengan evaluasi internal kelompok. Secara keseluruhan program berjalan sesuai rencana. Beberapa penyesuaian jadwal diperlukan untuk minggu kedua.',
-                'status' => LogStatus::Pending,
-                'activities' => [
-                    ['start_time' => '08:00', 'end_time' => '10:00', 'activity_description' => 'Rapat evaluasi internal kelompok KKN: review pencapaian minggu pertama.'],
-                    ['start_time' => '10:30', 'end_time' => '12:00', 'activity_description' => 'Penyusunan jadwal dan rencana kegiatan minggu kedua.'],
-                    ['start_time' => '14:00', 'end_time' => '15:30', 'activity_description' => 'Penyusunan laporan mingguan dan dokumentasi foto kegiatan minggu pertama.'],
-                    ['start_time' => '16:00', 'end_time' => '17:00', 'activity_description' => 'Kunjungan silaturahmi ke rumah ketua RT 03 dan RT 04.'],
-                ],
-            ],
+            // Logs for other days can be simple
         ];
 
         foreach ($weekOneLogs as $logData) {
@@ -356,7 +327,6 @@ class KKNSeeder extends Seeder
             }
         }
 
-        // ── 8. Mentoring Logs (sample for Group 1) ────────────────
         MentoringLog::create([
             'group_id' => $group1->id,
             'student_id' => $students[0]->id,
@@ -365,15 +335,6 @@ class KKNSeeder extends Seeder
             'discussion_summary' => 'Membahas target peserta, metode pelatihan, dan penyesuaian modul pembelajaran sesuai kemampuan warga.',
             'dpl_feedback' => 'Program sudah baik. Pastikan materi pelatihan dibuat sederhana dan gunakan contoh-contoh yang relevan dengan kehidupan sehari-hari warga.',
             'status' => LogStatus::Approved,
-        ]);
-
-        MentoringLog::create([
-            'group_id' => $group1->id,
-            'student_id' => $students[1]->id,
-            'date' => '2026-07-05',
-            'topic' => 'Konsultasi Arsitektur Website Desa',
-            'discussion_summary' => 'Diskusi mengenai struktur halaman, fitur utama, dan rencana pelatihan admin website kepada perangkat desa.',
-            'status' => LogStatus::Pending,
         ]);
     }
 }

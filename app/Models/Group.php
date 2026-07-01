@@ -22,7 +22,6 @@ class Group extends Model
         'partner_name',
         'village_head',
         'background',
-        'lpk_background',
         'is_lrk_locked',
         'is_lpk_locked',
         'location_map_path',
@@ -33,6 +32,7 @@ class Group extends Model
         'video_script_text',
         'survey_documentation_text',
         'location_map_text',
+        'survey_document_path',
     ];
 
     protected function casts(): array
