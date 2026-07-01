@@ -18,8 +18,6 @@ class Program extends Model
         'title',
         'type',
         'sequence',
-        'storyboard',
-        'video_script',
     ];
 
     protected function casts(): array
