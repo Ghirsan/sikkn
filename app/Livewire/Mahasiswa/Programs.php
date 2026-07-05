@@ -77,13 +77,36 @@ class Programs extends Component
         if (!$this->participantToSubmit) return;
 
         $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
-        if ($participant->status === ProgramStatus::Draft) {
+        if ($participant->status === ProgramStatus::Draft || $participant->status === ProgramStatus::NeedsRevision) {
             $participant->update(['status' => ProgramStatus::Submitted]);
             \Flux\Flux::toast(variant: 'success', heading: 'LRK Diajukan', text: 'Rencana program berhasil diajukan ke DPL.');
         }
 
         $this->participantToSubmit = null;
         $this->js('$flux.modal("submit-lrk").close()');
+    }
+
+    public function confirmSubmitLpk(int $participantId)
+    {
+        $this->participantToSubmit = $participantId;
+        $this->js('$flux.modal("submit-lpk").show()');
+    }
+
+    public function submitLpk()
+    {
+        if (!$this->participantToSubmit) return;
+
+        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
+        if ($participant->lpk_status === ProgramStatus::Draft || $participant->lpk_status === ProgramStatus::NeedsRevision) {
+            $participant->update([
+                'lpk_status' => ProgramStatus::Submitted,
+                'lpk_revision_note' => null
+            ]);
+            \Flux\Flux::toast(variant: 'success', heading: 'LPK Diajukan', text: 'Laporan program berhasil diajukan ke DPL.');
+        }
+
+        $this->participantToSubmit = null;
+        $this->js('$flux.modal("submit-lpk").close()');
     }
 
     public function render()

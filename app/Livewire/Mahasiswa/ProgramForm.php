@@ -44,6 +44,10 @@ class ProgramForm extends Component
     public string $achievement = '';
     public string $obstacle = '';
     public string $solution = '';
+    public string $execution_description = '';
+    
+    public bool $isLpkMultidisiplin = false;
+    public bool $isLpkVideoProfile = false;
 
     public function mount()
     {
@@ -56,7 +60,7 @@ class ProgramForm extends Component
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
             $this->type = $program->type->value;
             
-            $isVideoProfile = $this->isVideoProfile($program->title);
+            $isVideoProfile = $this->isVideoProfile($program);
 
             if ($program->type === ProgramType::SosialKemasyarakatan || $program->type === ProgramType::Lainnya) {
                 $this->formMode = 'create_individual';
@@ -110,18 +114,30 @@ class ProgramForm extends Component
             $participant = ProgramParticipant::with('program')->where('student_id', $user->id)->findOrFail($this->participantId);
             
             if ($participant->status !== ProgramStatus::Approved) {
-                return redirect()->route('programs.index');
+                return redirect()->route('lpk.index');
             }
 
             $this->title = $participant->program->title;
+            $this->isLpkVideoProfile = $this->isVideoProfile($participant->program);
+            $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$this->isLpkVideoProfile;
+            
             $this->achievement = $participant->achievement ?? '';
             $this->obstacle = $participant->obstacle ?? '';
             $this->solution = $participant->solution ?? '';
+            $this->execution_description = $participant->execution_description ?? '';
         }
     }
 
-    private function isVideoProfile(?string $title): bool
+    private function isVideoProfile(?Program $program): bool
     {
+        if (!$program) return false;
+        
+        // In this system, Multidisiplin 3 is specifically the Video Profile
+        if ($program->type === ProgramType::Multidisiplin && $program->sequence == 3) {
+            return true;
+        }
+
+        $title = $program->title;
         if (!$title) return false;
         return str_contains(strtolower($title), 'video profile') || 
                str_contains(strtolower($title), 'video profil') ||
@@ -242,20 +258,29 @@ class ProgramForm extends Component
 
     private function saveLpk()
     {
-        $this->validate([
-            'achievement' => 'required|string',
-            'obstacle' => 'required|string',
-            'solution' => 'required|string',
-        ]);
+        $participant = ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantId);
+        $isVideo = $this->isVideoProfile($participant->program);
+        $isMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$isVideo;
 
-        $participant = ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantId);
+        if ($isMultidisiplin) {
+            $this->validate([
+                'execution_description' => 'required|string',
+                'achievement' => 'required|string',
+                'obstacle' => 'required|string',
+                'solution' => 'required|string',
+            ]);
+        } else {
+            // For Sosmas/Lainnya/Video Profile: they need to fill 'achievement' as the "Hasil"
+            $this->validate([
+                'achievement' => 'required|string', // Digunakan untuk menampung "Hasil"
+            ]);
+        }
         
         $participant->update([
+            'execution_description' => $this->execution_description,
             'achievement' => $this->achievement,
             'obstacle' => $this->obstacle,
             'solution' => $this->solution,
-            'lpk_status' => ProgramStatus::Submitted,
-            'lpk_revision_note' => null,
         ]);
 
         session()->flash('success', 'Laporan LPK Anda berhasil disimpan.');

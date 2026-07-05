@@ -46,12 +46,16 @@
                 <flux:text class="text-xs">{{ __('Isi capaian pelaksanaan program, hambatan, dan solusi.') }}</flux:text>
             </div>
             
-            <flux:textarea wire:model="achievement" label="{{ __('Capaian Pelaksanaan') }}" placeholder="{{ __('Apa saja yang berhasil dicapai selama pelaksanaan program?') }}" rows="3" />
-            
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <flux:textarea wire:model="obstacle" label="{{ __('Hambatan') }}" placeholder="{{ __('Hambatan yang dihadapi') }}" rows="3" />
-                <flux:textarea wire:model="solution" label="{{ __('Solusi') }}" placeholder="{{ __('Solusi untuk mengatasi hambatan') }}" rows="3" />
-            </div>
+            @if($isLpkMultidisiplin)
+                <flux:textarea wire:model="execution_description" label="{{ __('Pelaksanaan Kegiatan') }}" placeholder="{{ __('Jelaskan pelaksanaan kegiatan secara rinci...') }}" rows="3" />
+                <flux:textarea wire:model="achievement" label="{{ __('Ketercapaian') }}" placeholder="{{ __('Apa saja yang berhasil dicapai selama pelaksanaan program?') }}" rows="3" />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:textarea wire:model="obstacle" label="{{ __('Hambatan') }}" placeholder="{{ __('Hambatan yang dihadapi') }}" rows="3" />
+                    <flux:textarea wire:model="solution" label="{{ __('Tindak Lanjut') }}" placeholder="{{ __('Tindak lanjut atau solusi untuk mengatasi hambatan') }}" rows="3" />
+                </div>
+            @else
+                <flux:textarea wire:model="achievement" label="{{ __('Hasil') }}" placeholder="{{ __('Jelaskan hasil pelaksanaan sesuai peran dan tanggung jawab Anda...') }}" rows="4" />
+            @endif
 
         @endif
 

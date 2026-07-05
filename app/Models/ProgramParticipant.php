@@ -26,6 +26,13 @@ class ProgramParticipant extends Model
         'method',
         'target_audience',
         'output_target',
+        'documentation_image_path',
+        'documentation_caption',
+        'output_type',
+        'output_title',
+        'output_file_path',
+        'output_url',
+        'output_description',
     ];
 
     protected function casts(): array

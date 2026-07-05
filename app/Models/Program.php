@@ -137,19 +137,4 @@ class Program extends Model
 
 
 
-    /**
-     * Get the documentations for this program.
-     */
-    public function documentations(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(ProgramDocumentation::class);
-    }
-
-    /**
-     * Get the outputs for this program.
-     */
-    public function outputs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(ProgramOutput::class);
-    }
 }
