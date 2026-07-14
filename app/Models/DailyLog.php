@@ -15,6 +15,7 @@ class DailyLog extends Model
         'student_id',
         'date',
         'important_notes',
+        'image_path',
         'status',
     ];
 

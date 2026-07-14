@@ -91,12 +91,19 @@
                                 </div>
 
                                 {{-- Important Notes --}}
-                                @if($log->important_notes)
+                                @if($log->important_notes || $log->image_path)
                                     <div class="mt-2 rounded-lg bg-zinc-50 dark:bg-white/5 p-4">
-                                        <flux:text variant="strong" class="mb-1 text-sm">{{ __('Catatan Penting Harian:') }}</flux:text>
-                                        <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-300">
-                                            "{{ $log->important_notes }}"
-                                        </flux:text>
+                                        <flux:text variant="strong" class="mb-2 text-sm">{{ __('Catatan Penting Harian:') }}</flux:text>
+                                        @if($log->important_notes)
+                                            <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-300">
+                                                "{{ $log->important_notes }}"
+                                            </flux:text>
+                                        @endif
+                                        @if($log->image_path)
+                                            <div class="mt-3">
+                                                <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" />
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
 
@@ -147,7 +154,22 @@
                 @error('activities') <flux:error>{{ $message }}</flux:error> @enderror
             </div>
 
-            <flux:textarea wire:model="importantNotes" label="Catatan Penting Harian" placeholder="Opsional: Tuliskan catatan penting hari ini..." rows="4" />
+            <div>
+                <flux:heading size="md" class="mb-4">{{ __('Catatan Penting Harian') }}</flux:heading>
+                <div class="flex flex-col gap-4">
+                    <flux:textarea wire:model="importantNotes" label="Catatan Teks" placeholder="Opsional: Tuliskan catatan penting hari ini..." rows="4" />
+
+                    <x-image-upload
+                        modelName="notesImage"
+                        :file="$notesImage"
+                        :existingPath="$existingImagePath"
+                        label="Gambar Pendukung"
+                        description="Klik untuk mengunggah gambar catatan harian"
+                        formatText="Format: JPG, PNG. Maksimal 2MB."
+                        modalName="logbook-notes-image-preview"
+                    />
+                </div>
+            </div>
 
             <div class="flex gap-2">
                 <flux:spacer />
@@ -211,6 +233,12 @@
                             <span class="text-zinc-400 italic">Tidak ada catatan penting.</span>
                         @endif
                     </div>
+                    @if($viewLogData->image_path)
+                        <div class="mt-2">
+                            <flux:text variant="strong" class="mb-2 text-sm">{{ __('Gambar Pendukung:') }}</flux:text>
+                            <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-80 rounded-lg border border-zinc-200 dark:border-white/10 object-contain" />
+                        </div>
+                    @endif
                 </div>
 
                 <div class="flex justify-end pt-4 border-t border-zinc-200 dark:border-white/10">

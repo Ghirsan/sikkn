@@ -5,13 +5,44 @@ namespace App\Livewire\Mahasiswa;
 use App\Enums\LogStatus;
 use App\Models\DailyLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\WithFileUploads;
 
 class Logbook extends Component
 {
+    use WithFileUploads;
+
     #[Url]
     public $selectedWeek = 'all';
+
+    // Modal State
+    public $isEditMode = false;
+    public $logId = null;
+    public $date = '';
+    public $importantNotes = '';
+    public $activities = [];
+    public $notesImage = null;
+    public $existingImagePath = null;
+
+    // View Modal State
+    public $viewLogData = null;
+
+    protected $rules = [
+        'date' => 'required|date',
+        'importantNotes' => 'nullable|string',
+        'notesImage' => 'nullable|image|max:2048',
+        'activities' => 'required|array|min:1',
+        'activities.*.start_time' => 'required|date_format:H:i',
+        'activities.*.end_time' => 'required|date_format:H:i|after:activities.*.start_time',
+        'activities.*.activity_description' => 'required|string',
+    ];
+
+    public function mount()
+    {
+        $this->addActivity();
+    }
 
     public function render()
     {
@@ -73,30 +104,6 @@ class Logbook extends Component
         ]);
     }
 
-    // Modal State
-    public $isEditMode = false;
-    public $logId = null;
-    public $date = '';
-    public $importantNotes = '';
-    public $activities = []; // Array of ['start_time' => '', 'end_time' => '', 'activity_description' => '']
-
-    // View Modal State
-    public $viewLogData = null;
-
-    protected $rules = [
-        'date' => 'required|date',
-        'importantNotes' => 'nullable|string',
-        'activities' => 'required|array|min:1',
-        'activities.*.start_time' => 'required|date_format:H:i',
-        'activities.*.end_time' => 'required|date_format:H:i|after:activities.*.start_time',
-        'activities.*.activity_description' => 'required|string',
-    ];
-
-    public function mount()
-    {
-        $this->addActivity(); // Start with one empty activity
-    }
-
     public function addActivity()
     {
         $this->activities[] = [
@@ -120,6 +127,8 @@ class Logbook extends Component
         $this->logId = null;
         $this->date = '';
         $this->importantNotes = '';
+        $this->notesImage = null;
+        $this->existingImagePath = null;
         $this->activities = [];
         $this->addActivity();
         $this->resetValidation();
@@ -132,7 +141,6 @@ class Logbook extends Component
         $log = DailyLog::with('activities')->where('student_id', Auth::id())->findOrFail($id);
         
         if ($log->status === LogStatus::Approved) {
-            // Can't edit approved log
             return;
         }
 
@@ -140,6 +148,7 @@ class Logbook extends Component
         $this->logId = $log->id;
         $this->date = $log->date->format('Y-m-d');
         $this->importantNotes = $log->important_notes;
+        $this->existingImagePath = $log->image_path;
         
         $this->activities = [];
         foreach ($log->activities as $activity) {
@@ -189,6 +198,16 @@ class Logbook extends Component
             }
         }
 
+        // Handle image upload
+        $imagePath = $this->existingImagePath;
+        if ($this->notesImage) {
+            // Delete old image if replacing
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $this->notesImage->store('logbook-images', 'public');
+        }
+
         if ($this->isEditMode) {
             $log = DailyLog::where('student_id', Auth::id())->findOrFail($this->logId);
             if ($log->status === LogStatus::Approved) {
@@ -197,7 +216,7 @@ class Logbook extends Component
             $log->update([
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
-                // Status remains pending
+                'image_path' => $imagePath,
             ]);
             
             // Recreate activities
@@ -217,6 +236,7 @@ class Logbook extends Component
                 'student_id' => Auth::id(),
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
+                'image_path' => $imagePath,
                 'status' => LogStatus::Pending,
             ]);
         }

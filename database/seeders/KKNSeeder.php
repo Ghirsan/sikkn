@@ -293,12 +293,12 @@ class KKNSeeder extends Seeder
             ]);
         }
 
-        // ── 6. Daily Logs & Mentoring (Slightly adjusted for realism) ──────────
-        // (Sisa data untuk log dan mentoring dibiarkan mirip sebelumnya agar tetap ada data log harian)
+        // ── 6. Daily Logs & Mentoring ──────────
         $weekOneLogs = [
             [
                 'date' => '2026-07-01',
                 'important_notes' => 'Hari pertama KKN berjalan lancar. Disambut dengan hangat oleh perangkat desa dan masyarakat sekitar. Perlu segera dilakukan pemetaan potensi desa secara menyeluruh.',
+                'image_path' => null,
                 'status' => LogStatus::Approved,
                 'activities' => [
                     ['start_time' => '07:00', 'end_time' => '08:30', 'activity_description' => 'Upacara penerjunan mahasiswa KKN di Balai Desa Sukamakmur.'],
@@ -306,7 +306,46 @@ class KKNSeeder extends Seeder
                     ['start_time' => '13:00', 'end_time' => '15:00', 'activity_description' => 'Survei lokasi dan observasi lingkungan desa bersama kepala dusun.'],
                 ],
             ],
-            // Logs for other days can be simple
+            [
+                'date' => '2026-07-02',
+                'important_notes' => 'Survei UMKM pertama. Menemukan bahwa sebagian besar UMKM belum menggunakan digital marketing.',
+                'image_path' => null,
+                'status' => LogStatus::Approved,
+                'activities' => [
+                    ['start_time' => '08:00', 'end_time' => '12:00', 'activity_description' => 'Mengunjungi 5 UMKM makanan ringan di Dusun Krajan.'],
+                    ['start_time' => '13:30', 'end_time' => '16:00', 'activity_description' => 'Wawancara dengan pemilik UMKM terkait kendala pemasaran.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-03',
+                'important_notes' => 'Menyusun materi edukasi digitalisasi.',
+                'image_path' => null,
+                'status' => LogStatus::Approved,
+                'activities' => [
+                    ['start_time' => '09:00', 'end_time' => '12:00', 'activity_description' => 'Pencarian referensi materi digital marketing.'],
+                    ['start_time' => '13:00', 'end_time' => '17:00', 'activity_description' => 'Penyusunan modul pelatihan untuk warga.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-04',
+                'important_notes' => '',
+                'image_path' => null,
+                'status' => LogStatus::Pending,
+                'activities' => [
+                    ['start_time' => '07:00', 'end_time' => '10:00', 'activity_description' => 'Kerja bakti membersihkan balai desa bersama warga.'],
+                    ['start_time' => '10:00', 'end_time' => '12:00', 'activity_description' => 'Rapat koordinasi kelompok membahas progress program mingguan.'],
+                ],
+            ],
+            [
+                'date' => '2026-07-08',
+                'important_notes' => 'Masuk minggu kedua. Fokus ke persiapan sosialisasi program kerja.',
+                'image_path' => null,
+                'status' => LogStatus::Pending,
+                'activities' => [
+                    ['start_time' => '08:00', 'end_time' => '11:00', 'activity_description' => 'Menyiapkan undangan sosialisasi program kerja ke tokoh desa.'],
+                    ['start_time' => '13:00', 'end_time' => '15:30', 'activity_description' => 'Mendistribusikan undangan ke masing-masing RT.'],
+                ],
+            ],
         ];
 
         foreach ($weekOneLogs as $logData) {
@@ -314,6 +353,7 @@ class KKNSeeder extends Seeder
                 'student_id' => $students[0]->id,
                 'date' => $logData['date'],
                 'important_notes' => $logData['important_notes'],
+                'image_path' => $logData['image_path'] ?? null,
                 'status' => $logData['status'],
             ]);
 
