@@ -11,6 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('lrk/{group}/pdf', [\App\Http\Controllers\LrkPdfController::class, 'download'])->name('lrk.pdf');
     Route::get('lpk/{group}/pdf', [\App\Http\Controllers\LpkPdfController::class, 'download'])->name('lpk.pdf');
     Route::get('logbook/{student}/pdf', [\App\Http\Controllers\LogbookPdfController::class, 'download'])->name('logbook.pdf');
+    Route::get('mentoring-logs/{student}/pdf', [\App\Http\Controllers\MentoringLogsPdfController::class, 'download'])->name('mentoring-logs.pdf');
 
     // P2KKN Admin Routes
     Route::middleware('role:p2kkn')->prefix('admin')->group(function () {
@@ -41,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('logbook', 'mahasiswa.logbook.index')->name('logbook.index');
         Route::view('logbook/form', 'mahasiswa.logbook.form')->name('logbook.form');
         Route::view('mentoring-logs', 'mahasiswa.mentoring-logs.index')->name('mentoring-logs.index');
+        Route::view('mentoring-logs/form', 'mahasiswa.mentoring-logs.form')->name('mentoring-logs.form');
         Route::view('groups', 'mahasiswa.groups.index')->name('groups.index');
     });
 

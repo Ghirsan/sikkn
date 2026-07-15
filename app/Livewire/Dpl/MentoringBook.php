@@ -37,7 +37,7 @@ class MentoringBook extends Component
     public function render()
     {
         $studentIds = $this->getStudentIds();
-        $logs = MentoringLog::whereIn('student_id', $studentIds)->with(['student', 'group'])->latest('date')->get();
+        $logs = MentoringLog::whereIn('student_id', $studentIds)->with(['student', 'group', 'program'])->latest('date')->get();
 
         return view('livewire.dpl.mentoring-book', [
             'logs' => $logs,

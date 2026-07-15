@@ -14,11 +14,15 @@ class MentoringLog extends Model
     protected $fillable = [
         'group_id',
         'student_id',
+        'program_id',
         'date',
         'topic',
         'discussion_summary',
         'dpl_feedback',
         'status',
+        'target_group',
+        'student_count',
+        'output',
     ];
 
     protected function casts(): array
@@ -43,5 +47,13 @@ class MentoringLog extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    /**
+     * Get the program associated with this log.
+     */
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
     }
 }
