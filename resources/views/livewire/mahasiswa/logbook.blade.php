@@ -1,9 +1,10 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Stats --}}
-    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+    <div class="grid auto-rows-min gap-4 md:grid-cols-4">
         <x-stat-card icon="book-open" color="blue" :label="__('Total Entri')" :value="$stats['total']" />
         <x-stat-card icon="check-circle" color="green" :label="__('Disetujui')" :value="$stats['approved']" />
         <x-stat-card icon="clock" color="amber" :label="__('Menunggu')" :value="$stats['pending']" />
+        <x-stat-card icon="calculator" color="purple" :label="__('Total Jam Kerja')" :value="$stats['totalHours']" />
     </div>
 
     {{-- Header & Actions --}}
@@ -12,8 +13,8 @@
             <x-tab :selected="$selectedWeek === 'all'" wire:click="$set('selectedWeek', 'all')">
                 Semua Minggu
             </x-tab>
-            @foreach($weekNumbers as $week)
-                <x-tab :selected="$selectedWeek === 'week-'.$week" wire:click="$set('selectedWeek', 'week-{{ $week }}')">
+            @foreach($allWeeks as $week)
+                <x-tab :selected="$selectedWeek === (string)$week" wire:click="$set('selectedWeek', '{{ $week }}')">
                     Minggu {{ $week }}
                 </x-tab>
             @endforeach
@@ -24,7 +25,7 @@
                     {{ __('Cetak Logbook') }}
                 </flux:button>
             @endif
-            <flux:button variant="filled" size="sm" icon="plus" wire:click="$dispatch('open-modal', 'log-form-modal')">
+            <flux:button variant="filled" size="sm" icon="plus" href="{{ route('logbook.form') }}" wire:navigate>
                 {{ __('Tambah Entri') }}
             </flux:button>
         </div>
@@ -41,7 +42,7 @@
                 <x-accordion 
                     heading="Minggu Ke-{{ $weekNumber }}" 
                     description="{{ count($weekLogs) }} hari tercatat"
-                    :defaultOpen="$selectedWeek === 'week-'.$weekNumber || $selectedWeek === 'all'"
+                    :defaultOpen="$selectedWeek === (string)$weekNumber || $selectedWeek === 'all'"
                 >
                     <div class="flex flex-col gap-4">
                         @foreach($weekLogs as $log)
@@ -111,7 +112,7 @@
                                 <div class="flex items-center justify-end gap-2 pt-2">
                                     <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
                                     @if($log->status === \App\Enums\LogStatus::Pending)
-                                        <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="editLog({{ $log->id }})">{{ __('Edit') }}</flux:button>
+                                        <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('logbook.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
                                     @endif
                                 </div>
                             </flux:card>
@@ -122,65 +123,6 @@
         </div>
     @endif
     
-    {{-- Form Modal --}}
-    <flux:modal name="log-form-modal" class="md:w-[40rem]" variant="flyout" wire:close="resetForm">
-        <form wire:submit="saveLog" class="flex flex-col gap-6">
-            <div>
-                <flux:heading size="lg">{{ $isEditMode ? __('Edit Catatan Harian') : __('Tambah Catatan Harian') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Isi detail kegiatan harian KKN Anda di bawah ini.') }}</flux:text>
-            </div>
-
-            <flux:input type="date" wire:model="date" label="Tanggal" />
-
-            <div>
-                <flux:heading size="md" class="mb-4">{{ __('Jadwal Kegiatan') }}</flux:heading>
-                <div class="flex flex-col gap-4">
-                    @foreach($activities as $index => $activity)
-                        <div class="flex items-start gap-4 p-4 border border-zinc-200 dark:border-white/10 rounded-xl relative group">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-                                <flux:input type="time" wire:model="activities.{{ $index }}.start_time" label="Mulai" />
-                                <flux:input type="time" wire:model="activities.{{ $index }}.end_time" label="Selesai" />
-                                <div class="md:col-span-2">
-                                    <flux:input wire:model="activities.{{ $index }}.activity_description" label="Kegiatan" placeholder="Cth: Survei lokasi desa" />
-                                </div>
-                            </div>
-                            @if(count($activities) > 1)
-                                <flux:button variant="danger" size="sm" icon="trash" class="absolute -top-3 -right-3 rounded-full hidden group-hover:flex" wire:click="removeActivity({{ $index }})" />
-                            @endif
-                        </div>
-                    @endforeach
-                    <flux:button variant="subtle" size="sm" icon="plus" wire:click="addActivity" class="w-full mt-2">{{ __('Tambah Kegiatan') }}</flux:button>
-                </div>
-                @error('activities') <flux:error>{{ $message }}</flux:error> @enderror
-            </div>
-
-            <div>
-                <flux:heading size="md" class="mb-4">{{ __('Catatan Penting Harian') }}</flux:heading>
-                <div class="flex flex-col gap-4">
-                    <flux:textarea wire:model="importantNotes" label="Catatan Teks" placeholder="Opsional: Tuliskan catatan penting hari ini..." rows="4" />
-
-                    <x-image-upload
-                        modelName="notesImage"
-                        :file="$notesImage"
-                        :existingPath="$existingImagePath"
-                        label="Gambar Pendukung"
-                        description="Klik untuk mengunggah gambar catatan harian"
-                        formatText="Format: JPG, PNG. Maksimal 2MB."
-                        modalName="logbook-notes-image-preview"
-                    />
-                </div>
-            </div>
-
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost" wire:click="resetForm">{{ __('Batal') }}</flux:button>
-                </flux:modal.close>
-                <flux:button type="submit" variant="primary">{{ __('Simpan') }}</flux:button>
-            </div>
-        </form>
-    </flux:modal>
-
     {{-- View Modal --}}
     <flux:modal name="log-view-modal" class="md:w-3/4 lg:w-[50rem]">
         @if($viewLogData)

@@ -1,193 +1,263 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Buku Catatan Harian (Logbook)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Logbook KKN - {{ $student->name }}</title>
     <style>
         body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11pt;
             line-height: 1.5;
+            color: #000;
             margin: 0;
             padding: 0;
         }
+
         .page-break {
             page-break-after: always;
         }
-        .text-center {
-            text-align: center;
+
+        h1, h2, h3 {
+            font-family: Arial, Helvetica, sans-serif;
         }
-        h2, h3, h4 {
+
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        
+        .cover-page {
             text-align: center;
-            margin: 5px 0;
+            padding-top: 40px;
         }
-        table {
+        
+        .cover-page h1 { font-size: 14pt; margin-bottom: 5px; }
+        .cover-page h2 { font-size: 12pt; margin-bottom: 5px; }
+
+        .meta-table {
+            width: 80%;
+            margin: 30px auto;
+            border-collapse: collapse;
+        }
+        .meta-table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .signature-table { width: 100%; margin-top: 40px; }
+        .signature-table td { width: 50%; text-align: center; vertical-align: top; }
+        .signature-line { margin: 60px auto 5px; border-bottom: 1px solid #000; width: 220px; }
+
+        .daily-header {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .daily-header td {
+            border: 1px solid #000;
+            padding: 10px;
+            vertical-align: middle;
+        }
+        .daily-header .logo { width: 100px; text-align: center; }
+        .daily-header .title-center { text-align: center; font-weight: bold; font-size: 12pt; }
+        .daily-header .meta-right { width: 180px; font-size: 10pt; line-height: 1.6; }
+
+        .activity-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
             margin-bottom: 20px;
         }
-        th, td {
+        .activity-table th, .activity-table td {
             border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
+            padding: 6px;
             vertical-align: top;
         }
-        .no-border, .no-border th, .no-border td {
-            border: none !important;
-            padding: 4px;
-        }
-        .signature-table {
-            width: 100%;
-            margin-top: 40px;
-            border: none;
-        }
-        .signature-table td {
-            border: none;
+        .activity-table th {
             text-align: center;
-            width: 50%;
+            font-weight: bold;
         }
-        .header-table {
-            width: 100%;
-            border: none;
-            margin-bottom: 20px;
+
+        .notes-box {
+            border: 1px solid #000;
+            min-height: 100px;
+            padding: 10px;
+            margin-top: 10px;
         }
-        .header-table td {
-            border: none;
-            padding: 0;
-            vertical-align: top;
+        
+        .notes-image {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin-top: 15px;
         }
-        .logo {
-            width: 80px;
-            height: auto;
+
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
+    @php
+        $period = $group->period;
+        $tim = $period->semester->value === 'Ganjil' ? 'TIM I' : 'TIM II';
+        $ta = $period->year . '/' . ($period->year + 1);
+        $kota = explode(' ', $group->regency);
+        $kotaName = isset($kota[1]) ? ucfirst(strtolower($kota[1])) : ucfirst(strtolower($group->regency));
+        $printDate = \Carbon\Carbon::now()->translatedFormat('d F Y');
+    @endphp
 
-@foreach($logsGroupedByWeek as $weekNumber => $logsInWeek)
+    @foreach($logsGroupedByWeek as $weekNumber => $logs)
+        {{-- ================= COVER MINGGUAN ================= --}}
+        <div class="cover-page">
+            <h1 class="font-bold uppercase">PENGESAHAN BUKU CATATAN HARIAN</h1>
+            <h2 class="font-bold uppercase">MINGGU KE - {{ $weekNumber }}</h2>
+            <br>
+            <h1 class="font-bold uppercase">KULIAH KERJA NYATA</h1>
+            <h1 class="font-bold uppercase">UNIVERSITAS DIPONEGORO</h1>
+            <h2 class="font-bold uppercase">{{ $tim }} TA {{ $ta }}</h2>
 
-    <!-- PENGESAHAN MINGGUAN -->
-    <h2>PENGESAHAN BUKU CATATAN HARIAN</h2>
-    <h2>MINGGU KE - {{ $weekNumber }}</h2>
-    <h2>KULIAH KERJA NYATA</h2>
-    <h2>UNIVERSITAS DIPONEGORO</h2>
-    <h2>TIM {{ strtoupper($group->name) }}</h2>
-    <br><br>
-
-    <table class="no-border" style="width: 100%;">
-        <tr>
-            <td style="width: 20%;">Desa</td><td style="width: 2%;">:</td><td>{{ $group->village }}</td>
-        </tr>
-        <tr>
-            <td>Kecamatan</td><td>:</td><td>{{ $group->district }}</td>
-        </tr>
-        <tr>
-            <td>Kabupaten</td><td>:</td><td>{{ $group->regency }}</td>
-        </tr>
-        <tr>
-            <td>Provinsi</td><td>:</td><td>{{ $group->province }}</td>
-        </tr>
-    </table>
-    <br>
-    <p style="text-align: center;"><strong>Disusun Oleh</strong></p>
-    <table class="no-border" style="width: 100%;">
-        <tr>
-            <td style="width: 20%;">Nama</td><td style="width: 2%;">:</td><td>{{ $student->name }}</td>
-        </tr>
-        <tr>
-            <td>NIM</td><td>:</td><td>{{ $student->nim }}</td>
-        </tr>
-        <tr>
-            <td>Prodi</td><td>:</td><td>{{ $student->prodi }}</td>
-        </tr>
-        <tr>
-            <td>Fakultas</td><td>:</td><td>{{ $student->fakultas }}</td>
-        </tr>
-    </table>
-
-    <table class="signature-table">
-        <tr>
-            <td></td>
-            <td>{{ $group->village ?? 'Kota' }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</td>
-        </tr>
-        <tr>
-            <td>Disetujui Oleh :<br>Dosen KKN<br><br><br><br><br><strong>{{ $dpl ? $dpl->name : '......................' }}</strong><br>NIP. {{ $dpl ? $dpl->nip : '................' }}</td>
-            <td>Pelaksana<br>Mahasiswa<br><br><br><br><br><strong>{{ $student->name }}</strong><br>NIM. {{ $student->nim }}</td>
-        </tr>
-    </table>
-
-    <div class="page-break"></div>
-
-    <!-- ISI CATATAN HARIAN -->
-    @foreach($logsInWeek as $log)
-        <table class="header-table">
-            <tr>
-                <td style="width: 15%; text-align: center;">
-                    <!-- Placeholder logo -->
-                    <img src="{{ public_path('images/undip-logo.png') }}" alt="Logo" class="logo" style="max-width: 80px;">
-                </td>
-                <td style="width: 85%; text-align: center;">
-                    <h3>BUKU CATATAN HARIAN</h3>
-                    <h3>KULIAH KERJA NYATA</h3>
-                    <h3>UNIVERSITAS DIPONEGORO</h3>
-                    <h3>{{ $group->period ? $group->period->year . '/' . ($group->period->year + 1) : '2024/2025' }}</h3>
-                </td>
-            </tr>
-        </table>
-        <hr>
-
-        <p>Hari ke : {{ $log->day_number }} &nbsp;&nbsp;&nbsp;&nbsp; Hari : {{ \Carbon\Carbon::parse($log->date)->translatedFormat('l') }} &nbsp;&nbsp;&nbsp;&nbsp; Tanggal : {{ \Carbon\Carbon::parse($log->date)->translatedFormat('d F Y') }}</p>
-
-        <p><strong>1. Jadwal Kegiatan</strong></p>
-        <table>
-            <thead>
+            <table class="meta-table">
                 <tr>
-                    <th style="width: 5%;">No</th>
-                    <th style="width: 20%;">Waktu</th>
-                    <th>Kegiatan</th>
+                    <td>
+                        <table>
+                            <tr><td width="90">Desa</td><td width="10">:</td><td>{{ $group->village }}</td></tr>
+                            <tr><td>Kecamatan</td><td>:</td><td>{{ $group->district }}</td></tr>
+                            <tr><td>Kabupaten</td><td>:</td><td>{{ $group->regency }}</td></tr>
+                            <tr><td>Provinsi</td><td>:</td><td>{{ $group->province }}</td></tr>
+                        </table>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse($log->activities as $index => $activity)
                 <tr>
-                    <td style="text-align: center;">{{ $index + 1 }}</td>
-                    <td style="text-align: center;">{{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}</td>
-                    <td>{{ $activity->activity_description }}</td>
+                    <td class="text-center font-bold" style="padding: 5px;">Disusun Oleh</td>
                 </tr>
-                @empty
                 <tr>
-                    <td colspan="3" style="text-align: center;">Tidak ada kegiatan</td>
+                    <td>
+                        <table>
+                            <tr><td width="90">Nama</td><td width="10">:</td><td>{{ $student->name }}</td></tr>
+                            <tr><td>NIM</td><td>:</td><td>{{ $student->nim }}</td></tr>
+                            <tr><td>Prodi</td><td>:</td><td>{{ $student->prodi }}</td></tr>
+                            <tr><td>Fakultas</td><td>:</td><td>{{ $student->fakultas }}</td></tr>
+                        </table>
+                    </td>
                 </tr>
-                @endforelse
-            </tbody>
-        </table>
+            </table>
 
-        <p><strong>2. Catatan Penting Harian</strong></p>
-        <p style="text-align: justify; border: 1px solid #000; padding: 10px; min-height: 100px;">
-            {!! nl2br(e($log->important_notes)) !!}
-        </p>
+            <div style="text-align: right; margin-right: 10%;">
+                {{ $kotaName }}, {{ $printDate }}
+            </div>
 
-        <table class="signature-table" style="margin-top: 20px;">
-            <tr>
-                <td></td>
-                <td>{{ $group->village ?? 'Kota' }}, {{ \Carbon\Carbon::parse($log->date)->translatedFormat('d F Y') }}</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td>Pelaksana<br>Mahasiswa<br><br><br><br><br><strong>{{ $student->name }}</strong><br>NIM. {{ $student->nim }}</td>
-            </tr>
-        </table>
+            <table class="signature-table">
+                <tr>
+                    <td>
+                        Disetujui Oleh :<br>
+                        Dosen KKN
+                        <div class="signature-line"></div>
+                        {{ $dpl->name }}<br>
+                        NIP. {{ $dpl->nip ?? '-' }}
+                    </td>
+                    <td>
+                        <br>
+                        Pelaksana Mahasiswa
+                        <div class="signature-line"></div>
+                        {{ $student->name }}<br>
+                        NIM. {{ $student->nim }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="page-break"></div>
 
-        @if (!$loop->last)
+        {{-- ================= ISI LOG HARIAN ================= --}}
+        @foreach($logs as $log)
+            <table class="daily-header">
+                <tr>
+                    <td class="logo">
+                        {{-- Placeholder untuk Logo Undip jika diperlukan, sementara kosong/teks --}}
+                        <div style="font-size: 8pt; font-style: italic;">[Logo Undip]</div>
+                    </td>
+                    <td class="title-center">
+                        BUKU CATATAN HARIAN<br>
+                        KULIAH KERJA NYATA<br>
+                        UNIVERSITAS DIPONEGORO<br>
+                        {{ $ta }}
+                    </td>
+                    <td class="meta-right">
+                        Hari ke : {{ $log->day_number }}<br>
+                        Hari : {{ $log->date->translatedFormat('l') }}<br>
+                        Tanggal : {{ $log->date->translatedFormat('d M Y') }}
+                    </td>
+                </tr>
+            </table>
+
+            <div class="section-title">1. Jadwal Kegiatan</div>
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th width="5%">No</th>
+                        <th width="20%">Waktu</th>
+                        <th width="75%">Kegiatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($log->activities as $index => $activity)
+                        <tr>
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td class="text-center">
+                                {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                            </td>
+                            <td>{{ $activity->activity_description }}</td>
+                        </tr>
+                    @endforeach
+                    @if($log->activities->isEmpty())
+                        <tr>
+                            <td colspan="3" class="text-center font-italic text-zinc-500">Belum ada aktivitas dicatat.</td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+
+            <div class="section-title">2. Catatan Penting Harian</div>
+            <div class="notes-box">
+                @if($log->important_notes)
+                    {!! nl2br(e($log->important_notes)) !!}
+                @endif
+
+                @if($log->image_path)
+                    @php
+                        $imgPath = storage_path('app/public/' . $log->image_path);
+                    @endphp
+                    @if(file_exists($imgPath))
+                        @php
+                            $imgData = base64_encode(file_get_contents($imgPath));
+                            $mime = mime_content_type($imgPath);
+                            $src = 'data:' . $mime . ';base64,' . $imgData;
+                        @endphp
+                        <img src="{{ $src }}" class="notes-image" alt="Catatan Penting">
+                    @endif
+                @endif
+            </div>
+
+            <div style="text-align: right; margin-top: 40px; margin-right: 10%;">
+                {{ $kotaName }}, {{ $log->date->translatedFormat('d F Y') }}<br>
+                Pelaksana Mahasiswa
+                <div class="signature-line" style="margin: 60px 0 5px auto; width: 200px;"></div>
+                {{ $student->name }}<br>
+                NIM. {{ $student->nim }}
+            </div>
+
+            @if(!$loop->last)
+                <div class="page-break"></div>
+            @endif
+        @endforeach
+
+        @if(!$loop->last)
             <div class="page-break"></div>
         @endif
     @endforeach
-
-    @if (!$loop->last)
-        <div class="page-break"></div>
-    @endif
-@endforeach
 
 </body>
 </html>
