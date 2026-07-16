@@ -1,5 +1,11 @@
 <flux:card>
     <form wire:submit="save" class="flex flex-col gap-4">
+        @if($status === \App\Enums\ProgramStatus::NeedsRevision->value && $revision_note)
+            <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg">
+                <flux:text class="text-xs text-red-600 dark:text-red-400 mb-1 font-semibold">{{ __('Catatan Revisi') }}</flux:text>
+                <flux:text class="text-red-800 dark:text-red-200" variant="strong">{{ $revision_note }}</flux:text>
+            </div>
+        @endif
         @if($formMode === 'edit_program')
             
             <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-4">

@@ -46,6 +46,9 @@ class ProgramForm extends Component
     public string $solution = '';
     public string $execution_description = '';
     
+    public ?string $status = null;
+    public ?string $revision_note = null;
+    
     public bool $isLpkMultidisiplin = false;
     public bool $isLpkVideoProfile = false;
 
@@ -75,6 +78,8 @@ class ProgramForm extends Component
 
             if ($this->participantId) {
                 $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
+                $this->status = $participant->status->value;
+                $this->revision_note = $participant->revision_note;
                 $this->participant_title = $participant->participant_title ?? '';
                 $this->role_in_program = $participant->role_in_program ?? '';
                 $this->responsibility = $participant->responsibility ?? '';
@@ -93,6 +98,8 @@ class ProgramForm extends Component
                 $participant = $program->participants()->where('student_id', $user->id)->first();
                 if ($participant) {
                     $this->participantId = $participant->id;
+                    $this->status = $participant->status->value;
+                    $this->revision_note = $participant->revision_note;
                     $this->participant_title = $participant->participant_title ?? '';
                     $this->role_in_program = $participant->role_in_program ?? '';
                     $this->responsibility = $participant->responsibility ?? '';
@@ -118,6 +125,8 @@ class ProgramForm extends Component
             }
 
             $this->title = $participant->program->title;
+            $this->status = $participant->lpk_status->value;
+            $this->revision_note = $participant->lpk_revision_note;
             $this->isLpkVideoProfile = $this->isVideoProfile($participant->program);
             $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$this->isLpkVideoProfile;
             
