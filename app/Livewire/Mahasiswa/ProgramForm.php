@@ -179,78 +179,80 @@ class ProgramForm extends Component
             ]);
         }
 
-        // 1. Handle Program Creation/Update
-        if ($this->programId) {
-            $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
-            if ($this->formMode === 'create_individual') {
-                $program->update([
-                    'title' => $this->title,
-                ]);
-            }
-        } else {
-            if ($this->formMode === 'create_individual') {
-                if ($this->type === ProgramType::SosialKemasyarakatan->value) {
-                    $existingSosmas = Program::where('student_id', $user->id)
-                        ->where('type', ProgramType::SosialKemasyarakatan)
-                        ->exists();
-
-                    if ($existingSosmas) {
-                        $this->addError('title', 'Maksimal 1 program sosial kemasyarakatan yang diizinkan.');
-                        return;
-                    }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            // 1. Handle Program Creation/Update
+            if ($this->programId) {
+                $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
+                if ($this->formMode === 'create_individual') {
+                    $program->update([
+                        'title' => $this->title,
+                    ]);
                 }
+            } else {
+                if ($this->formMode === 'create_individual') {
+                    if ($this->type === ProgramType::SosialKemasyarakatan->value) {
+                        $existingSosmas = Program::where('student_id', $user->id)
+                            ->where('type', ProgramType::SosialKemasyarakatan)
+                            ->exists();
 
-                $nextSequence = Program::where('student_id', $user->id)
-                    ->where('type', $this->type)
-                    ->max('sequence') + 1;
+                        if ($existingSosmas) {
+                            $this->addError('title', 'Maksimal 1 program sosial kemasyarakatan yang diizinkan.');
+                            return;
+                        }
+                    }
 
-                $program = Program::create([
-                    'student_id' => $user->id,
-                    'group_id' => $user->group_id,
-                    'title' => $this->title,
-                    'type' => $this->type,
-                    'sequence' => $nextSequence,
-                ]);
-                $this->programId = $program->id;
+                    $nextSequence = Program::where('student_id', $user->id)
+                        ->where('type', $this->type)
+                        ->max('sequence') + 1;
+
+                    $program = Program::create([
+                        'student_id' => $user->id,
+                        'group_id' => $user->group_id,
+                        'title' => $this->title,
+                        'type' => $this->type,
+                        'sequence' => $nextSequence,
+                    ]);
+                    $this->programId = $program->id;
+                }
             }
-        }
 
-        // 2. Handle Participant Creation/Update
-        $participantData = [
-            'status' => ProgramStatus::Draft,
-        ];
+            // 2. Handle Participant Creation/Update
+            $participantData = [
+                'status' => ProgramStatus::Draft,
+            ];
 
-        // Ensure we preserve existing role/responsibility for edit_program
-        // or update them if provided in create_individual/edit_peran
-        $participantData['role_in_program'] = $this->role_in_program ?: null;
-        $participantData['responsibility'] = $this->responsibility ?: null;
-        
-        if ($this->formMode === 'edit_peran' || $this->formMode === 'create_individual') {
-            $participantData['execution_date'] = $this->execution_date ?: null;
-            $participantData['participant_title'] = null;
-            $participantData['problem_potential'] = null;
-            $participantData['location'] = null;
-            $participantData['method'] = null;
-            $participantData['target_audience'] = null;
-            $participantData['output_target'] = null;
-        } elseif ($this->formMode === 'edit_program') {
-            $participantData['participant_title'] = $this->participant_title ?: null;
-            $participantData['problem_potential'] = $this->problem_potential ?: null;
-            $participantData['location'] = $this->location ?: null;
-            $participantData['method'] = $this->method ?: null;
-            $participantData['target_audience'] = $this->target_audience ?: null;
-            $participantData['output_target'] = $this->output_target ?: null;
-            $participantData['execution_date'] = $this->execution_date ?: null;
-        }
+            // Ensure we preserve existing role/responsibility for edit_program
+            // or update them if provided in create_individual/edit_peran
+            $participantData['role_in_program'] = $this->role_in_program ?: null;
+            $participantData['responsibility'] = $this->responsibility ?: null;
+            
+            if ($this->formMode === 'edit_peran' || $this->formMode === 'create_individual') {
+                $participantData['execution_date'] = $this->execution_date ?: null;
+                $participantData['participant_title'] = null;
+                $participantData['problem_potential'] = null;
+                $participantData['location'] = null;
+                $participantData['method'] = null;
+                $participantData['target_audience'] = null;
+                $participantData['output_target'] = null;
+            } elseif ($this->formMode === 'edit_program') {
+                $participantData['participant_title'] = $this->participant_title ?: null;
+                $participantData['problem_potential'] = $this->problem_potential ?: null;
+                $participantData['location'] = $this->location ?: null;
+                $participantData['method'] = $this->method ?: null;
+                $participantData['target_audience'] = $this->target_audience ?: null;
+                $participantData['output_target'] = $this->output_target ?: null;
+                $participantData['execution_date'] = $this->execution_date ?: null;
+            }
 
-        if ($this->participantId) {
-            $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
-            $participantData['revision_note'] = null;
-            $participant->update($participantData);
-        } else {
-            $participantData['student_id'] = $user->id;
-            $program->participants()->create($participantData);
-        }
+            if ($this->participantId) {
+                $participant = $program->participants()->where('student_id', $user->id)->findOrFail($this->participantId);
+                $participantData['revision_note'] = null;
+                $participant->update($participantData);
+            } else {
+                $participantData['student_id'] = $user->id;
+                $program->participants()->create($participantData);
+            }
+        });
 
         session()->flash('success', 'Data program berhasil disimpan.');
         return $this->redirect(route('programs.index'), navigate: true);

@@ -26,6 +26,7 @@ class ProgramParticipant extends Model
         'method',
         'target_audience',
         'output_target',
+        'execution_description',
         'documentation_image_path',
         'documentation_caption',
         'output_type',
@@ -67,8 +68,26 @@ class ProgramParticipant extends Model
             default => 'X',
         };
 
-        $sequence = $program->sequence ?? 1;
-        return "{$typePrefix}{$sequence}M{$participant->student_id}";
+        // Count existing participants for this student + type to determine sequence
+        $existingCount = static::whereHas('program', function ($q) use ($program) {
+                $q->where('type', $program->type);
+                if ($program->type === \App\Enums\ProgramType::Multidisiplin) {
+                    $q->where('group_id', $program->group_id);
+                }
+            })
+            ->where('student_id', $participant->student_id)
+            ->count();
+
+        $sequence = $existingCount + 1;
+
+        // Ensure uniqueness by checking for existing codes
+        $baseCode = "{$typePrefix}{$sequence}M{$participant->student_id}";
+        while (static::where('participant_code', $baseCode)->exists()) {
+            $sequence++;
+            $baseCode = "{$typePrefix}{$sequence}M{$participant->student_id}";
+        }
+
+        return $baseCode;
     }
 
 

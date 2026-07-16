@@ -55,11 +55,12 @@ class Programs extends Component
             if ($program->student_id === Auth::id()) {
                 $program->delete();
             }
+
+            \Flux\Flux::toast(variant: 'success', heading: 'Dihapus', text: 'Data program berhasil dihapus.');
         }
 
         $this->participantToDelete = null;
         $this->js('$flux.modal("delete-participant").close()');
-        \Flux\Flux::toast(variant: 'success', heading: 'Dihapus', text: 'Data program berhasil dihapus.');
     }
 
     // ─── GENERAL ACTIONS ──────────────────────────────────────────
