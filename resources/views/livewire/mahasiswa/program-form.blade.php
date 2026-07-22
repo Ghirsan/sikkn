@@ -6,12 +6,23 @@
                 <flux:text class="text-red-800 dark:text-red-200" variant="strong">{{ $revision_note }}</flux:text>
             </div>
         @endif
+        
+        @if($action === 'create' && $type === \App\Enums\ProgramType::Multidisiplin->value)
+            <flux:select wire:model.live="programId" label="{{ __('Pilih Tema Multidisiplin') }}" placeholder="{{ __('Pilih tema yang tersedia...') }}">
+                @foreach($availableMultidisiplinPrograms as $prog)
+                    <flux:select.option value="{{ $prog->id }}">{{ $prog->title ?: '(Tema Belum Diisi)' }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
+
         @if($formMode === 'edit_program')
             
-            <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-4">
-                <flux:text class="text-xs text-zinc-500 mb-1">{{ __('Tema Multidisiplin') }}</flux:text>
-                <flux:text variant="strong">{{ $title }}</flux:text>
-            </div>
+            @if(!($action === 'create' && $type === \App\Enums\ProgramType::Multidisiplin->value))
+                <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-4">
+                    <flux:text class="text-xs text-zinc-500 mb-1">{{ __('Tema Multidisiplin') }}</flux:text>
+                    <flux:text variant="strong">{{ $title }}</flux:text>
+                </div>
+            @endif
             
             <flux:input wire:model="participant_title" label="{{ __('Usulan Program (Spesifik)') }}" placeholder="{{ __('Contoh: Penyuluhan Kesehatan Masyarakat') }}" class="mb-4" />
             
@@ -38,10 +49,11 @@
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 
         @elseif($formMode === 'edit_peran')
-            <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
-                <flux:text variant="strong">{{ $title }}</flux:text>
-                <flux:text class="text-xs">{{ __('Silakan isi peran spesifik Anda di dalam program ini.') }}</flux:text>
-            </div>
+            @if(!($action === 'create' && $type === \App\Enums\ProgramType::Multidisiplin->value))
+                <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
+                    <flux:text variant="strong">{{ $title }}</flux:text>
+                </div>
+            @endif
             <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />

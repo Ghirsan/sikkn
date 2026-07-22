@@ -121,16 +121,21 @@ class Programs extends Component
             }])
             ->get();
 
-        $multidisiplinPrograms = $allPrograms->where('type', ProgramType::Multidisiplin);
+        $multidisiplinPrograms = $allPrograms->where('type', ProgramType::Multidisiplin)->filter(function($prog) {
+            return $prog->participants->isNotEmpty();
+        });
+        
         $sosmasPrograms = $allPrograms->where('type', ProgramType::SosialKemasyarakatan)->where('student_id', $user->id);
         $lainnyaPrograms = $allPrograms->where('type', ProgramType::Lainnya)->where('student_id', $user->id);
 
-        $isMultidisiplinFilled = true;
-        foreach ($multidisiplinPrograms as $prog) {
-            $part = $prog->participants->first();
-            if (!$part || empty($part->role_in_program) || empty($part->responsibility) || empty($part->execution_date)) {
-                $isMultidisiplinFilled = false;
-                break;
+        $isMultidisiplinFilled = $multidisiplinPrograms->count() >= 2;
+        if ($isMultidisiplinFilled) {
+            foreach ($multidisiplinPrograms as $prog) {
+                $part = $prog->participants->first();
+                if (!$part || empty($part->role_in_program) || empty($part->responsibility) || empty($part->execution_date)) {
+                    $isMultidisiplinFilled = false;
+                    break;
+                }
             }
         }
 

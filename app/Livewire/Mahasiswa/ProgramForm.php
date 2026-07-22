@@ -19,12 +19,15 @@ class ProgramForm extends Component
     public ?string $type = null;
 
     #[Url]
-    public ?int $programId = null;
+    public ?string $programId = '';
 
     #[Url]
     public ?int $participantId = null;
 
     public string $formMode = 'edit_program';
+    
+    // For Multidisiplin Join
+    public $availableMultidisiplinPrograms = [];
 
     // Program Fields (Programs Table)
     public string $title = '';
@@ -57,8 +60,18 @@ class ProgramForm extends Component
         $user = Auth::user();
 
         if ($this->action === 'create') {
-            $this->formMode = 'create_individual';
             $this->type = $this->type ?? ProgramType::Lainnya->value;
+            
+            if ($this->type === ProgramType::Multidisiplin->value) {
+                $this->formMode = 'create_multidisiplin';
+                $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
+                $this->availableMultidisiplinPrograms = Program::where('group_id', $user->group_id)
+                    ->where('type', ProgramType::Multidisiplin)
+                    ->whereNotIn('id', $joinedIds)
+                    ->get();
+            } else {
+                $this->formMode = 'create_individual';
+            }
         } elseif ($this->action === 'edit' && $this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
             $this->type = $program->type->value;
@@ -153,6 +166,24 @@ class ProgramForm extends Component
                str_contains(strtolower($title), 'video dokumenter');
     }
 
+    public function updatedProgramId($value)
+    {
+        if ($this->action === 'create' && $this->type === ProgramType::Multidisiplin->value) {
+            if ($value) {
+                $program = Program::find($value);
+                $this->title = $program->title;
+                if ($this->isVideoProfile($program)) {
+                    $this->formMode = 'edit_peran';
+                } else {
+                    $this->formMode = 'edit_program';
+                }
+            } else {
+                $this->formMode = 'create_multidisiplin';
+                $this->title = '';
+            }
+        }
+    }
+
     public function save()
     {
         if ($this->action === 'lpk') {
@@ -163,7 +194,14 @@ class ProgramForm extends Component
         if (!$user->group_id) return;
 
         // Validation based on mode
-        if ($this->formMode === 'edit_peran') {
+        if ($this->formMode === 'create_multidisiplin') {
+            $this->validate([
+                'programId' => 'required',
+            ], [
+                'programId.required' => 'Pilih tema program multidisiplin terlebih dahulu.',
+            ]);
+            return;
+        } elseif ($this->formMode === 'edit_peran') {
             $this->validate([
                 'role_in_program' => 'required|string',
                 'responsibility' => 'required|string',
