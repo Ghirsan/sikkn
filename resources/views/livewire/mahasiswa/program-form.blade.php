@@ -67,11 +67,6 @@
             <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
-            <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
-                @foreach(\App\Enums\SdgCategory::cases() as $sdg)
-                    <flux:select.option value="{{ $sdg->value }}">{{ $sdg->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
 
         @elseif($formMode === 'lpk')
             <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">

@@ -209,7 +209,6 @@ class ProgramForm extends Component
                 'role_in_program' => 'required|string',
                 'responsibility' => 'required|string',
                 'execution_date' => 'required|date',
-                'sdg_category' => 'required|integer|between:1,17',
             ]);
         } elseif ($this->formMode === 'create_individual') {
             $this->validate([
