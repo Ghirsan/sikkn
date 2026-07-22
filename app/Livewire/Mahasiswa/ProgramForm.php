@@ -243,16 +243,6 @@ class ProgramForm extends Component
                 }
             } else {
                 if ($this->formMode === 'create_individual') {
-                    if ($this->type === ProgramType::SosialKemasyarakatan->value) {
-                        $existingSosmas = Program::where('student_id', $user->id)
-                            ->where('type', ProgramType::SosialKemasyarakatan)
-                            ->exists();
-
-                        if ($existingSosmas) {
-                            $this->addError('title', 'Maksimal 1 program sosial kemasyarakatan yang diizinkan.');
-                            return;
-                        }
-                    }
 
                     $nextSequence = Program::where('student_id', $user->id)
                         ->where('type', $this->type)

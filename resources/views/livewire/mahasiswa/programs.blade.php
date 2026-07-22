@@ -91,17 +91,15 @@
             {{-- Program Sosial Kemasyarakatan --}}
             <x-accordion 
                 heading="Program Sosial Kemasyarakatan" 
-                description="Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Wajib dibuat 1 program."
+                description="Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Wajib minimal 1 program."
                 contentClass="pt-4 flex flex-col gap-4"
             >
-                @if($sosmasPrograms->isEmpty())
-                            <div class="flex justify-end items-center gap-4">
-                                <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::SosialKemasyarakatan->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
-                                    {{ __('Tambah Program') }}
-                                </flux:button>
-                            </div>
-                        @endif
-                        <flux:card>
+                <div class="flex justify-end items-center gap-4">
+                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::SosialKemasyarakatan->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                        {{ __('Tambah Program') }}
+                    </flux:button>
+                </div>
+                <flux:card>
             @if($sosmasPrograms->isEmpty())
                 <x-empty-state icon="users" :heading="__('Belum Ada Program')" :description="__('Silakan buat program Sosial Kemasyarakatan Anda.')" />
             @else
