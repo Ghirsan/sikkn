@@ -9,11 +9,13 @@
                 description="Pilih dan isi detail program multidisiplin kelompok Anda. Wajib minimal 2 program."
                 contentClass="pt-4 flex flex-col gap-4"
             >
+                @if($hasAvailableMultidisiplin)
                 <div class="flex justify-end items-center gap-4">
                     <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::Multidisiplin->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
                         {{ __('Tambah Program') }}
                     </flux:button>
                 </div>
+                @endif
                 <flux:card>
             @if($multidisiplinPrograms->isEmpty())
                 <x-empty-state icon="light-bulb" :heading="__('Belum Ada Program')" :description="__('Silakan pilih dan tambahkan program multidisiplin Anda.')" />
@@ -364,6 +366,12 @@
                     <div class="sm:col-span-2">
                         <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
                         <flux:text>{{ $this->selectedParticipant->output_target }}</flux:text>
+                    </div>
+                    @endif
+                    @if($this->selectedParticipant && $this->selectedParticipant->sdg_category)
+                    <div class="sm:col-span-2">
+                        <flux:text variant="strong" class="mb-1">{{ __('Kategori SDGs') }}</flux:text>
+                        <flux:badge size="sm" color="lime" inset="top bottom">{{ $this->selectedParticipant->sdg_category->label() }}</flux:badge>
                     </div>
                     @endif
                 </div>

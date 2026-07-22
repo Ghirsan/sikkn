@@ -42,6 +42,7 @@ class ProgramForm extends Component
     public string $participant_title = '';
     public string $role_in_program = '';
     public string $responsibility = '';
+    public ?string $sdg_category = '';
 
     // Participant Fields (Participants Table - LPK Phase)
     public string $achievement = '';
@@ -96,6 +97,7 @@ class ProgramForm extends Component
                 $this->participant_title = $participant->participant_title ?? '';
                 $this->role_in_program = $participant->role_in_program ?? '';
                 $this->responsibility = $participant->responsibility ?? '';
+                $this->sdg_category = $participant->sdg_category?->value ? (string) $participant->sdg_category->value : null;
                 if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
                     $this->execution_date = $participant->execution_date?->format('Y-m-d');
                 }
@@ -116,6 +118,7 @@ class ProgramForm extends Component
                     $this->participant_title = $participant->participant_title ?? '';
                     $this->role_in_program = $participant->role_in_program ?? '';
                     $this->responsibility = $participant->responsibility ?? '';
+                    $this->sdg_category = $participant->sdg_category?->value ? (string) $participant->sdg_category->value : null;
                     if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
                         $this->execution_date = $participant->execution_date?->format('Y-m-d');
                     }
@@ -206,6 +209,7 @@ class ProgramForm extends Component
                 'role_in_program' => 'required|string',
                 'responsibility' => 'required|string',
                 'execution_date' => 'required|date',
+                'sdg_category' => 'required|integer|between:1,17',
             ]);
         } elseif ($this->formMode === 'create_individual') {
             $this->validate([
@@ -213,6 +217,7 @@ class ProgramForm extends Component
                 'role_in_program' => 'required|string',
                 'responsibility' => 'required|string',
                 'execution_date' => 'required|date',
+                'sdg_category' => 'required|integer|between:1,17',
             ]);
         } else {
             $this->validate([
@@ -223,6 +228,7 @@ class ProgramForm extends Component
                 'target_audience' => 'required|string',
                 'output_target' => 'required|string',
                 'execution_date' => 'required|date',
+                'sdg_category' => 'required|integer|between:1,17',
             ]);
         }
 
@@ -266,6 +272,7 @@ class ProgramForm extends Component
             // 2. Handle Participant Creation/Update
             $participantData = [
                 'status' => ProgramStatus::Draft,
+                'sdg_category' => $this->sdg_category ?: null,
             ];
 
             // Ensure we preserve existing role/responsibility for edit_program

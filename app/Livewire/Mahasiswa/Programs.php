@@ -141,12 +141,19 @@ class Programs extends Component
 
         $hasSosmas = $sosmasPrograms->count() > 0;
 
+        $joinedIds = \App\Models\ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
+        $hasAvailableMultidisiplin = Program::where('group_id', $user->group_id)
+            ->where('type', ProgramType::Multidisiplin)
+            ->whereNotIn('id', $joinedIds)
+            ->exists();
+
         return view('livewire.mahasiswa.programs', [
             'multidisiplinPrograms' => $multidisiplinPrograms,
             'sosmasPrograms' => $sosmasPrograms,
             'lainnyaPrograms' => $lainnyaPrograms,
             'isMultidisiplinFilled' => $isMultidisiplinFilled,
             'hasSosmas' => $hasSosmas,
+            'hasAvailableMultidisiplin' => $hasAvailableMultidisiplin,
         ]);
     }
 }

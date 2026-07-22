@@ -34,6 +34,7 @@ class ProgramParticipant extends Model
         'output_file_path',
         'output_url',
         'output_description',
+        'sdg_category',
     ];
 
     protected function casts(): array
@@ -42,6 +43,7 @@ class ProgramParticipant extends Model
             'status' => \App\Enums\ProgramStatus::class,
             'lpk_status' => \App\Enums\ProgramStatus::class,
             'execution_date' => 'date',
+            'sdg_category' => \App\Enums\SdgCategory::class,
         ];
     }
 
