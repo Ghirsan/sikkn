@@ -219,17 +219,18 @@
     @endphp
 
     @foreach($mdGroups->sortKeys() as $number => $programs)
+        @php $isVideo = $programs->first()->program->isVideoProfile(); @endphp
         <div style="margin-top:1rem;">
             <p class="font-bold">Tabel {{ $tableNum++ }}. Program Multidisiplin {{ $number }}</p>
 
             <table class="lrk-table">
                 <thead>
                     <tr>
-                        <th colspan="{{ $number == 3 ? 4 : 6 }}" style="text-align:left; font-weight:bold;">
+                        <th colspan="{{ $isVideo ? 4 : 7 }}" style="text-align:left; font-weight:bold;">
                             TEMA MULTIDISIPLIN {{ $number }} : "{{ $programs->first()->program->title ?? '-' }}"
                         </th>
                     </tr>
-                    @if($number == 3)
+                    @if($isVideo)
                         <tr>
                             <th style="width:30px;">No</th>
                             <th>Nama / NIM / Fakultas / Prodi</th>
@@ -244,6 +245,7 @@
                             <th>Ketercapaian &amp; Hambatan</th>
                             <th>Tindak Lanjut</th>
                             <th>Kode Luaran</th>
+                            <th>Kategori SDG</th>
                         </tr>
                     @endif
                 </thead>
@@ -252,7 +254,7 @@
                         <tr>
                             <td class="text-center">{{ $j + 1 }}.</td>
                             <td>{{ $program->student->name ?? '-' }} / {{ $program->student->nim ?? '-' }} / {{ $program->student->fakultas ?? '-' }} / {{ $program->student->prodi ?? '-' }}</td>
-                            @if($number == 3)
+                            @if($isVideo)
                                 <td>{{ $program->role_in_program ?? '' }}</td>
                                 <td>{{ $program->responsibility ?? '' }}<br><em>Hasil: {{ $program->achievement ?? '-' }}</em></td>
                             @else
@@ -260,13 +262,14 @@
                                 <td><strong>Ketercapaian:</strong><br>{{ $program->achievement ?? '-' }}<br><br><strong>Hambatan:</strong><br>{{ $program->obstacle ?? '-' }}</td>
                                 <td>{{ $program->solution ?? '-' }}</td>
                                 <td>{{ $program->participant_code ?? '-' }}</td>
+                                <td>{{ $program->sdg_category?->label() ?? '-' }}</td>
                             @endif
                         </tr>
                     @endforeach
                 </tbody>
             </table>
 
-            @if($number == 3)
+            @if($isVideo)
                 <div style="margin-top:0.8rem;">
                     <p class="font-bold">Story Board :</p>
                     <div style="padding-left:1rem;">
@@ -308,7 +311,7 @@
             <table class="lrk-table">
                 <thead>
                     <tr>
-                        <th colspan="4" style="text-align:left; font-weight:bold;">
+                        <th colspan="5" style="text-align:left; font-weight:bold;">
                             Program Sosial Kemasyarakatan Kelompok (Saintek)
                         </th>
                     </tr>
@@ -317,6 +320,7 @@
                         <th>Nama / NIM / Fakultas / Prodi</th>
                         <th>Peran</th>
                         <th>Deskripsi, Tanggungjawab, dan Hasil</th>
+                        <th>Kategori SDG</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -326,6 +330,7 @@
                             <td>{{ $program->student->name ?? '-' }} / {{ $program->student->nim ?? '-' }} / {{ $program->student->fakultas ?? '-' }} / {{ $program->student->prodi ?? '-' }}</td>
                             <td>{{ $program->role_in_program ?? '' }}</td>
                             <td>{{ $program->responsibility ?? '' }}<br><em>Hasil: {{ $program->achievement ?? '-' }}</em></td>
+                            <td>{{ $program->sdg_category?->label() ?? '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -339,7 +344,7 @@
             <table class="lrk-table">
                 <thead>
                     <tr>
-                        <th colspan="4" style="text-align:left; font-weight:bold;">
+                        <th colspan="5" style="text-align:left; font-weight:bold;">
                             Program Sosial Kemasyarakatan Kelompok (Soshum)
                         </th>
                     </tr>
@@ -348,6 +353,7 @@
                         <th>Nama / NIM / Fakultas / Prodi</th>
                         <th>Peran</th>
                         <th>Deskripsi, Tanggungjawab, dan Hasil</th>
+                        <th>Kategori SDG</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -357,6 +363,7 @@
                             <td>{{ $program->student->name ?? '-' }} / {{ $program->student->nim ?? '-' }} / {{ $program->student->fakultas ?? '-' }} / {{ $program->student->prodi ?? '-' }}</td>
                             <td>{{ $program->role_in_program ?? '' }}</td>
                             <td>{{ $program->responsibility ?? '' }}<br><em>Hasil: {{ $program->achievement ?? '-' }}</em></td>
+                            <td>{{ $program->sdg_category?->label() ?? '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -382,6 +389,7 @@
                         <th>Nama / NIM / Fakultas / Prodi</th>
                         <th>Peran</th>
                         <th>Deskripsi, Tanggungjawab, dan Hasil</th>
+                        <th>Kategori SDG</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -391,6 +399,7 @@
                             <td>{{ $program->student->name ?? '-' }} / {{ $program->student->nim ?? '-' }} / {{ $program->student->fakultas ?? '-' }} / {{ $program->student->prodi ?? '-' }}</td>
                             <td>{{ $program->role_in_program ?? '' }}</td>
                             <td>{{ $program->responsibility ?? '' }}<br><em>Hasil: {{ $program->achievement ?? '-' }}</em></td>
+                            <td>{{ $program->sdg_category?->label() ?? '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -524,7 +533,7 @@
             <tr><td class="text-center">1.</td><td>Update status kegiatan di Media Sosial</td><td>Wajib</td></tr>
             <tr><td class="text-center">2.</td><td>Reportase Media Berita</td><td>Wajib</td></tr>
             <tr><td class="text-center">3.</td><td>Poster / Leaflet / Lembar Balik / Prototype Produk / Teknologi / Modul / Kebijakan</td><td>Wajib salah satu</td></tr>
-            <tr><td class="text-center">4.</td><td>Video : rasio 16:9, resolusi min 1080p</td><td>Wajib (Multidisiplin 3)</td></tr>
+            <tr><td class="text-center">4.</td><td>Video : rasio 16:9, resolusi min 1080p</td><td>Wajib (Video Profil)</td></tr>
         </tbody>
     </table>
 

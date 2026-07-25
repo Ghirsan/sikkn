@@ -108,6 +108,18 @@ class Program extends Model
         return $this->getProgramCodeFor();
     }
 
+    public function isVideoProfile(): bool
+    {
+        $title = $this->title;
+        if (!$title) return false;
+        
+        return $this->type === ProgramType::Multidisiplin && (
+            str_contains(strtolower($title), 'video profile') || 
+            str_contains(strtolower($title), 'video profil') ||
+            str_contains(strtolower($title), 'video dokumenter')
+        );
+    }
+
     /**
      * Get the group this program belongs to.
      */

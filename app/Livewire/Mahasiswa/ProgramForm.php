@@ -77,7 +77,7 @@ class ProgramForm extends Component
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
             $this->type = $program->type->value;
             
-            $isVideoProfile = $this->isVideoProfile($program);
+            $isVideoProfile = $program ? $program->isVideoProfile() : false;
 
             if ($program->type === ProgramType::SosialKemasyarakatan || $program->type === ProgramType::Lainnya) {
                 $this->formMode = 'create_individual';
@@ -143,7 +143,7 @@ class ProgramForm extends Component
             $this->title = $participant->program->title;
             $this->status = $participant->lpk_status->value;
             $this->revision_note = $participant->lpk_revision_note;
-            $this->isLpkVideoProfile = $this->isVideoProfile($participant->program);
+            $this->isLpkVideoProfile = $participant->program ? $participant->program->isVideoProfile() : false;
             $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$this->isLpkVideoProfile;
             
             $this->achievement = $participant->achievement ?? '';
@@ -153,21 +153,7 @@ class ProgramForm extends Component
         }
     }
 
-    private function isVideoProfile(?Program $program): bool
-    {
-        if (!$program) return false;
-        
-        // In this system, Multidisiplin 3 is specifically the Video Profile
-        if ($program->type === ProgramType::Multidisiplin && $program->sequence == 3) {
-            return true;
-        }
 
-        $title = $program->title;
-        if (!$title) return false;
-        return str_contains(strtolower($title), 'video profile') || 
-               str_contains(strtolower($title), 'video profil') ||
-               str_contains(strtolower($title), 'video dokumenter');
-    }
 
     public function updatedProgramId($value)
     {
@@ -175,7 +161,7 @@ class ProgramForm extends Component
             if ($value) {
                 $program = Program::find($value);
                 $this->title = $program->title;
-                if ($this->isVideoProfile($program)) {
+                if ($program->isVideoProfile()) {
                     $this->formMode = 'edit_peran';
                 } else {
                     $this->formMode = 'edit_program';
@@ -304,7 +290,7 @@ class ProgramForm extends Component
     private function saveLpk()
     {
         $participant = ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantId);
-        $isVideo = $this->isVideoProfile($participant->program);
+        $isVideo = $participant->program ? $participant->program->isVideoProfile() : false;
         $isMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$isVideo;
 
         if ($isMultidisiplin) {

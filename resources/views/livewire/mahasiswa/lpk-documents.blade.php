@@ -142,7 +142,7 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     @if($participant->program->type === \App\Enums\ProgramType::Multidisiplin)
-                                        @if($participant->program->sequence == 3)
+                                        @if($participant->program->isVideoProfile())
                                             <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Tema Belum Diisi)') }}</span>
                                         @else
                                             <div class="text-xs text-zinc-500 mb-0.5">{{ $participant->program->title ?: __('(Tema Belum Diisi)') }}</div>

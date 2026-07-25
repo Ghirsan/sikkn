@@ -92,7 +92,7 @@ class LrkDocuments extends Component
             $hasLainnya = $studentParticipants->contains(fn($p) => $p->program->type === ProgramType::Lainnya);
             $multidisiplinCount = $studentParticipants->filter(fn($p) => $p->program->type === ProgramType::Multidisiplin)->count();
 
-            $meetsMinimumRequirements = $hasSosmas && $hasLainnya && ($multidisiplinCount > 0 && $multidisiplinCount === $multidisiplinProgramsCount);
+            $meetsMinimumRequirements = $hasSosmas && $hasLainnya && ($multidisiplinCount >= 2);
 
             if (!$meetsMinimumRequirements) {
                 $allStudentsMeetMinimumRequirements = false;

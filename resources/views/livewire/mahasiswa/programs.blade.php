@@ -36,7 +36,7 @@
                                     <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $program->getProgramCodeFor($myRole?->student_id) }}</span>
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    @if($program->sequence == 3)
+                                    @if($program->isVideoProfile())
                                         <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title ?: '(Tema Belum Diisi)' }}</span>
                                     @else
                                         <div class="text-xs text-neutral-500 mb-0.5">{{ $program->title ?: '(Tema Belum Diisi)' }}</div>
