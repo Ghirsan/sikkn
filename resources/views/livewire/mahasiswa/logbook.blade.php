@@ -124,66 +124,57 @@
     @endif
     
     {{-- View Modal --}}
-    <flux:modal name="log-view-modal" class="md:w-3/4 lg:w-[50rem]">
+    <flux:modal name="log-view-modal" class="md:w-3/4 lg:w-[40rem]">
         @if($viewLogData)
-            <div class="space-y-8 p-4">
-                <div class="text-center space-y-2 border-b border-zinc-200 dark:border-white/10 pb-6">
-                    <flux:heading size="xl" class="font-bold tracking-tight uppercase">{{ __('Buku Catatan Harian') }}</flux:heading>
-                    <flux:heading size="lg" class="font-bold tracking-tight uppercase">{{ __('Kuliah Kerja Nyata') }}</flux:heading>
-                    <flux:heading size="lg" class="font-bold tracking-tight uppercase">{{ __('Universitas Diponegoro') }}</flux:heading>
-                    
-                    <div class="mt-4 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm">
-                        <span><span class="font-medium">Hari ke:</span> {{ $viewLogData->day_number }}</span>
-                        <span><span class="font-medium">Hari:</span> {{ $viewLogData->date->translatedFormat('l') }}</span>
-                        <span><span class="font-medium">Tanggal:</span> {{ $viewLogData->date->translatedFormat('d M Y') }}</span>
-                        <span><span class="font-medium">Status:</span> <flux:badge size="sm" :color="$viewLogData->status->color()" class="ml-1">{{ $viewLogData->status->label() }}</flux:badge></span>
+            <div class="flex flex-col gap-6">
+                {{-- Header --}}
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <flux:heading size="lg">Logbook Hari Ke-{{ $viewLogData->day_number }}</flux:heading>
+                        <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
+                    </div>
+                    <flux:text class="text-sm text-zinc-500">
+                        {{ $viewLogData->date->translatedFormat('l, d M Y') }}
+                    </flux:text>
+                </div>
+
+                {{-- Activities --}}
+                <div class="flex flex-col gap-3">
+                    <flux:heading size="sm" class="font-medium">Kegiatan</flux:heading>
+                    <div class="flex flex-col gap-2">
+                        @foreach($viewLogData->activities as $index => $activity)
+                            <div class="flex gap-4 p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5">
+                                <div class="text-sm font-medium text-zinc-500 whitespace-nowrap min-w-[80px]">
+                                    {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                                </div>
+                                <div class="text-sm text-zinc-800 dark:text-zinc-200">
+                                    {{ $activity->activity_description }}
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <flux:heading size="md" class="font-bold">1. Jadwal Kegiatan</flux:heading>
-                    <div class="overflow-x-auto border border-zinc-200 dark:border-white/10 rounded-lg">
-                        <table class="w-full text-sm">
-                            <thead class="bg-zinc-50 dark:bg-white/5">
-                                <tr class="text-left border-b border-zinc-200 dark:border-white/10">
-                                    <th class="py-3 px-4 font-medium w-16">No</th>
-                                    <th class="py-3 px-4 font-medium w-40">Waktu</th>
-                                    <th class="py-3 px-4 font-medium">Kegiatan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
-                                @foreach($viewLogData->activities as $index => $activity)
-                                    <tr>
-                                        <td class="py-3 px-4 align-top">{{ $index + 1 }}</td>
-                                        <td class="py-3 px-4 align-top whitespace-nowrap">
-                                            {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
-                                        </td>
-                                        <td class="py-3 px-4 align-top">{{ $activity->activity_description }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <flux:heading size="md" class="font-bold">2. Catatan Penting Harian</flux:heading>
-                    <div class="p-4 border border-zinc-200 dark:border-white/10 rounded-lg min-h-[100px] text-sm">
-                        @if($viewLogData->important_notes)
-                            {!! nl2br(e($viewLogData->important_notes)) !!}
-                        @else
-                            <span class="text-zinc-400 italic">Tidak ada catatan penting.</span>
-                        @endif
-                    </div>
-                    @if($viewLogData->image_path)
-                        <div class="mt-2">
-                            <flux:text variant="strong" class="mb-2 text-sm">{{ __('Gambar Pendukung:') }}</flux:text>
-                            <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-80 rounded-lg border border-zinc-200 dark:border-white/10 object-contain" />
+                {{-- Notes & Image --}}
+                @if($viewLogData->important_notes || $viewLogData->image_path)
+                    <div class="flex flex-col gap-3">
+                        <flux:heading size="sm" class="font-medium">Catatan Penting</flux:heading>
+                        <div class="p-4 border border-zinc-200 dark:border-white/10 rounded-lg bg-zinc-50 dark:bg-white/5 text-sm">
+                            @if($viewLogData->important_notes)
+                                {!! nl2br(e($viewLogData->important_notes)) !!}
+                            @endif
+                            @if($viewLogData->important_notes && $viewLogData->image_path)
+                                <div class="my-3 border-t border-zinc-200 dark:border-white/10"></div>
+                            @endif
+                            @if($viewLogData->image_path)
+                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain" />
+                            @endif
                         </div>
-                    @endif
-                </div>
-
-                <div class="flex justify-end pt-4 border-t border-zinc-200 dark:border-white/10">
+                    </div>
+                @endif
+                
+                {{-- Actions --}}
+                <div class="flex justify-end pt-2 border-t border-zinc-200 dark:border-white/10">
                     <flux:modal.close>
                         <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
