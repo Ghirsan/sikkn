@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <flux:heading size="xl">{{ __('Buku Pembimbingan') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Catat sesi konsultasi dan pembimbingan bersama DPL.') }}</flux:text>
+                <flux:text class="mt-1">{{ __('Catat sesi konsultasi dan pembimbingan bersama Dosen KKN.') }}</flux:text>
             </div>
         </div>
         <flux:separator />

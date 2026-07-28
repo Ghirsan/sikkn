@@ -40,7 +40,7 @@
     @if(!$allApproved)
         <flux:callout variant="warning" icon="information-circle">
             <flux:callout.heading>{{ __('PDF LRK Belum Siap') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh rencana program kerja disetujui DPL.') }}</flux:callout.text>
+            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh rencana program kerja disetujui Dosen KKN.') }}</flux:callout.text>
         </flux:callout>
     @endif
 

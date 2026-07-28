@@ -17,7 +17,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::Mahasiswa => 'Mahasiswa',
-            self::Dpl => 'Dosen Pembimbing Lapangan',
+            self::Dpl => 'Dosen KKN',
             self::P2kkn => 'Admin P2KKN',
             self::Prodi => 'Program Studi',
             self::Fakultas => 'Fakultas',
@@ -31,7 +31,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::Mahasiswa => 'Mahasiswa',
-            self::Dpl => 'DPL',
+            self::Dpl => 'Dosen KKN',
             self::P2kkn => 'P2KKN',
             self::Prodi => 'Prodi',
             self::Fakultas => 'Fakultas',

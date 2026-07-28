@@ -1,28 +1,28 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Summary Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <x-stat-card icon="user-circle" color="green" :label="__('Total DPL')" :value="$stats['total']" />
+        <x-stat-card icon="user-circle" color="green" :label="__('Total Dosen KKN')" :value="$stats['total']" />
         <x-stat-card icon="user-group" color="blue" :label="__('Membimbing')" :value="$stats['assigned']" />
         <x-stat-card icon="clock" color="amber" :label="__('Belum Menugaskan')" :value="$stats['unassigned']" />
     </div>
 
     {{-- DPL Table --}}
     <div class="flex items-center justify-between">
-        <flux:heading size="lg">{{ __('Dosen Pembimbing Lapangan') }}</flux:heading>
+        <flux:heading size="lg">{{ __('Dosen KKN') }}</flux:heading>
         <div class="flex items-center gap-3">
             <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau NIP...') }}" size="sm" class="w-64" />
-            <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah DPL') }}</flux:button>
+            <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Dosen KKN') }}</flux:button>
         </div>
     </div>
 
     <flux:card>
 
         @if($dpls->isEmpty())
-            <x-empty-state icon="user-circle" :heading="__('Tidak Ada Data DPL')" />
+            <x-empty-state icon="user-circle" :heading="__('Tidak Ada Data Dosen KKN')" />
         @else
             <flux:table>
                 <flux:table.columns>
-                    <flux:table.column>{{ __('Nama DPL') }}</flux:table.column>
+                    <flux:table.column>{{ __('Nama Dosen KKN') }}</flux:table.column>
                     <flux:table.column>{{ __('NIP') }}</flux:table.column>
                     <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
                     <flux:table.column>{{ __('Kelompok') }}</flux:table.column>

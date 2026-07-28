@@ -8,7 +8,7 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <flux:heading size="xl" level="1">{{ $logId ? __('Edit Catatan Pembimbingan') : __('Catatan Pembimbingan Baru') }}</flux:heading>
-            <flux:subheading>{{ __('Catat detail kegiatan pembimbingan dan diskusi bersama DPL Anda.') }}</flux:subheading>
+            <flux:subheading>{{ __('Catat detail kegiatan pembimbingan dan diskusi bersama Dosen KKN Anda.') }}</flux:subheading>
         </div>
     </div>
 

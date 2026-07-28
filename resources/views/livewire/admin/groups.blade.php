@@ -2,8 +2,8 @@
     {{-- Summary Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
         <x-stat-card icon="user-group" color="purple" :label="__('Total Kelompok')" :value="$stats['total']" />
-        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Ada DPL')" :value="$stats['with_dpl']" />
-        <x-stat-card icon="exclamation-triangle" color="amber" :label="__('Belum Ada DPL')" :value="$stats['without_dpl']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Ada Dosen KKN')" :value="$stats['with_dpl']" />
+        <x-stat-card icon="exclamation-triangle" color="amber" :label="__('Belum Ada Dosen KKN')" :value="$stats['without_dpl']" />
     </div>
 
     {{-- Groups Table --}}
@@ -27,7 +27,7 @@
                     <flux:table.column>{{ __('Periode') }}</flux:table.column>
                     <flux:table.column>{{ __('Lokasi (Desa, Kec)') }}</flux:table.column>
                     <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
-                    <flux:table.column>{{ __('DPL') }}</flux:table.column>
+                    <flux:table.column>{{ __('Dosen KKN') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($groups as $group)

@@ -3,7 +3,7 @@
         {{-- Stat Cards --}}
         <div class="grid auto-rows-min gap-4 md:grid-cols-4">
             <x-stat-card icon="user-group" color="blue" :label="__('Anggota')" :value="$stats['memberCount']" />
-            <x-stat-card icon="academic-cap" color="purple" :label="__('DPL')" :value="$stats['dplCount']" />
+            <x-stat-card icon="academic-cap" color="purple" :label="__('Dosen KKN')" :value="$stats['dplCount']" />
             <x-stat-card icon="light-bulb" color="amber" :label="__('Program Kerja')" :value="$stats['programCount']" />
             <x-stat-card icon="document-text" color="green" :label="__('Tipe KKN')" :value="$group->type->value" />
         </div>
@@ -91,11 +91,11 @@
             </flux:card>
         </div>
 
-        {{-- Dosen Pembimbing Lapangan (DPL) --}}
+        {{-- Dosen KKN --}}
         <flux:card>
             <div class="flex items-center gap-3 mb-4">
                 <flux:icon.academic-cap variant="mini" class="text-purple-500" />
-                <flux:heading size="lg">{{ __('Dosen Pembimbing Lapangan (DPL)') }}</flux:heading>
+                <flux:heading size="lg">{{ __('Dosen KKN') }}</flux:heading>
             </div>
 
             @if($dpls->isNotEmpty())
@@ -109,7 +109,7 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <flux:text variant="strong" class="truncate">{{ $dpl->name }}</flux:text>
                                     @if($group->lead_dpl_id === $dpl->id)
-                                        <flux:badge size="sm" color="purple">{{ __('Lead DPL') }}</flux:badge>
+                                        <flux:badge size="sm" color="purple">{{ __('Lead Dosen KKN') }}</flux:badge>
                                     @endif
                                 </div>
                                 @if($dpl->nip)
@@ -121,7 +121,7 @@
                     @endforeach
                 </div>
             @else
-                <x-empty-state icon="academic-cap" :heading="__('Belum Ada DPL')" :description="__('DPL belum ditugaskan untuk kelompok ini.')" />
+                <x-empty-state icon="academic-cap" :heading="__('Belum Ada Dosen KKN')" :description="__('Dosen KKN belum ditugaskan untuk kelompok ini.')" />
             @endif
         </flux:card>
 

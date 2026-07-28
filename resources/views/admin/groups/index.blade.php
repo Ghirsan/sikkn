@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <flux:heading size="xl">{{ __('Kelompok KKN') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Kelola tim kerja mahasiswa, penugasan DPL, dan lokasi KKN.') }}</flux:text>
+                <flux:text class="mt-1">{{ __('Kelola tim kerja mahasiswa, penugasan Dosen KKN, dan lokasi KKN.') }}</flux:text>
             </div>
         </div>
         <flux:separator />

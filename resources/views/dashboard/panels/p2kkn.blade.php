@@ -6,7 +6,7 @@
 <div class="grid auto-rows-min gap-4 md:grid-cols-4">
     <x-stat-card icon="calendar" color="amber" :label="__('Periode Aktif')" value="-" />
     <x-stat-card icon="academic-cap" color="blue" :label="__('Peserta KKN')" value="0" />
-    <x-stat-card icon="user-circle" color="green" :label="__('DPL')" value="0" />
+    <x-stat-card icon="user-circle" color="green" :label="__('Dosen KKN')" value="0" />
     <x-stat-card icon="user-group" color="purple" :label="__('Kelompok')" value="0" />
 </div>
 
@@ -40,7 +40,7 @@
         <div class="grid gap-2">
             <flux:button variant="filled" icon="document-text" class="justify-start">{{ __('Lihat Rancangan Dokumen') }}</flux:button>
             <flux:button variant="ghost" icon="academic-cap" class="justify-start">{{ __('Daftar Peserta KKN') }}</flux:button>
-            <flux:button variant="ghost" icon="user-circle" class="justify-start">{{ __('Daftar DPL') }}</flux:button>
+            <flux:button variant="ghost" icon="user-circle" class="justify-start">{{ __('Daftar Dosen KKN') }}</flux:button>
             <flux:button variant="ghost" icon="user-group" class="justify-start">{{ __('Kelola Kelompok') }}</flux:button>
             <flux:button variant="ghost" icon="calendar" class="justify-start">{{ __('Kelola Periode') }}</flux:button>
         </div>
@@ -50,9 +50,9 @@
 {{-- DPL & Mahasiswa Lists --}}
 <div class="grid gap-4 md:grid-cols-2">
     <flux:card>
-        <flux:heading size="lg">{{ __('Daftar DPL') }}</flux:heading>
+        <flux:heading size="lg">{{ __('Daftar Dosen KKN') }}</flux:heading>
         <flux:separator />
-        <flux:text>{{ __('Belum ada DPL terdaftar pada periode ini.') }}</flux:text>
+        <flux:text>{{ __('Belum ada Dosen KKN terdaftar pada periode ini.') }}</flux:text>
     </flux:card>
     <flux:card>
         <flux:heading size="lg">{{ __('Daftar Peserta KKN') }}</flux:heading>

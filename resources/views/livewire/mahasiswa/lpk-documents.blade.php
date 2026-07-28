@@ -32,12 +32,12 @@
     @if(!$allLrkApproved)
         <flux:callout variant="danger" icon="exclamation-triangle">
             <flux:callout.heading>{{ __('LRK Belum Selesai') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('LPK hanya bisa dicetak jika seluruh rencana program kerja (LRK) telah disetujui DPL terlebih dahulu.') }}</flux:callout.text>
+            <flux:callout.text>{{ __('LPK hanya bisa dicetak jika seluruh rencana program kerja (LRK) telah disetujui Dosen KKN terlebih dahulu.') }}</flux:callout.text>
         </flux:callout>
     @elseif(!$allLpkApproved)
         <flux:callout variant="warning" icon="information-circle">
             <flux:callout.heading>{{ __('PDF LPK Belum Siap') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh laporan pelaksanaan program disetujui DPL.') }}</flux:callout.text>
+            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh laporan pelaksanaan program disetujui Dosen KKN.') }}</flux:callout.text>
         </flux:callout>
     @endif
 

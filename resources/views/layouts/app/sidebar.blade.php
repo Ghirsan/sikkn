@@ -91,7 +91,7 @@
                         {{ __('Peserta KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="user-circle" :href="route('admin.dpl.index')" :current="request()->routeIs('admin.dpl.*')" wire:navigate>
-                        {{ __('Daftar DPL') }}
+                        {{ __('Daftar Dosen KKN') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 

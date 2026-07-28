@@ -23,7 +23,7 @@
 
     @if($logs->isEmpty())
         <flux:card>
-            <x-empty-state icon="clipboard-document-list" :heading="__('Belum Ada Catatan')" :description="__('Mulai catat aktivitas pembimbingan Anda dengan DPL.')" />
+            <x-empty-state icon="clipboard-document-list" :heading="__('Belum Ada Catatan')" :description="__('Mulai catat aktivitas pembimbingan Anda dengan Dosen KKN.')" />
         </flux:card>
     @else
         <div class="flex flex-col gap-4">
@@ -57,13 +57,13 @@
                             <div class="text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-white/5 rounded-lg p-3 whitespace-pre-wrap">{{ $log->discussion_summary }}</div>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <flux:text variant="strong" class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Solusi / Saran DPL') }}</flux:text>
+                            <flux:text variant="strong" class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Solusi / Saran Dosen KKN') }}</flux:text>
                             @if($log->dpl_feedback)
                                 <flux:callout variant="success" icon="check-circle" class="h-full">
                                     <div class="whitespace-pre-wrap">{{ $log->dpl_feedback }}</div>
                                 </flux:callout>
                             @else
-                                <div class="text-sm text-zinc-400 dark:text-zinc-500 italic bg-zinc-50 dark:bg-white/5 rounded-lg p-3 h-full flex items-center">{{ __('Belum ada feedback dari DPL.') }}</div>
+                                <div class="text-sm text-zinc-400 dark:text-zinc-500 italic bg-zinc-50 dark:bg-white/5 rounded-lg p-3 h-full flex items-center">{{ __('Belum ada feedback dari Dosen KKN.') }}</div>
                             @endif
                         </div>
                     </div>

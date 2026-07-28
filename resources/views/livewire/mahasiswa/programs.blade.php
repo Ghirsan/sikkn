@@ -276,7 +276,7 @@
             <div>
                 <flux:heading size="lg">{{ __('Ajukan Program?') }}</flux:heading>
                 <flux:text class="mt-2">
-                    {{ __('Anda akan mengajukan rencana kegiatan ini (LRK) ke DPL.') }}<br>
+                    {{ __('Anda akan mengajukan rencana kegiatan ini (LRK) ke Dosen KKN.') }}<br>
                     {{ __('Setelah diajukan, Anda tidak dapat mengubahnya hingga direview.') }}
                 </flux:text>
             </div>
@@ -297,7 +297,7 @@
             <div>
                 <flux:heading size="lg">{{ __('Ajukan Laporan LPK?') }}</flux:heading>
                 <flux:text class="mt-2">
-                    {{ __('Anda akan mengajukan laporan kegiatan ini (LPK) ke DPL.') }}<br>
+                    {{ __('Anda akan mengajukan laporan kegiatan ini (LPK) ke Dosen KKN.') }}<br>
                     {{ __('Pastikan semua data hasil, hambatan, solusi, dan lampiran sudah terisi dengan benar.') }}
                 </flux:text>
             </div>
