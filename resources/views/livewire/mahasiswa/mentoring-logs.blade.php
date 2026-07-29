@@ -94,79 +94,70 @@
     @endif
 
     {{-- View Modal --}}
-    <flux:modal name="mentoring-view-modal" class="md:w-3/4 lg:w-[60rem]">
+    <flux:modal name="mentoring-view-modal" class="md:w-3/4 lg:w-[40rem]">
         @if($viewLogData)
-            <div class="space-y-6 p-2">
-                <div class="text-center space-y-1">
-                    <flux:heading size="xl" class="font-bold uppercase tracking-wide">{{ __('Buku Pembimbingan') }}</flux:heading>
-                    <flux:heading size="lg" class="font-bold uppercase tracking-wide">{{ __('Kuliah Kerja Nyata') }}</flux:heading>
-                    <flux:heading size="lg" class="font-bold uppercase tracking-wide">{{ __('Universitas Diponegoro') }}</flux:heading>
-                </div>
-
-                <div class="border border-zinc-200 dark:border-zinc-700 p-4 mt-6 text-sm grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <div class="flex"><span class="w-24 font-semibold">Nama</span><span>: {{ $student->name }}</span></div>
-                        <div class="flex"><span class="w-24 font-semibold">NIM</span><span>: {{ $student->nim }}</span></div>
-                        <div class="flex"><span class="w-24 font-semibold">Prodi</span><span>: {{ $student->prodi }}</span></div>
-                        <div class="flex"><span class="w-24 font-semibold">Fakultas</span><span>: {{ $student->fakultas }}</span></div>
+            <div class="flex flex-col gap-6">
+                {{-- Header --}}
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <flux:heading size="lg">{{ $viewLogData->topic }}</flux:heading>
+                        <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
                     </div>
-                    <div class="space-y-1">
-                        <div class="flex"><span class="w-24 font-semibold">Desa</span><span>: {{ $group->village }}</span></div>
-                        <div class="flex"><span class="w-24 font-semibold">Kecamatan</span><span>: {{ $group->district }}</span></div>
-                        <div class="flex"><span class="w-24 font-semibold">Kabupaten</span><span>: {{ $group->regency }}</span></div>
-                        <div class="flex"><span class="w-24 font-semibold">Provinsi</span><span>: {{ $group->province }}</span></div>
+                    <flux:text class="text-sm text-zinc-500">
+                        {{ $viewLogData->date->translatedFormat('l, d M Y') }}
+                    </flux:text>
+                    @if($viewLogData->program)
+                        <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
+                            <flux:icon.folder variant="micro" class="text-zinc-400" />
+                            <span>[{{ $viewLogData->program->type }}] {{ $viewLogData->program->title }}</span>
+                        </div>
+                    @else
+                        <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
+                            <flux:icon.folder variant="micro" class="text-zinc-400" />
+                            <span>Umum / Tidak terikat program spesifik</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Content --}}
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
+                        <flux:heading size="sm" class="font-medium">Uraian & Hambatan</flux:heading>
+                        <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">{{ $viewLogData->discussion_summary }}</div>
                     </div>
-                </div>
-
-                <div class="space-y-1 text-sm mt-4">
-                    <div class="flex"><span class="w-32 font-semibold">Jenis Program</span><span>: {{ $viewLogData->program ? $viewLogData->program->type : '-' }}</span></div>
-                    <div class="flex"><span class="w-32 font-semibold">Judul Program</span><span>: {{ $viewLogData->program ? $viewLogData->program->title : 'Umum / Tidak terikat program spesifik' }}</span></div>
-                </div>
-
-                <div class="overflow-x-auto border border-zinc-200 dark:border-zinc-700 mt-4">
-                    <table class="w-full text-sm">
-                        <thead class="bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
-                            <tr class="text-left">
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold w-12 text-center">No</th>
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold w-24">Tanggal</th>
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold w-32">Kegiatan</th>
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold">Uraian & Hambatan</th>
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold">Solusi / Saran</th>
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold w-24 text-center">Kelompok Sasaran</th>
-                                <th class="p-2 border-r border-zinc-200 dark:border-zinc-700 font-semibold w-20 text-center">Jml Mahasiswa</th>
-                                <th class="p-2 font-semibold w-28 text-center">Luaran</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b border-zinc-200 dark:border-zinc-700">
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 text-center align-top">1</td>
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 align-top">{{ $viewLogData->date->translatedFormat('d/m/Y') }}</td>
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 align-top">{{ $viewLogData->topic }}</td>
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 align-top whitespace-pre-wrap">{{ $viewLogData->discussion_summary }}</td>
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 align-top whitespace-pre-wrap">{{ $viewLogData->dpl_feedback ?? '-' }}</td>
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 text-center align-top">{{ $viewLogData->target_group ?? '-' }}</td>
-                                <td class="p-2 border-r border-zinc-200 dark:border-zinc-700 text-center align-top">{{ $viewLogData->student_count ?? '-' }}</td>
-                                <td class="p-2 text-center align-top">{{ $viewLogData->output ?? '-' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex justify-between items-end mt-8 px-8 text-sm">
-                    <div class="text-center">
-                        <div class="mb-16">Dosen KKN</div>
-                        <div class="font-semibold underline">{{ $group->leadDpl->name ?? '-' }}</div>
-                        <div>NIP. {{ $group->leadDpl->nip ?? '-' }}</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="mb-2">{{ $group->regency ?? 'Semarang' }}, {{ $viewLogData->date->translatedFormat('d F Y') }}</div>
-                        <div class="mb-16">Pelaksana</div>
-                        <div class="font-semibold underline">{{ $student->name }}</div>
-                        <div>NIM. {{ $student->nim }}</div>
+                    
+                    <div class="flex flex-col gap-2">
+                        <flux:heading size="sm" class="font-medium">Solusi / Saran Dosen KKN</flux:heading>
+                        @if($viewLogData->dpl_feedback)
+                            <flux:callout variant="success" icon="check-circle">
+                                <div class="whitespace-pre-wrap text-sm">{{ $viewLogData->dpl_feedback }}</div>
+                            </flux:callout>
+                        @else
+                            <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-400 dark:text-zinc-500 italic flex items-center">
+                                {{ __('Belum ada feedback dari Dosen KKN.') }}
+                            </div>
+                        @endif
                     </div>
                 </div>
 
-                <div class="flex justify-end pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-700">
+                {{-- Metrics --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
+                        <span class="text-xs text-zinc-500">Kelompok Sasaran</span>
+                        <span class="text-sm font-medium">{{ $viewLogData->target_group ?? '-' }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
+                        <span class="text-xs text-zinc-500">Jml Mahasiswa</span>
+                        <span class="text-sm font-medium">{{ $viewLogData->student_count ?? '-' }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
+                        <span class="text-xs text-zinc-500">Luaran</span>
+                        <span class="text-sm font-medium">{{ $viewLogData->output ?? '-' }}</span>
+                    </div>
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex justify-end pt-2 border-t border-zinc-200 dark:border-white/10">
                     <flux:modal.close>
                         <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
