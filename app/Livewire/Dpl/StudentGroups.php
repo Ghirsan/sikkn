@@ -10,7 +10,7 @@ class StudentGroups extends Component
     public function render()
     {
         $user = Auth::user();
-        $group = $user->group?->load(['students', 'period', 'dpls']);
+        $group = $user->group?->load(['students', 'period', 'dpls', 'leadDpl', 'studentLeader']);
 
         return view('livewire.dpl.student-groups', [
             'groups' => $group ? collect([$group]) : collect(),

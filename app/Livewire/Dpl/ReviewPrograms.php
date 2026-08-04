@@ -3,7 +3,7 @@
 namespace App\Livewire\Dpl;
 
 use App\Enums\ProgramStatus;
-use App\Models\Program;
+use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -11,19 +11,19 @@ class ReviewPrograms extends Component
 {
     public string $filterStatus = '';
 
-    public function approve(int $programId): void
+    public function approve(int $participantId): void
     {
-        $program = $this->getAuthorizedProgram($programId);
-        $program->update(['status' => ProgramStatus::Approved, 'revision_note' => null]);
+        $participant = $this->getAuthorizedParticipant($participantId);
+        $participant->update(['status' => ProgramStatus::Approved, 'revision_note' => null]);
     }
 
     public string $revisionNote = '';
 
-    public int $revisingProgramId = 0;
+    public int $revisingParticipantId = 0;
 
-    public function startRevision(int $programId): void
+    public function startRevision(int $participantId): void
     {
-        $this->revisingProgramId = $programId;
+        $this->revisingParticipantId = $participantId;
         $this->revisionNote = '';
     }
 
@@ -31,13 +31,13 @@ class ReviewPrograms extends Component
     {
         $this->validate(['revisionNote' => 'required|min:10']);
 
-        $program = $this->getAuthorizedProgram($this->revisingProgramId);
-        $program->update([
+        $participant = $this->getAuthorizedParticipant($this->revisingParticipantId);
+        $participant->update([
             'status' => ProgramStatus::NeedsRevision,
             'revision_note' => $this->revisionNote,
         ]);
 
-        $this->revisingProgramId = 0;
+        $this->revisingParticipantId = 0;
         $this->revisionNote = '';
     }
 
@@ -45,27 +45,42 @@ class ReviewPrograms extends Component
     {
         $groupId = Auth::user()->group_id;
 
-        $query = Program::where('group_id', $groupId)->with(['student', 'group']);
+        $query = ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
+            $q->where('group_id', $groupId);
+        })->with(['student', 'program']);
 
         if ($this->filterStatus) {
             $query->where('status', $this->filterStatus);
         }
 
         return view('livewire.dpl.review-programs', [
-            'programs' => $query->latest()->get(),
+            'participants' => $query->latest()->get(),
             'stats' => [
-                'pending' => Program::where('group_id', $groupId)->where('status', ProgramStatus::Submitted)->count(),
-                'approved' => Program::where('group_id', $groupId)->where('status', ProgramStatus::Approved)->count(),
-                'revision' => Program::where('group_id', $groupId)->where('status', ProgramStatus::NeedsRevision)->count(),
-                'total' => Program::where('group_id', $groupId)->count(),
+                'pending' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
+                    $q->where('group_id', $groupId);
+                })->where('status', ProgramStatus::Submitted)->count(),
+                
+                'approved' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
+                    $q->where('group_id', $groupId);
+                })->where('status', ProgramStatus::Approved)->count(),
+                
+                'revision' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
+                    $q->where('group_id', $groupId);
+                })->where('status', ProgramStatus::NeedsRevision)->count(),
+                
+                'total' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
+                    $q->where('group_id', $groupId);
+                })->count(),
             ],
         ]);
     }
 
-    private function getAuthorizedProgram(int $programId): Program
+    private function getAuthorizedParticipant(int $participantId): ProgramParticipant
     {
         $groupId = Auth::user()->group_id;
 
-        return Program::where('group_id', $groupId)->findOrFail($programId);
+        return ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
+            $q->where('group_id', $groupId);
+        })->findOrFail($participantId);
     }
 }

@@ -9,6 +9,8 @@ use Livewire\Component;
 
 class StudentLogs extends Component
 {
+    public string $filterStudent = '';
+
     public function approveDailyLog(int $logId): void
     {
         $studentIds = $this->getStudentIds();
@@ -18,11 +20,21 @@ class StudentLogs extends Component
 
     public function render()
     {
-        $studentIds = $this->getStudentIds();
-        $logs = DailyLog::whereIn('student_id', $studentIds)->with(['student', 'activities'])->latest('date')->get();
+        $group = Auth::user()->group;
+        $students = $group ? $group->students : collect();
+        $studentIds = $students->pluck('id');
+
+        $query = DailyLog::whereIn('student_id', $studentIds)->with(['student', 'activities']);
+
+        if ($this->filterStudent) {
+            $query->where('student_id', $this->filterStudent);
+        }
+
+        $logs = $query->latest('date')->get();
 
         return view('livewire.dpl.student-logs', [
             'logs' => $logs,
+            'students' => $students,
             'stats' => [
                 'pending' => $logs->where('status', LogStatus::Pending)->count(),
                 'approved' => $logs->where('status', LogStatus::Approved)->count(),

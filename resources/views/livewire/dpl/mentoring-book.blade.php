@@ -5,7 +5,16 @@
         <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
     </div>
 
-    <div class="flex items-center justify-between">
+    {{-- Filter --}}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3">
+            <flux:select wire:model.live="filterStudent" size="sm" placeholder="{{ __('Semua Mahasiswa') }}" class="w-56">
+                <flux:select.option value="">{{ __('Semua Mahasiswa') }}</flux:select.option>
+                @foreach($students as $student)
+                    <flux:select.option :value="$student->id">{{ $student->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        </div>
         <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
     </div>
 

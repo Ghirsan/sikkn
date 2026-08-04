@@ -23,7 +23,7 @@
 
     <flux:card>
 
-        @if($programs->isEmpty())
+        @if($participants->isEmpty())
             <x-empty-state icon="light-bulb" :heading="__('Tidak Ada Program')" />
         @else
             <flux:table>
@@ -34,40 +34,40 @@
                     <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
-                    @foreach($programs as $program)
-                        <flux:table.row :key="$program->id">
+                    @foreach($participants as $participant)
+                        <flux:table.row :key="$participant->id">
                             <flux:table.cell>
-                                <span class="font-medium">{{ $program->student->name }}</span>
-                                <div class="text-xs text-neutral-500">{{ $program->group->name }}</div>
+                                <span class="font-medium">{{ $participant->student?->name ?? __('Kelompok') }}</span>
+                                <div class="text-xs text-neutral-500">{{ $participant->program->group->name }}</div>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <div class="font-medium">{{ $program->title }}</div>
-                                <flux:badge size="sm" color="zinc" class="mt-1">{{ $program->type->label() }}</flux:badge>
+                                <div class="font-medium">{{ $participant->program->title }}</div>
+                                <flux:badge size="sm" color="zinc" class="mt-1">{{ $participant->program->type->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" :color="$program->status->color()" inset="top bottom">{{ $program->status->label() }}</flux:badge>
-                                @if($program->revision_note)
+                                <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
+                                @if($participant->revision_note)
                                     <div class="mt-2 text-xs text-red-600 dark:text-red-400">
-                                        <strong>{{ __('Catatan:') }}</strong> {{ $program->revision_note }}
+                                        <strong>{{ __('Catatan:') }}</strong> {{ $participant->revision_note }}
                                     </div>
                                 @endif
 
-                                @if($revisingProgramId === $program->id)
+                                @if($revisingParticipantId === $participant->id)
                                     <flux:card class="mt-3 border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
                                         <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
                                         @error('revisionNote') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
                                         <div class="mt-3 flex gap-2">
                                             <flux:button wire:click="submitRevision" size="sm" variant="filled">{{ __('Kirim') }}</flux:button>
-                                            <flux:button wire:click="$set('revisingProgramId', 0)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
+                                            <flux:button wire:click="$set('revisingParticipantId', 0)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
                                         </div>
                                     </flux:card>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                @if($program->status->value === 'submitted')
+                                @if($participant->status->value === 'submitted')
                                     <div class="flex flex-col gap-2">
-                                        <flux:button wire:click="approve({{ $program->id }})" size="sm" variant="filled" color="green" icon="check" inset="top bottom">{{ __('Setujui') }}</flux:button>
-                                        <flux:button wire:click="startRevision({{ $program->id }})" size="sm" variant="filled" color="amber" icon="arrow-path" inset="top bottom">{{ __('Revisi') }}</flux:button>
+                                        <flux:button wire:click="approve({{ $participant->id }})" size="sm" variant="filled" color="green" icon="check" inset="top bottom">{{ __('Setujui') }}</flux:button>
+                                        <flux:button wire:click="startRevision({{ $participant->id }})" size="sm" variant="filled" color="amber" icon="arrow-path" inset="top bottom">{{ __('Revisi') }}</flux:button>
                                     </div>
                                 @endif
                             </flux:table.cell>
