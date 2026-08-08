@@ -114,9 +114,7 @@ class Program extends Model
         if (!$title) return false;
         
         return $this->type === ProgramType::Multidisiplin && (
-            str_contains(strtolower($title), 'video profile') || 
-            str_contains(strtolower($title), 'video profil') ||
-            str_contains(strtolower($title), 'video dokumenter')
+            str_contains(strtolower($title), 'video')
         );
     }
 
