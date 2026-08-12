@@ -10,6 +10,7 @@ use Livewire\Component;
 class StudentLogs extends Component
 {
     public string $filterStudent = '';
+    public string $selectedGroupId = '';
 
     public function approveDailyLog(int $logId): void
     {
@@ -20,8 +21,18 @@ class StudentLogs extends Component
 
     public function render()
     {
-        $group = Auth::user()->group;
-        $students = $group ? $group->students : collect();
+        $user = Auth::user();
+        
+        $groupsQuery = $user->dplGroups()->with('students');
+        
+        if ($this->selectedGroupId) {
+            $groupsQuery->where('groups.id', $this->selectedGroupId);
+        }
+        
+        $groups = $groupsQuery->get();
+        $allGroups = $user->dplGroups()->get();
+
+        $students = $groups->pluck('students')->flatten();
         $studentIds = $students->pluck('id');
 
         $query = DailyLog::whereIn('student_id', $studentIds)->with(['student', 'activities']);
@@ -35,6 +46,7 @@ class StudentLogs extends Component
         return view('livewire.dpl.student-logs', [
             'logs' => $logs,
             'students' => $students,
+            'allGroups' => $allGroups,
             'stats' => [
                 'pending' => $logs->where('status', LogStatus::Pending)->count(),
                 'approved' => $logs->where('status', LogStatus::Approved)->count(),
@@ -45,8 +57,7 @@ class StudentLogs extends Component
 
     private function getStudentIds()
     {
-        $group = Auth::user()->group;
-
-        return $group ? $group->students->pluck('id') : collect();
+        $user = Auth::user();
+        return $user->dplGroups()->with('students')->get()->pluck('students')->flatten()->pluck('id');
     }
 }

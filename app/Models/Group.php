@@ -55,9 +55,9 @@ class Group extends Model
     /**
      * Get the DPLs assigned to this group.
      */
-    public function dpls(): HasMany
+    public function dpls(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->hasMany(User::class)->where('role', \App\Enums\UserRole::Dpl);
+        return $this->belongsToMany(User::class, 'dpl_group', 'group_id', 'dpl_id');
     }
 
     /**

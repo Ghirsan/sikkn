@@ -94,10 +94,21 @@ class KKNSeeder extends Seeder
             'is_lpk_locked' => false,
         ]);
 
-        // Assign DPLs to groups via group_id
-        if ($dpl1) $dpl1->update(['group_id' => $group1->id]);
-        $dpl2->update(['group_id' => $group2->id]);
-        $dpl3->update(['group_id' => $group3->id]);
+        // ── 3.5 Assign DPLs to Groups ──────────────────────────────
+        // Assign dpl1 to group1 and group2
+        if ($dpl1) {
+            $dpl1->dplGroups()->syncWithoutDetaching([$group1->id, $group2->id]);
+        }
+        // Assign dpl2 to group2 and group3
+        $dpl2->dplGroups()->syncWithoutDetaching([$group2->id, $group3->id]);
+        
+        // Assign dpl3 to group3
+        $dpl3->dplGroups()->syncWithoutDetaching([$group3->id]);
+
+        // Set lead DPLs
+        $group1->update(['lead_dpl_id' => $dpl1?->id]);
+        $group2->update(['lead_dpl_id' => $dpl2->id]); // Group 2 has dpl1 and dpl2, dpl2 is lead
+        $group3->update(['lead_dpl_id' => $dpl3->id]); // Group 3 has dpl2 and dpl3, dpl3 is lead
 
 
         // ── 4. Students ───────────────────────────────────────────

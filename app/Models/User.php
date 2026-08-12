@@ -78,9 +78,11 @@ class User extends Authenticatable
      */
     public function isLeadDpl(): bool
     {
-        return $this->role === UserRole::Dpl 
-            && $this->group_id !== null 
-            && $this->id === $this->group->lead_dpl_id;
+        if ($this->role !== UserRole::Dpl) {
+            return false;
+        }
+
+        return $this->dplGroups()->where('lead_dpl_id', $this->id)->exists();
     }
 
     /**
@@ -109,6 +111,14 @@ class User extends Authenticatable
     public function supervisedGroup(): BelongsTo
     {
         return $this->group();
+    }
+
+    /**
+     * Get the groups this DPL supervises.
+     */
+    public function dplGroups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'dpl_group', 'dpl_id', 'group_id');
     }
 
     /**

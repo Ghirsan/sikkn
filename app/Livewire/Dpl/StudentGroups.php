@@ -7,14 +7,27 @@ use Livewire\Component;
 
 class StudentGroups extends Component
 {
+    public $selectedGroupId = '';
+
     public function render()
     {
         $user = Auth::user();
-        $group = $user->group?->load(['students', 'period', 'dpls', 'leadDpl', 'studentLeader']);
+        
+        $dplGroupsQuery = $user->dplGroups()->with(['students', 'period', 'dpls', 'leadDpl', 'studentLeader']);
+        
+        if ($this->selectedGroupId) {
+            $dplGroupsQuery->where('groups.id', $this->selectedGroupId);
+        }
+
+        $groups = $dplGroupsQuery->get();
+        $allGroups = $user->dplGroups()->get(); // For the dropdown
+
+        $totalStudents = $groups->pluck('students')->flatten()->count();
 
         return view('livewire.dpl.student-groups', [
-            'groups' => $group ? collect([$group]) : collect(),
-            'totalStudents' => $group?->students->count() ?? 0,
+            'groups' => $groups,
+            'allGroups' => $allGroups,
+            'totalStudents' => $totalStudents,
         ]);
     }
 }

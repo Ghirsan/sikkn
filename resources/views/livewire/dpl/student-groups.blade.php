@@ -1,9 +1,19 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
+    @if($allGroups->count() > 1)
+        <div class="flex items-center justify-end">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64" placeholder="Semua Kelompok">
+                @foreach($allGroups as $g)
+                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
+                @endforeach
+            </flux:select>
+        </div>
+    @endif
+
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
         <x-stat-card icon="user-group" color="green" :label="__('Kelompok')" :value="$groups->count()" />
         <x-stat-card icon="academic-cap" color="blue" :label="__('Total Mahasiswa')" :value="$totalStudents" />
-        <x-stat-card icon="map-pin" color="amber" :label="__('Lokasi KKN')" :value="$groups->count() > 0 ? $groups->first()->village : '-'" />
+        <x-stat-card icon="map-pin" color="amber" :label="__('Lokasi KKN')" :value="$groups->count() === 1 ? $groups->first()->village : '-'" />
     </div>
 
     {{-- Groups --}}

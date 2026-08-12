@@ -4,15 +4,21 @@
 
 @php
     $user = auth()->user();
-    $group = $user->group?->load(['students', 'period', 'dpls', 'programs.student', 'mentoringLogs']);
+    $dplGroups = $user->dplGroups()->with(['students', 'period', 'dpls', 'mentoringLogs'])->get();
+    
+    $selectedGroupId = request('group_id');
+    $groups = ($selectedGroupId && $dplGroups->contains('id', $selectedGroupId)) 
+        ? $dplGroups->where('id', $selectedGroupId) 
+        : $dplGroups;
 
     // Student stats
-    $students = $group?->students ?? collect();
+    $students = $groups->pluck('students')->flatten();
     $totalStudents = $students->count();
 
     // Program stats
-    $participants = $group 
-        ? \App\Models\ProgramParticipant::whereHas('program', fn($q) => $q->where('group_id', $group->id))->with('program')->get() 
+    $groupIds = $groups->pluck('id');
+    $participants = $groupIds->isNotEmpty() 
+        ? \App\Models\ProgramParticipant::whereHas('program', fn($q) => $q->whereIn('group_id', $groupIds))->with(['program', 'student'])->get() 
         : collect();
     $pendingPrograms = $participants->where('status', \App\Enums\ProgramStatus::Submitted);
     $approvedPrograms = $participants->where('status', \App\Enums\ProgramStatus::Approved);
@@ -27,15 +33,31 @@
     $approvedLogs = $dailyLogs->where('status', \App\Enums\LogStatus::Approved);
 
     // Mentoring log stats
-    $mentoringLogs = $group?->mentoringLogs ?? collect();
+    $mentoringLogs = $groups->pluck('mentoringLogs')->flatten();
     $pendingMentoring = $mentoringLogs->where('status', \App\Enums\LogStatus::Pending);
     $reviewedMentoring = $mentoringLogs->where('status', \App\Enums\LogStatus::Approved);
 
-    // Document readiness
+    // Document readiness (aggregated across selected groups, though usually makes more sense per group)
     $totalParticipants = $participants->count();
     $approvedCount = $approvedPrograms->count();
     $allApproved = $totalParticipants > 0 && $approvedCount === $totalParticipants;
 @endphp
+
+@if($dplGroups->count() > 1)
+    <div class="mb-4 flex items-center justify-end">
+        <form x-data x-on:change="$el.submit()">
+            <flux:select name="group_id" size="sm" class="w-64">
+                <option value="">{{ __('Semua Kelompok') }}</option>
+                @foreach($dplGroups as $g)
+                    <option value="{{ $g->id }}" {{ $selectedGroupId == $g->id ? 'selected' : '' }}>
+                        {{ $g->name }} ({{ $g->village }})
+                    </option>
+                @endforeach
+            </flux:select>
+        </form>
+    </div>
+@endif
+
 
 {{-- Stat Cards --}}
 <div class="grid auto-rows-min gap-4 md:grid-cols-4">
@@ -113,71 +135,81 @@
 <flux:card>
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Kelompok Bimbingan') }}</flux:heading>
-        @if($group)
+        @if($groups->isNotEmpty())
             <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa') }}</flux:badge>
         @endif
     </div>
 
     <flux:separator />
 
-    @if($group)
-        <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <flux:text variant="strong">{{ $group->name }}</flux:text>
-                <flux:text class="text-sm">{{ $group->location }}</flux:text>
+    @if($groups->isNotEmpty())
+        @foreach($groups as $group)
+            <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <flux:text variant="strong">{{ $group->name }}</flux:text>
+                    <flux:text class="text-sm">{{ $group->location }}</flux:text>
+                </div>
+                @if($group->period)
+                    <flux:badge color="zinc" size="sm">{{ $group->period->name ?? __('Periode Aktif') }}</flux:badge>
+                @endif
             </div>
-            @if($group->period)
-                <flux:badge color="zinc" size="sm">{{ $group->period->name ?? __('Periode Aktif') }}</flux:badge>
-            @endif
-        </div>
 
-        @if($students->isNotEmpty())
-            <flux:table>
-                <flux:table.columns>
-                    <flux:table.column>{{ __('Nama') }}</flux:table.column>
-                    <flux:table.column>{{ __('NIM') }}</flux:table.column>
-                    <flux:table.column>{{ __('Prodi') }}</flux:table.column>
-                    <flux:table.column>{{ __('Logbook') }}</flux:table.column>
-                    <flux:table.column>{{ __('Mentoring') }}</flux:table.column>
-                </flux:table.columns>
-                <flux:table.rows>
-                    @foreach($students as $student)
-                        @php
-                            $studentDailyCount = $dailyLogs->where('student_id', $student->id)->count();
-                            $studentDailyPending = $dailyLogs->where('student_id', $student->id)->where('status', \App\Enums\LogStatus::Pending)->count();
-                            $studentMentoringCount = $mentoringLogs->where('student_id', $student->id)->count();
-                            $studentMentoringPending = $mentoringLogs->where('student_id', $student->id)->where('status', \App\Enums\LogStatus::Pending)->count();
-                        @endphp
-                        <flux:table.row>
-                            <flux:table.cell class="flex items-center gap-3">
-                                <flux:avatar :name="$student->name" :initials="$student->initials()" size="sm" />
-                                <span class="font-medium">{{ $student->name }}</span>
-                            </flux:table.cell>
-                            <flux:table.cell>{{ $student->nim }}</flux:table.cell>
-                            <flux:table.cell>{{ $student->prodi }}</flux:table.cell>
-                            <flux:table.cell>
-                                <div class="flex items-center gap-1">
-                                    <flux:text class="text-sm">{{ $studentDailyCount }}</flux:text>
-                                    @if($studentDailyPending > 0)
-                                        <flux:badge size="sm" color="amber">{{ $studentDailyPending }} {{ __('pending') }}</flux:badge>
-                                    @endif
-                                </div>
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <div class="flex items-center gap-1">
-                                    <flux:text class="text-sm">{{ $studentMentoringCount }}</flux:text>
-                                    @if($studentMentoringPending > 0)
-                                        <flux:badge size="sm" color="amber">{{ $studentMentoringPending }} {{ __('pending') }}</flux:badge>
-                                    @endif
-                                </div>
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endforeach
-                </flux:table.rows>
-            </flux:table>
-        @else
-            <flux:text class="py-4 text-center">{{ __('Belum ada mahasiswa dalam kelompok ini.') }}</flux:text>
-        @endif
+            @php
+                $groupStudents = $group->students ?? collect();
+            @endphp
+
+            @if($groupStudents->isNotEmpty())
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column>{{ __('Nama') }}</flux:table.column>
+                        <flux:table.column>{{ __('NIM') }}</flux:table.column>
+                        <flux:table.column>{{ __('Prodi') }}</flux:table.column>
+                        <flux:table.column>{{ __('Logbook') }}</flux:table.column>
+                        <flux:table.column>{{ __('Mentoring') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach($groupStudents as $student)
+                            @php
+                                $studentDailyCount = $dailyLogs->where('student_id', $student->id)->count();
+                                $studentDailyPending = $dailyLogs->where('student_id', $student->id)->where('status', \App\Enums\LogStatus::Pending)->count();
+                                $studentMentoringCount = $mentoringLogs->where('student_id', $student->id)->count();
+                                $studentMentoringPending = $mentoringLogs->where('student_id', $student->id)->where('status', \App\Enums\LogStatus::Pending)->count();
+                            @endphp
+                            <flux:table.row>
+                                <flux:table.cell class="flex items-center gap-3">
+                                    <flux:avatar :name="$student->name" :initials="$student->initials()" size="sm" />
+                                    <span class="font-medium">{{ $student->name }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>{{ $student->nim }}</flux:table.cell>
+                                <flux:table.cell>{{ $student->prodi }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <div class="flex items-center gap-1">
+                                        <flux:text class="text-sm">{{ $studentDailyCount }}</flux:text>
+                                        @if($studentDailyPending > 0)
+                                            <flux:badge size="sm" color="amber">{{ $studentDailyPending }} {{ __('pending') }}</flux:badge>
+                                        @endif
+                                    </div>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <div class="flex items-center gap-1">
+                                        <flux:text class="text-sm">{{ $studentMentoringCount }}</flux:text>
+                                        @if($studentMentoringPending > 0)
+                                            <flux:badge size="sm" color="amber">{{ $studentMentoringPending }} {{ __('pending') }}</flux:badge>
+                                        @endif
+                                    </div>
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            @else
+                <flux:text class="py-4 text-center">{{ __('Belum ada mahasiswa dalam kelompok ini.') }}</flux:text>
+            @endif
+
+            @if(!$loop->last)
+                <flux:separator class="my-6" />
+            @endif
+        @endforeach
     @else
         <x-empty-state icon="user-group" :heading="__('Belum Ada Kelompok')" :description="__('Belum ada kelompok bimbingan yang ditugaskan. Hubungi P2KKN untuk informasi penugasan.')" />
     @endif
@@ -187,59 +219,76 @@
 <flux:card>
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Status Dokumen Tim') }}</flux:heading>
-        @if($group)
-            <flux:badge :color="$allApproved ? 'green' : 'zinc'" size="sm">{{ $allApproved ? __('Siap PDF') : $approvedCount.'/'.$totalParticipants.' '.__('approved') }}</flux:badge>
-        @endif
     </div>
 
     <flux:separator />
 
-    @if($group)
-        <div class="grid gap-4 md:grid-cols-2">
-            {{-- LRK --}}
-            <div class="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
-                <div class="flex items-center gap-3">
-                    <flux:icon.document-text variant="mini" class="text-blue-500" />
-                    <div>
-                        <flux:text variant="strong">{{ __('LRK') }}</flux:text>
-                        <flux:text class="text-xs">{{ __('Laporan Rencana Kegiatan') }}</flux:text>
+    @if($groups->isNotEmpty())
+        @foreach($groups as $group)
+            @php
+                $groupParticipants = \App\Models\ProgramParticipant::whereHas('program', fn($q) => $q->where('group_id', $group->id))->with(['program', 'student'])->get();
+                $groupTotalParticipants = $groupParticipants->count();
+                $groupApprovedPrograms = $groupParticipants->where('status', \App\Enums\ProgramStatus::Approved);
+                $groupRevisionPrograms = $groupParticipants->where('status', \App\Enums\ProgramStatus::NeedsRevision);
+                $groupApprovedCount = $groupApprovedPrograms->count();
+                $groupAllApproved = $groupTotalParticipants > 0 && $groupApprovedCount === $groupTotalParticipants;
+            @endphp
+            
+            <div class="mt-4 flex items-center justify-between">
+                <flux:text variant="strong" class="mb-2 text-sm">{{ $group->name }}</flux:text>
+                <flux:badge :color="$groupAllApproved ? 'green' : 'zinc'" size="sm">{{ $groupAllApproved ? __('Siap PDF') : $groupApprovedCount.'/'.$groupTotalParticipants.' '.__('approved') }}</flux:badge>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                {{-- LRK --}}
+                <div class="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
+                    <div class="flex items-center gap-3">
+                        <flux:icon.document-text variant="mini" class="text-blue-500" />
+                        <div>
+                            <flux:text variant="strong">{{ __('LRK') }}</flux:text>
+                            <flux:text class="text-xs">{{ __('Laporan Rencana Kegiatan') }}</flux:text>
+                        </div>
                     </div>
+                    <flux:badge :color="$groupAllApproved ? 'green' : 'zinc'" size="sm">{{ $groupAllApproved ? __('Siap Cetak') : __('Belum Siap') }}</flux:badge>
                 </div>
-                <flux:badge :color="$allApproved ? 'green' : 'zinc'" size="sm">{{ $allApproved ? __('Siap Cetak') : __('Belum Siap') }}</flux:badge>
-            </div>
 
-            {{-- LPK --}}
-            <div class="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
-                <div class="flex items-center gap-3">
-                    <flux:icon.document-check variant="mini" class="text-green-500" />
-                    <div>
-                        <flux:text variant="strong">{{ __('LPK') }}</flux:text>
-                        <flux:text class="text-xs">{{ __('Laporan Pelaksanaan Kegiatan') }}</flux:text>
+                {{-- LPK --}}
+                <div class="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
+                    <div class="flex items-center gap-3">
+                        <flux:icon.document-check variant="mini" class="text-green-500" />
+                        <div>
+                            <flux:text variant="strong">{{ __('LPK') }}</flux:text>
+                            <flux:text class="text-xs">{{ __('Laporan Pelaksanaan Kegiatan') }}</flux:text>
+                        </div>
                     </div>
+                    <flux:badge color="zinc" size="sm">{{ __('Belum Dibuat') }}</flux:badge>
                 </div>
-                <flux:badge color="zinc" size="sm">{{ __('Belum Dibuat') }}</flux:badge>
             </div>
-        </div>
 
-        @if($approvedPrograms->isNotEmpty())
-            <flux:separator />
-            <div>
-                <flux:text variant="strong" class="mb-2 text-sm">{{ __('Program Disetujui:') }}</flux:text>
-                @foreach($approvedPrograms as $participant)
-                    <flux:text class="text-sm">• {{ $participant->program->title }} ({{ $participant->student?->name ?? __('Kelompok') }})</flux:text>
-                @endforeach
-            </div>
-        @endif
+            @if($groupApprovedPrograms->isNotEmpty())
+                <flux:separator class="my-4" />
+                <div>
+                    <flux:text variant="strong" class="mb-2 text-sm">{{ __('Program Disetujui:') }}</flux:text>
+                    @foreach($groupApprovedPrograms as $participant)
+                        <flux:text class="text-sm">• {{ $participant->program->title }} ({{ $participant->student?->name ?? __('Kelompok') }})</flux:text>
+                    @endforeach
+                </div>
+            @endif
 
-        @if($revisionPrograms->isNotEmpty())
-            <flux:separator />
-            <div>
-                <flux:text variant="strong" class="mb-2 text-sm text-red-600 dark:text-red-400">{{ __('Program Perlu Revisi:') }}</flux:text>
-                @foreach($revisionPrograms as $participant)
-                    <flux:text class="text-sm text-red-600 dark:text-red-400">• {{ $participant->program->title }} — {{ $participant->revision_note }}</flux:text>
-                @endforeach
-            </div>
-        @endif
+            @if($groupRevisionPrograms->isNotEmpty())
+                <flux:separator class="my-4" />
+                <div>
+                    <flux:text variant="strong" class="mb-2 text-sm text-red-600 dark:text-red-400">{{ __('Program Perlu Revisi:') }}</flux:text>
+                    @foreach($groupRevisionPrograms as $participant)
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">• {{ $participant->program->title }} — {{ $participant->revision_note }}</flux:text>
+                    @endforeach
+                </div>
+            @endif
+
+            @if(!$loop->last)
+                <flux:separator class="my-6" />
+            @endif
+        @endforeach
     @else
         <flux:text class="py-4 text-center">{{ __('Dokumen lengkap tim (LRK/LPK) akan tampil di sini setelah Anda ditugaskan ke kelompok.') }}</flux:text>
     @endif

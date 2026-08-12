@@ -7,14 +7,25 @@
         <x-stat-card icon="document-text" color="blue" :label="__('Total')" :value="$stats['total']" />
     </div>
 
-    {{-- Filter --}}
-    <flux:select wire:model.live="filterStatus" size="sm" placeholder="{{ __('Semua Status') }}" class="w-48">
-        <flux:select.option value="">{{ __('Semua Status') }}</flux:select.option>
-        <flux:select.option value="submitted">{{ __('Menunggu Review') }}</flux:select.option>
-        <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
-        <flux:select.option value="needs_revision">{{ __('Revisi') }}</flux:select.option>
-        <flux:select.option value="draft">{{ __('Draft') }}</flux:select.option>
-    </flux:select>
+    {{-- Filters --}}
+    <div class="flex gap-4">
+        @if($allGroups->count() > 1)
+            <flux:select wire:model.live="selectedGroupId" size="sm" placeholder="{{ __('Semua Kelompok') }}" class="w-64">
+                <flux:select.option value="">{{ __('Semua Kelompok') }}</flux:select.option>
+                @foreach($allGroups as $g)
+                    <flux:select.option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
+
+        <flux:select wire:model.live="filterStatus" size="sm" placeholder="{{ __('Semua Status') }}" class="w-48">
+            <flux:select.option value="">{{ __('Semua Status') }}</flux:select.option>
+            <flux:select.option value="submitted">{{ __('Menunggu Review') }}</flux:select.option>
+            <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
+            <flux:select.option value="needs_revision">{{ __('Revisi') }}</flux:select.option>
+            <flux:select.option value="draft">{{ __('Draft') }}</flux:select.option>
+        </flux:select>
+    </div>
 
     {{-- Programs --}}
     <div class="flex items-center justify-between">

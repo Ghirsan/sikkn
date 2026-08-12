@@ -1,4 +1,14 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
+    @if($allGroups->count() > 1)
+        <div class="flex items-center justify-end">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64" placeholder="Semua Kelompok">
+                <flux:select.option value="">{{ __('Semua Kelompok') }}</flux:select.option>
+                @foreach($allGroups as $g)
+                    <flux:select.option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</flux:select.option>
+                @endforeach
+            </flux:select>
+        </div>
+    @endif
     @if(!$periodCompleted)
         <flux:callout variant="warning" icon="exclamation-triangle">
             <flux:callout.heading>{{ __('Penilaian Belum Dibuka') }}</flux:callout.heading>

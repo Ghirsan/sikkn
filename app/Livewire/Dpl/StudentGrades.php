@@ -8,17 +8,31 @@ use Livewire\Component;
 
 class StudentGrades extends Component
 {
+    public string $selectedGroupId = '';
+
     public function render()
     {
         $user = Auth::user();
-        $group = $user->group?->load(['students.grade', 'period']);
-        $periodCompleted = $group?->period?->status === PeriodStatus::Completed;
+        
+        $groupsQuery = $user->dplGroups()->with(['students.grade', 'period']);
+        
+        if ($this->selectedGroupId) {
+            $groupsQuery->where('groups.id', $this->selectedGroupId);
+        }
+        
+        $groups = $groupsQuery->get();
+        $allGroups = $user->dplGroups()->get();
+        
+        // If there's no period, or if ANY group is not completed, we consider period not completed.
+        // It's safer to just check if every group is completed.
+        $periodCompleted = $groups->isNotEmpty() && $groups->every(fn($g) => $g->period?->status === PeriodStatus::Completed);
 
-        $students = $group?->students ?? collect();
+        $students = $groups->pluck('students')->flatten();
         $graded = $students->filter(fn ($s) => $s->grade !== null)->count();
 
         return view('livewire.dpl.student-grades', [
-            'groups' => $group ? collect([$group]) : collect(),
+            'groups' => $groups,
+            'allGroups' => $allGroups,
             'students' => $students,
             'periodCompleted' => $periodCompleted,
             'stats' => [

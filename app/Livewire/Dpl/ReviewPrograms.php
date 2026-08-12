@@ -10,6 +10,7 @@ use Livewire\Component;
 class ReviewPrograms extends Component
 {
     public string $filterStatus = '';
+    public string $selectedGroupId = '';
 
     public function approve(int $participantId): void
     {
@@ -43,11 +44,16 @@ class ReviewPrograms extends Component
 
     public function render()
     {
-        $groupId = Auth::user()->group_id;
+        $user = Auth::user();
+        $groupIds = $user->dplGroups()->pluck('groups.id');
 
-        $query = ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
-            $q->where('group_id', $groupId);
-        })->with(['student', 'program']);
+        if ($this->selectedGroupId) {
+            $groupIds = collect([$this->selectedGroupId]);
+        }
+
+        $query = ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
+            $q->whereIn('group_id', $groupIds);
+        })->with(['student', 'program.group']);
 
         if ($this->filterStatus) {
             $query->where('status', $this->filterStatus);
@@ -55,21 +61,22 @@ class ReviewPrograms extends Component
 
         return view('livewire.dpl.review-programs', [
             'participants' => $query->latest()->get(),
+            'allGroups' => $user->dplGroups()->get(),
             'stats' => [
-                'pending' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
-                    $q->where('group_id', $groupId);
+                'pending' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
+                    $q->whereIn('group_id', $groupIds);
                 })->where('status', ProgramStatus::Submitted)->count(),
                 
-                'approved' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
-                    $q->where('group_id', $groupId);
+                'approved' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
+                    $q->whereIn('group_id', $groupIds);
                 })->where('status', ProgramStatus::Approved)->count(),
                 
-                'revision' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
-                    $q->where('group_id', $groupId);
+                'revision' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
+                    $q->whereIn('group_id', $groupIds);
                 })->where('status', ProgramStatus::NeedsRevision)->count(),
                 
-                'total' => ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
-                    $q->where('group_id', $groupId);
+                'total' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
+                    $q->whereIn('group_id', $groupIds);
                 })->count(),
             ],
         ]);
@@ -77,10 +84,10 @@ class ReviewPrograms extends Component
 
     private function getAuthorizedParticipant(int $participantId): ProgramParticipant
     {
-        $groupId = Auth::user()->group_id;
+        $groupIds = Auth::user()->dplGroups()->pluck('groups.id');
 
-        return ProgramParticipant::whereHas('program', function ($q) use ($groupId) {
-            $q->where('group_id', $groupId);
+        return ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
+            $q->whereIn('group_id', $groupIds);
         })->findOrFail($participantId);
     }
 }

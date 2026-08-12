@@ -9,6 +9,15 @@
     {{-- Filter & Actions --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3">
+            @if($allGroups->count() > 1)
+                <flux:select wire:model.live="selectedGroupId" size="sm" placeholder="{{ __('Semua Kelompok') }}" class="w-48">
+                    <flux:select.option value="">{{ __('Semua Kelompok') }}</flux:select.option>
+                    @foreach($allGroups as $g)
+                        <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
+
             <flux:select wire:model.live="filterStudent" size="sm" placeholder="{{ __('Semua Mahasiswa') }}" class="w-56">
                 <flux:select.option value="">{{ __('Semua Mahasiswa') }}</flux:select.option>
                 @foreach($students as $student)
