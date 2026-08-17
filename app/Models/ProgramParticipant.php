@@ -29,11 +29,6 @@ class ProgramParticipant extends Model
         'execution_description',
         'documentation_image_path',
         'documentation_caption',
-        'output_type',
-        'output_title',
-        'output_file_path',
-        'output_url',
-        'output_description',
         'sdg_category',
     ];
 
@@ -102,6 +97,11 @@ class ProgramParticipant extends Model
     public function student()
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function outputs()
+    {
+        return $this->hasMany(ParticipantOutput::class, 'program_participant_id');
     }
 
     public function isEditable(): bool

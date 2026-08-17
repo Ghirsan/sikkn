@@ -83,7 +83,57 @@
                 </div>
             @else
                 <flux:textarea wire:model="achievement" label="{{ __('Hasil') }}" placeholder="{{ __('Jelaskan hasil pelaksanaan sesuai peran dan tanggung jawab Anda...') }}" rows="4" />
-            @endif
+                @endif
+
+            <flux:separator class="my-6" />
+            
+            <flux:heading size="lg" class="mb-2">{{ __('Lampiran 1: Dokumentasi Pelaksanaan Program') }}</flux:heading>
+            <div class="grid grid-cols-1 gap-4">
+                <x-image-upload 
+                    modelName="documentation_image" 
+                    :file="$documentation_image" 
+                    :existingPath="$documentation_image_path" 
+                    label="{{ __('Foto Dokumentasi') }}" 
+                    description="{{ __('Klik untuk memilih atau seret foto dokumentasi ke sini') }}"
+                    modalName="documentation-preview"
+                />
+                <flux:textarea wire:model="documentation_caption" label="{{ __('Caption / Keterangan') }}" placeholder="{{ __('Berikan keterangan singkat untuk foto dokumentasi ini...') }}" rows="2" />
+            </div>
+
+            <flux:separator class="my-6" />
+
+            <flux:heading size="lg" class="mb-2">{{ __('Lampiran 2: Luaran Program') }}</flux:heading>
+            <flux:text class="text-sm text-zinc-500 mb-4">{{ __('Tambahkan luaran berupa file (misal: modul, katalog) atau tautan/link (misal: video youtube, website).') }}</flux:text>
+            <div class="flex flex-col gap-4">
+                @foreach($outputs as $index => $output)
+                    <div class="p-4 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700 relative">
+                        <flux:button wire:click="removeOutput({{ $index }})" variant="danger" size="sm" class="absolute top-2 right-2" icon="trash" />
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 mt-2">
+                            <flux:input wire:model="outputs.{{ $index }}.name" label="{{ __('Judul/Nama Luaran') }}" placeholder="{{ __('Contoh: Buku Saku, Katalog, Video, dll.') }}" />
+                            <flux:select wire:model.live="outputs.{{ $index }}.type" label="{{ __('Jenis Luaran') }}">
+                                <flux:select.option value="file">{{ __('Upload File') }}</flux:select.option>
+                                <flux:select.option value="link">{{ __('Tautan (Link/URL)') }}</flux:select.option>
+                            </flux:select>
+                        </div>
+
+                        @if($outputs[$index]['type'] === 'file')
+                            <flux:input type="file" wire:model="outputs.{{ $index }}.file" label="{{ __('Upload File Luaran') }}" />
+                            @if($outputs[$index]['file_path'])
+                                <div class="mt-2">
+                                    <flux:text class="text-sm">File saat ini: <a href="{{ Storage::url($outputs[$index]['file_path']) }}" target="_blank" class="text-blue-500 hover:underline">Lihat File</a></flux:text>
+                                </div>
+                            @endif
+                        @else
+                            <flux:input type="url" wire:model="outputs.{{ $index }}.url" label="{{ __('Tautan Luaran (URL)') }}" placeholder="{{ __('https://...') }}" />
+                        @endif
+                    </div>
+                @endforeach
+                
+                <div>
+                    <flux:button wire:click="addOutput" size="sm" icon="plus" variant="filled">{{ __('Tambah Luaran') }}</flux:button>
+                </div>
+            </div>
 
         @endif
 

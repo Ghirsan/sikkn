@@ -9,9 +9,11 @@ use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\WithFileUploads;
 
 class ProgramForm extends Component
 {
+    use WithFileUploads;
     #[Url]
     public string $action = 'create'; // 'create', 'edit', 'lpk'
     
@@ -49,6 +51,14 @@ class ProgramForm extends Component
     public string $obstacle = '';
     public string $solution = '';
     public string $execution_description = '';
+    
+    // Lampiran 1 (Documentation)
+    public $documentation_image; // for upload
+    public ?string $documentation_image_path = null;
+    public ?string $documentation_caption = null;
+
+    // Lampiran 2 (Outputs)
+    public array $outputs = []; // Array to hold multiple outputs
     
     public ?string $status = null;
     public ?string $revision_note = null;
@@ -150,7 +160,49 @@ class ProgramForm extends Component
             $this->obstacle = $participant->obstacle ?? '';
             $this->solution = $participant->solution ?? '';
             $this->execution_description = $participant->execution_description ?? '';
+            
+            $this->documentation_image_path = $participant->documentation_image_path;
+            $this->documentation_caption = $participant->documentation_caption;
+
+            $this->outputs = $participant->outputs->map(function ($output) {
+                return [
+                    'id' => $output->id,
+                    'name' => $output->name,
+                    'type' => $output->type,
+                    'file' => null,
+                    'file_path' => $output->file_path,
+                    'url' => $output->url,
+                ];
+            })->toArray();
+
+            // Initialize with one empty output row if none exist
+            if (empty($this->outputs)) {
+                $this->addOutput();
+            }
         }
+    }
+
+    public function addOutput()
+    {
+        $this->outputs[] = [
+            'id' => null,
+            'name' => '',
+            'type' => 'file',
+            'file' => null,
+            'file_path' => null,
+            'url' => '',
+        ];
+    }
+
+    public function removeOutput($index)
+    {
+        // If it has an ID, we might want to mark it for deletion or delete it immediately.
+        // For simplicity, we'll just remove it from the array and handle deletion on save.
+        if (isset($this->outputs[$index]['id']) && $this->outputs[$index]['id']) {
+            \App\Models\ParticipantOutput::find($this->outputs[$index]['id'])?->delete();
+        }
+        unset($this->outputs[$index]);
+        $this->outputs = array_values($this->outputs);
     }
 
 
@@ -307,12 +359,107 @@ class ProgramForm extends Component
             ]);
         }
         
+        $this->validate([
+            'documentation_image' => $this->documentation_image_path ? 'nullable|image|max:5120' : 'required|image|max:5120',
+            'documentation_caption' => 'required|string|max:255',
+            'outputs.*.name' => 'required|string|max:255',
+            'outputs.*.type' => 'required|in:file,link',
+        ], [
+            'outputs.*.name.required' => 'Judul/Nama luaran harus diisi.',
+            'outputs.*.type.required' => 'Jenis luaran harus dipilih.',
+        ]);
+
+        foreach ($this->outputs as $index => $output) {
+            if ($output['type'] === 'file') {
+                if (empty($output['file_path'])) {
+                    $this->validate([
+                        "outputs.{$index}.file" => 'required|file|max:10240',
+                    ], ["outputs.{$index}.file.required" => 'File luaran harus diunggah.']);
+                } else {
+                    $this->validate([
+                        "outputs.{$index}.file" => 'nullable|file|max:10240',
+                    ]);
+                }
+            } elseif ($output['type'] === 'link') {
+                $this->validate([
+                    "outputs.{$index}.url" => 'required|url',
+                ], ["outputs.{$index}.url.required" => 'URL tautan luaran harus diisi.']);
+            }
+        }
+
+        if ($this->documentation_image) {
+            if ($participant->documentation_image_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($participant->documentation_image_path);
+            }
+            $participant->documentation_image_path = $this->documentation_image->store('lpk_documentations', 'public');
+        }
+        
         $participant->update([
             'execution_description' => $this->execution_description,
             'achievement' => $this->achievement,
             'obstacle' => $this->obstacle,
             'solution' => $this->solution,
+            'documentation_caption' => $this->documentation_caption,
         ]);
+
+        $existingOutputs = $participant->outputs()->pluck('id')->toArray();
+        $savedOutputIds = [];
+
+        foreach ($this->outputs as $outputData) {
+            $outputModel = null;
+            if (!empty($outputData['id'])) {
+                $outputModel = \App\Models\ParticipantOutput::find($outputData['id']);
+            }
+
+            if (!$outputModel) {
+                $outputModel = new \App\Models\ParticipantOutput([
+                    'program_participant_id' => $participant->id,
+                    'output_code' => 'temp', // will be recalculated
+                ]);
+            }
+
+            $outputModel->name = $outputData['name'];
+            $outputModel->type = $outputData['type'];
+
+            if ($outputData['type'] === 'file') {
+                $outputModel->url = null;
+                if (!empty($outputData['file'])) {
+                    if ($outputModel->file_path) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($outputModel->file_path);
+                    }
+                    $outputModel->file_path = $outputData['file']->store('lpk_outputs', 'public');
+                }
+            } else {
+                if ($outputModel->file_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($outputModel->file_path);
+                    $outputModel->file_path = null;
+                }
+                $outputModel->url = $outputData['url'];
+            }
+            
+            $outputModel->save();
+            $savedOutputIds[] = $outputModel->id;
+        }
+
+        $outputsToDelete = array_diff($existingOutputs, $savedOutputIds);
+        if (!empty($outputsToDelete)) {
+            $toDelete = \App\Models\ParticipantOutput::whereIn('id', $outputsToDelete)->get();
+            foreach ($toDelete as $model) {
+                if ($model->file_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($model->file_path);
+                }
+                $model->delete();
+            }
+        }
+        
+        $allOutputs = $participant->outputs()->orderBy('id')->get();
+        $totalCount = $allOutputs->count();
+        foreach ($allOutputs as $i => $model) {
+            $code = \App\Models\ParticipantOutput::generateOutputCode($participant, $i, $totalCount);
+            if ($model->output_code !== $code) {
+                $model->update(['output_code' => $code]);
+            }
+        }
 
         session()->flash('success', 'Laporan LPK Anda berhasil disimpan.');
         return $this->redirect(route('programs.index'), navigate: true);
