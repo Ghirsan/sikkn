@@ -27,13 +27,8 @@
         <input x-ref="fileInput" type="file" wire:model="{{ $modelName }}" accept="image/jpeg, image/png, image/gif" class="sr-only" />
 
         <div class="relative mb-4">
-            <svg x-show="!uploading" class="shrink-0 size-6 text-zinc-400 dark:text-white/60 transition group-hover:text-zinc-800 dark:group-hover:text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M10.5 3.75a6 6 0 0 0-5.98 6.496A5.25 5.25 0 0 0 6.75 20.25H18a4.5 4.5 0 0 0 2.206-8.423 3.75 3.75 0 0 0-4.133-4.303A6.001 6.001 0 0 0 10.5 3.75Zm2.03 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v4.94a.75.75 0 0 0 1.5 0v-4.94l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z" clip-rule="evenodd"></path>
-            </svg>
-            <svg x-show="uploading" style="display: none;" class="shrink-0 size-6 animate-spin absolute inset-0 text-zinc-800 dark:text-white transition" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <flux:icon.cloud-arrow-up x-show="!uploading" variant="solid" class="shrink-0 size-6 text-zinc-400 dark:text-white/60 transition group-hover:text-zinc-800 dark:group-hover:text-white" />
+            <flux:icon.arrow-path x-show="uploading" variant="solid" x-cloak class="shrink-0 size-6 animate-spin absolute inset-0 text-zinc-800 dark:text-white transition" />
         </div>
 
         <div class="flex flex-col items-center gap-2 text-center">
@@ -46,9 +41,7 @@
         </div>
     </div>
 
-    @error($modelName)
-        <flux:error class="mt-2">{{ $message }}</flux:error>
-    @enderror
+    <flux:error name="{{ $modelName }}" class="mt-2" />
 
     <div class="mt-4 flex flex-col gap-2">
         @if($file)
@@ -64,9 +57,7 @@
                 </div>
                 <div class="p-[calc(0.25rem-1px)] flex-shrink-0 self-start flex h-full items-center gap-2">
                     <button type="button" wire:click="$set('{{ $modelName }}', null)" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white self-start cursor-pointer mt-[3px] mr-1" aria-label="Hapus file">
-                        <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
-                        </svg>
+                        <flux:icon.x-mark variant="mini" class="size-4" />
                     </button>
                 </div>
             </div>

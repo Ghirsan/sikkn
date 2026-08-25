@@ -66,9 +66,18 @@ class ProgramForm extends Component
     public bool $isLpkMultidisiplin = false;
     public bool $isLpkVideoProfile = false;
 
+    public string $min_date = '';
+    public ?string $max_date = null;
+
     public function mount()
     {
         $user = Auth::user();
+        
+        $period = \App\Models\Period::active()->first();
+        $this->min_date = now()->format('Y-m-d');
+        if ($period) {
+            $this->max_date = $period->end_date->format('Y-m-d');
+        }
 
         if ($this->action === 'create') {
             $this->type = $this->type ?? ProgramType::Lainnya->value;
@@ -171,7 +180,7 @@ class ProgramForm extends Component
                     'type' => $output->type,
                     'file' => null,
                     'file_path' => $output->file_path,
-                    'url' => $output->url,
+                    'url' => $output->url ? preg_replace('#^https?://#i', '', $output->url) : '',
                 ];
             })->toArray();
 
@@ -362,9 +371,12 @@ class ProgramForm extends Component
         $this->validate([
             'documentation_image' => $this->documentation_image_path ? 'nullable|image|max:5120' : 'required|image|max:5120',
             'documentation_caption' => 'required|string|max:255',
+            'outputs' => 'required|array|min:1',
             'outputs.*.name' => 'required|string|max:255',
             'outputs.*.type' => 'required|in:file,link',
         ], [
+            'outputs.required' => 'Minimal harus menambahkan 1 luaran program.',
+            'outputs.min' => 'Minimal harus menambahkan 1 luaran program.',
             'outputs.*.name.required' => 'Judul/Nama luaran harus diisi.',
             'outputs.*.type.required' => 'Jenis luaran harus dipilih.',
         ]);
@@ -381,6 +393,12 @@ class ProgramForm extends Component
                     ]);
                 }
             } elseif ($output['type'] === 'link') {
+                $url = trim($output['url']);
+                if (!empty($url) && !preg_match('#^https?://#i', $url)) {
+                    $url = 'https://' . $url;
+                    $this->outputs[$index]['url'] = $url;
+                }
+                
                 $this->validate([
                     "outputs.{$index}.url" => 'required|url',
                 ], ["outputs.{$index}.url.required" => 'URL tautan luaran harus diisi.']);

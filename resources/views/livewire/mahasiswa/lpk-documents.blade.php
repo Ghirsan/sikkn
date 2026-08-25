@@ -15,8 +15,8 @@
                     {{ $lpkApprovedCount }}/{{ $totalParticipants }} {{ __('laporan pelaksanaan disetujui') }}
                 </flux:text>
                 {{-- Progress Bar --}}
-                <div class="mt-3 w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2.5">
-                    <div class="h-2.5 rounded-full transition-all duration-500 {{ $allLpkApproved ? 'bg-green-500' : 'bg-green-400' }}" style="width: {{ $progressPercent }}%"></div>
+                <div class="mt-3 w-full">
+                    <flux:progress value="{{ $progressPercent }}" color="green" />
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -69,10 +69,10 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if($member->total > 0)
-                                    <div class="w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5">
-                                        <div class="h-1.5 rounded-full bg-green-500" style="width: {{ $member->total > 0 ? round(($member->approved / $member->total) * 100) : 0 }}%"></div>
+                                    <div class="w-24">
+                                        <flux:progress value="{{ $member->total > 0 ? round(($member->approved / $member->total) * 100) : 0 }}" color="green" />
                                     </div>
-                                    <span class="text-xs text-zinc-500 mt-0.5">{{ $member->approved }}/{{ $member->total }}</span>
+                                    <span class="text-xs text-zinc-500 mt-1 block">{{ $member->approved }}/{{ $member->total }}</span>
                                 @else
                                     <span class="text-xs text-zinc-400">-</span>
                                 @endif

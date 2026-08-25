@@ -36,7 +36,7 @@
                 <flux:textarea wire:model="target_audience" label="{{ __('Kelompok Sasaran') }}" placeholder="{{ __('Siapa kelompok sasarannya?') }}" rows="2" />
             </div>
             <flux:textarea wire:model="output_target" label="{{ __('Luaran') }}" placeholder="{{ __('Luaran / Output yang diharapkan') }}" rows="2" />
-            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" />
+            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
                 @foreach(\App\Enums\SdgCategory::cases() as $sdg)
                     <flux:select.option value="{{ $sdg->value }}">{{ $sdg->label() }}</flux:select.option>
@@ -49,7 +49,7 @@
                 <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Lomba 17 Agustus') }}" />
             @endif
             
-            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" class="mt-2" />
+            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" class="mt-2" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" class="mt-2" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
@@ -64,7 +64,7 @@
                     <flux:text variant="strong">{{ $title }}</flux:text>
                 </div>
             @endif
-            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" />
+            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 
@@ -102,38 +102,10 @@
 
             <flux:separator class="my-6" />
 
-            <flux:heading size="lg" class="mb-2">{{ __('Lampiran 2: Luaran Program') }}</flux:heading>
-            <flux:text class="text-sm text-zinc-500 mb-4">{{ __('Tambahkan luaran berupa file (misal: modul, katalog) atau tautan/link (misal: video youtube, website).') }}</flux:text>
-            <div class="flex flex-col gap-4">
-                @foreach($outputs as $index => $output)
-                    <div class="p-4 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700 relative">
-                        <flux:button wire:click="removeOutput({{ $index }})" variant="danger" size="sm" class="absolute top-2 right-2" icon="trash" />
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 mt-2">
-                            <flux:input wire:model="outputs.{{ $index }}.name" label="{{ __('Judul/Nama Luaran') }}" placeholder="{{ __('Contoh: Buku Saku, Katalog, Video, dll.') }}" />
-                            <flux:select wire:model.live="outputs.{{ $index }}.type" label="{{ __('Jenis Luaran') }}">
-                                <flux:select.option value="file">{{ __('Upload File') }}</flux:select.option>
-                                <flux:select.option value="link">{{ __('Tautan (Link/URL)') }}</flux:select.option>
-                            </flux:select>
-                        </div>
-
-                        @if($outputs[$index]['type'] === 'file')
-                            <flux:input type="file" wire:model="outputs.{{ $index }}.file" label="{{ __('Upload File Luaran') }}" />
-                            @if($outputs[$index]['file_path'])
-                                <div class="mt-2">
-                                    <flux:text class="text-sm">File saat ini: <a href="{{ Storage::url($outputs[$index]['file_path']) }}" target="_blank" class="text-blue-500 hover:underline">Lihat File</a></flux:text>
-                                </div>
-                            @endif
-                        @else
-                            <flux:input type="url" wire:model="outputs.{{ $index }}.url" label="{{ __('Tautan Luaran (URL)') }}" placeholder="{{ __('https://...') }}" />
-                        @endif
-                    </div>
-                @endforeach
-                
-                <div>
-                    <flux:button wire:click="addOutput" size="sm" icon="plus" variant="filled">{{ __('Tambah Luaran') }}</flux:button>
-                </div>
-            </div>
+            <x-output-list 
+                :outputs="$outputs"
+                heading="{{ __('Lampiran 2: Luaran Program') }}"
+            />
 
         @endif
 
