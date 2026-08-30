@@ -56,6 +56,66 @@ class Groups extends Component
         flux()->toast('DPL berhasil ditugaskan ke kelompok.');
     }
 
+    public bool $showDatesModal = false;
+    public ?Group $editingGroup = null;
+    public $startDate = null;
+    public $endDate = null;
+
+    public function openDatesModal(Group $group)
+    {
+        $this->editingGroup = $group;
+        $this->startDate = $group->start_date?->format('Y-m-d');
+        $this->endDate = $group->end_date?->format('Y-m-d');
+        $this->showDatesModal = true;
+    }
+
+    public function closeDatesModal()
+    {
+        $this->showDatesModal = false;
+        $this->editingGroup = null;
+        $this->startDate = null;
+        $this->endDate = null;
+    }
+
+    public function saveDates()
+    {
+        if (!$this->editingGroup) {
+            return;
+        }
+
+        $period = $this->editingGroup->period;
+
+        $this->validate([
+            'startDate' => [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) use ($period) {
+                    if ($value && $period && \Carbon\Carbon::parse($value)->lt($period->start_date)) {
+                        $fail('Tanggal mulai tidak boleh sebelum tanggal mulai periode (' . $period->start_date->format('d/m/Y') . ').');
+                    }
+                },
+            ],
+            'endDate' => [
+                'nullable',
+                'date',
+                'after_or_equal:startDate',
+                function ($attribute, $value, $fail) use ($period) {
+                    if ($value && $period && \Carbon\Carbon::parse($value)->gt($period->end_date)) {
+                        $fail('Tanggal selesai tidak boleh setelah tanggal selesai periode (' . $period->end_date->format('d/m/Y') . ').');
+                    }
+                },
+            ],
+        ]);
+
+        $this->editingGroup->update([
+            'start_date' => $this->startDate,
+            'end_date' => $this->endDate,
+        ]);
+
+        $this->closeDatesModal();
+        flux()->toast('Waktu KKN berhasil disimpan.');
+    }
+
     public function render()
     {
         $query = Group::with(['period', 'dpls'])->withCount('students');

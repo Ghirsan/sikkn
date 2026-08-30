@@ -39,6 +39,9 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" color="zinc">Semester {{ $group->period->semester->value }} {{ $group->period->year }}</flux:badge>
+                                @if($group->start_date && $group->end_date)
+                                    <flux:badge size="sm" color="blue" class="mt-1">{{ $group->start_date->format('d/m/Y') }} - {{ $group->end_date->format('d/m/Y') }}</flux:badge>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell>{{ $group->village }}, {{ $group->district }}</flux:table.cell>
                             <flux:table.cell>
@@ -62,6 +65,7 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:button wire:click="openAssignModal({{ $group->id }})" size="sm" variant="ghost" icon="user-plus">{{ __('Atur DPL') }}</flux:button>
+                                <flux:button wire:click="openDatesModal({{ $group->id }})" size="sm" variant="ghost" icon="calendar">{{ __('Atur Waktu') }}</flux:button>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
@@ -103,5 +107,35 @@
                 <flux:button wire:click="saveAssignments" variant="primary">{{ __('Simpan Perubahan') }}</flux:button>
             </div>
         </div>
+    </flux:modal>
+
+    {{-- Assign Dates Modal --}}
+    <flux:modal wire:model="showDatesModal" class="md:w-96">
+        <form wire:submit.prevent="saveDates" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Atur Waktu KKN Kelompok') }}</flux:heading>
+                <flux:subheading>{{ __('Tentukan waktu mulai dan selesai KKN untuk kelompok ini.') }}</flux:subheading>
+            </div>
+
+            @if($editingGroup)
+                <div class="space-y-4">
+                    <div class="rounded-lg bg-zinc-50 dark:bg-zinc-800 p-3 text-sm text-zinc-600 dark:text-zinc-400">
+                        <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Waktu Periode KKN:') }}</span><br>
+                        {{ $editingGroup->period->start_date->format('d/m/Y') }} - {{ $editingGroup->period->end_date->format('d/m/Y') }}
+                    </div>
+
+                    <flux:input type="date" wire:model="startDate" label="{{ __('Tanggal Mulai (Opsional)') }}" />
+                    <flux:input type="date" wire:model="endDate" label="{{ __('Tanggal Selesai (Opsional)') }}" />
+                    
+                    <flux:text class="text-xs">{{ __('Biarkan kosong untuk menggunakan waktu periode KKN.') }}</flux:text>
+                </div>
+            @endif
+
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:button wire:click="closeDatesModal" variant="ghost">{{ __('Batal') }}</flux:button>
+                <flux:button type="submit" variant="primary">{{ __('Simpan Perubahan') }}</flux:button>
+            </div>
+        </form>
     </flux:modal>
 </div>

@@ -33,6 +33,8 @@ class Group extends Model
         'survey_documentation_text',
         'location_map_text',
         'survey_document_path',
+        'start_date',
+        'end_date',
     ];
 
     protected function casts(): array
@@ -41,6 +43,8 @@ class Group extends Model
             'type' => \App\Enums\GroupType::class,
             'is_lrk_locked' => 'boolean',
             'is_lpk_locked' => 'boolean',
+            'start_date' => 'date',
+            'end_date' => 'date',
         ];
     }
 
@@ -118,5 +122,21 @@ class Group extends Model
         return collect([$this->village, $this->district, $this->regency, $this->province])
             ->filter()
             ->implode(', ');
+    }
+
+    /**
+     * Get effective start date, falling back to period start date
+     */
+    public function getEffectiveStartDateAttribute()
+    {
+        return $this->start_date ?? optional($this->period)->start_date;
+    }
+
+    /**
+     * Get effective end date, falling back to period end date
+     */
+    public function getEffectiveEndDateAttribute()
+    {
+        return $this->end_date ?? optional($this->period)->end_date;
     }
 }
