@@ -36,7 +36,7 @@
                 <flux:textarea wire:model="target_audience" label="{{ __('Kelompok Sasaran') }}" placeholder="{{ __('Siapa kelompok sasarannya?') }}" rows="2" />
             </div>
             <flux:textarea wire:model="output_target" label="{{ __('Luaran') }}" placeholder="{{ __('Luaran / Output yang diharapkan') }}" rows="2" />
-            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
+            <x-datepicker wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
                 @foreach(\App\Enums\SdgCategory::cases() as $sdg)
                     <flux:select.option value="{{ $sdg->value }}">{{ $sdg->label() }}</flux:select.option>
@@ -49,7 +49,7 @@
                 <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Lomba 17 Agustus') }}" />
             @endif
             
-            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" class="mt-2" />
+            <x-datepicker wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" class="mt-2" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" class="mt-2" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
@@ -64,7 +64,7 @@
                     <flux:text variant="strong">{{ $title }}</flux:text>
                 </div>
             @endif
-            <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
+            <x-datepicker wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
 

@@ -75,7 +75,10 @@ class ProgramForm extends Component
         
         $period = \App\Models\Period::active()->first();
         $this->min_date = now()->format('Y-m-d');
-        if ($period) {
+        
+        if ($user->group && $user->group->effective_end_date) {
+            $this->max_date = $user->group->effective_end_date->format('Y-m-d');
+        } elseif ($period && $period->end_date) {
             $this->max_date = $period->end_date->format('Y-m-d');
         }
 

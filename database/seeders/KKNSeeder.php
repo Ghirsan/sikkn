@@ -61,6 +61,8 @@ class KKNSeeder extends Seeder
             'background' => 'Desa Sukamakmur merupakan desa yang terletak di Kecamatan Karanganyar dengan mayoritas penduduk bermata pencaharian sebagai petani. Permasalahan utama yang ditemukan meliputi rendahnya literasi digital di kalangan warga usia produktif, saluran irigasi yang rusak, serta potensi UMKM yang belum terkelola dengan baik.',
             'is_lrk_locked' => true,
             'is_lpk_locked' => true,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-08-15',
         ]);
 
         // KELOMPOK 2: Sudah bisa cetak LRK, Belum bisa cetak LPK
@@ -77,6 +79,8 @@ class KKNSeeder extends Seeder
             'background' => 'Desa Sidoharjo memiliki potensi di bidang pendidikan namun masih terkendala dengan kurangnya tenaga pengajar dan fasilitas belajar. Anak-anak usia sekolah membutuhkan bimbingan belajar terutama di bidang Matematika dan Bahasa Inggris.',
             'is_lrk_locked' => true,
             'is_lpk_locked' => false,
+            'start_date' => '2026-07-03',
+            'end_date' => '2026-08-18',
         ]);
 
         // KELOMPOK 3: Belum bisa cetak LRK maupun LPK
@@ -92,6 +96,8 @@ class KKNSeeder extends Seeder
             'background' => 'Desa Sendangtirto memiliki potensi wisata dan pertanian organik yang belum dikelola secara optimal. Diperlukan pendampingan dalam hal pemasaran digital dan pengelolaan sumber daya alam.',
             'is_lrk_locked' => false,
             'is_lpk_locked' => false,
+            'start_date' => '2026-07-05',
+            'end_date' => '2026-08-20',
         ]);
 
         // ── 3.5 Assign DPLs to Groups ──────────────────────────────
