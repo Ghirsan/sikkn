@@ -70,6 +70,19 @@ class MentoringLogForm extends Component
             }
         }
 
+        // Check if a mentoring log already exists for this date
+        $existingLogQuery = MentoringLog::where('student_id', Auth::id())
+            ->whereDate('date', $this->date);
+
+        if ($this->logId) {
+            $existingLogQuery->where('id', '!=', $this->logId);
+        }
+
+        if ($existingLogQuery->exists()) {
+            $this->addError('date', 'Anda sudah memiliki catatan pembimbingan untuk tanggal ini.');
+            return;
+        }
+
         if ($this->logId) {
             $log = MentoringLog::where('student_id', Auth::id())->findOrFail($this->logId);
             if ($log->status === LogStatus::Approved) {

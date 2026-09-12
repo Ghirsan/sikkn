@@ -27,6 +27,80 @@
         </flux:select>
     </div>
 
+    {{-- Tema Multidisiplin Management --}}
+    <flux:card>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <flux:icon.puzzle-piece variant="mini" class="text-purple-500" />
+                <flux:heading size="lg">{{ __('Tema Multidisiplin') }}</flux:heading>
+            </div>
+            @if($multidisiplinThemes->isNotEmpty())
+                <flux:badge color="purple" size="sm">{{ $multidisiplinThemes->count() }} {{ __('tema') }}</flux:badge>
+            @endif
+        </div>
+
+        <flux:separator />
+
+        @if(!$canManageThemes)
+            {{-- Prompt to select a group first --}}
+            <div class="py-6 text-center">
+                <flux:icon.arrow-up-circle variant="outline" class="mx-auto mb-2 size-8 text-zinc-400" />
+                <flux:text class="text-zinc-500">{{ __('Pilih kelompok terlebih dahulu untuk mengelola tema multidisiplin.') }}</flux:text>
+            </div>
+        @else
+            @if($multidisiplinThemes->isEmpty())
+                <x-empty-state
+                    icon="puzzle-piece"
+                    :heading="__('Belum Ada Tema')"
+                    :description="__('Tambahkan tema multidisiplin agar mahasiswa dapat memilih dan bergabung.')"
+                />
+            @else
+                <div class="space-y-2">
+                    @foreach($multidisiplinThemes as $theme)
+                        <div class="flex items-center justify-between rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50" wire:key="theme-{{ $theme->id }}">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <flux:badge color="purple" size="sm" class="shrink-0">{{ $theme->sequence }}</flux:badge>
+
+                                @if($editingThemeId === $theme->id)
+                                    <form wire:submit="saveEditTheme" class="flex items-center gap-2 flex-1">
+                                        <flux:input wire:model="editingThemeTitle" size="sm" class="flex-1" autofocus />
+                                        <flux:button type="submit" size="sm" variant="filled" icon="check">{{ __('Simpan') }}</flux:button>
+                                        <flux:button wire:click="cancelEditTheme" size="sm" variant="ghost" icon="x-mark" />
+                                    </form>
+                                @else
+                                    <flux:text variant="strong" class="truncate">{{ $theme->title }}</flux:text>
+                                @endif
+                            </div>
+
+                            @if($editingThemeId !== $theme->id)
+                                <div class="flex items-center gap-2 shrink-0 ml-3">
+                                    @if($theme->participants_count > 0)
+                                        <flux:badge size="sm" color="green">{{ $theme->participants_count }} {{ __('mahasiswa') }}</flux:badge>
+                                    @endif
+                                    <flux:button wire:click="startEditTheme({{ $theme->id }})" size="sm" variant="ghost" icon="pencil-square" />
+                                    @if($theme->participants_count > 0)
+                                        <flux:button size="sm" variant="ghost" icon="trash" disabled tooltip="{{ __('Tidak dapat dihapus karena sudah ada mahasiswa yang bergabung') }}" />
+                                    @else
+                                        <flux:button wire:click="deleteTheme({{ $theme->id }})" wire:confirm="{{ __('Hapus tema ini?') }}" size="sm" variant="ghost" icon="trash" class="text-red-500 hover:text-red-700" />
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Add new theme form --}}
+            <form wire:submit="addTheme" class="mt-4 flex items-start gap-2">
+                <div class="flex-1">
+                    <flux:input wire:model="newThemeTitle" size="sm" placeholder="{{ __('Masukkan judul tema multidisiplin baru...') }}" />
+                    @error('newThemeTitle') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
+                </div>
+                <flux:button type="submit" size="sm" variant="filled" icon="plus">{{ __('Tambah') }}</flux:button>
+            </form>
+        @endif
+    </flux:card>
+
     {{-- Programs --}}
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
