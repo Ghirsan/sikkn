@@ -1,26 +1,38 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
-    @if($allGroups->count() > 1)
-        <div class="flex items-center justify-end">
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64" placeholder="Semua Kelompok">
+    {{-- Filters --}}
+    <div class="flex items-center justify-between gap-4">
+        <div class="w-full max-w-sm">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable />
+        </div>
+        
+        @if($allGroups->count() > 1)
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64 shrink-0">
+                <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)
                     <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
                 @endforeach
             </flux:select>
-        </div>
-    @endif
+        @endif
+    </div>
 
     {{-- Stats --}}
-    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <x-stat-card icon="user-group" color="green" :label="__('Kelompok')" :value="$groups->count()" />
+    <div class="grid auto-rows-min gap-4 md:grid-cols-2">
+        @if($allGroups->count() > 1 && empty($selectedGroupId))
+            <x-stat-card icon="user-group" color="green" :label="__('Kelompok')" :value="$groups->count()" />
+        @else
+            <x-stat-card icon="map-pin" color="amber" :label="__('Lokasi KKN')" :value="$groups->first()->village ?? '-'" />
+        @endif
         <x-stat-card icon="academic-cap" color="blue" :label="__('Total Mahasiswa')" :value="$totalStudents" />
-        <x-stat-card icon="map-pin" color="amber" :label="__('Lokasi KKN')" :value="$groups->count() === 1 ? $groups->first()->village : '-'" />
     </div>
 
     {{-- Groups --}}
     @forelse($groups as $group)
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <flux:heading size="lg">{{ $group->name }}</flux:heading>
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ $group->name }}</flux:heading>
+                    <flux:badge color="purple" size="sm">{{ $group->type->value }}</flux:badge>
+                </div>
                 <flux:text>{{ $group->location }}</flux:text>
             </div>
             <div class="flex items-center gap-2">
@@ -82,6 +94,32 @@
                             <flux:table.cell>
                                 @if($group->student_leader_id === $student->id)
                                     <flux:badge color="blue" size="sm">{{ __('Ketua Kelompok') }}</flux:badge>
+                                @elseif(is_null($group->student_leader_id))
+                                    <flux:modal.trigger name="confirm-leader-{{ $student->id }}">
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            icon="star"
+                                        >{{ __('Tetapkan Ketua') }}</flux:button>
+                                    </flux:modal.trigger>
+
+                                    <flux:modal name="confirm-leader-{{ $student->id }}" class="min-w-[22rem]">
+                                        <div class="space-y-6">
+                                            <div>
+                                                <flux:heading size="lg">{{ __('Tetapkan Ketua Kelompok?') }}</flux:heading>
+                                                <flux:text class="mt-2">
+                                                    {{ __('Apakah Anda yakin ingin menetapkan :name sebagai Ketua Kelompok? Keputusan ini bersifat permanen dan tidak dapat diubah.', ['name' => $student->name]) }}
+                                                </flux:text>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <flux:spacer />
+                                                <flux:modal.close>
+                                                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+                                                </flux:modal.close>
+                                                <flux:button wire:click="setLeader({{ $group->id }}, {{ $student->id }})" variant="primary">{{ __('Tetapkan') }}</flux:button>
+                                            </div>
+                                        </div>
+                                    </flux:modal>
                                 @else
                                     <flux:badge color="zinc" size="sm">{{ __('Anggota') }}</flux:badge>
                                 @endif

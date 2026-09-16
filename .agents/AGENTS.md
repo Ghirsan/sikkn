@@ -8,7 +8,9 @@
 - **Dashboard Component:** `resources/views/dashboard/panels/dpl.blade.php`
 - **Primary Responsibilities:**
   1. **Groups (`dpl.groups.index`):** View and manage assigned student groups, including participant lists and their statuses.
-  2. **Programs (`dpl.programs.index`):** Review, approve, or request revisions for programs proposed by students.
+  2. **Programs (`dpl.programs.index`):** 
+     - Review, approve, or request revisions for programs proposed by students.
+     - **Multidisiplin Themes:** Create, edit, and manage initial multidisiplin program themes for their assigned groups. Themes are stored as `Program` records with `type = multidisiplin` and `student_id = null`. Themes cannot be deleted once students have joined them.
   3. **Documents (`dpl.documents.index`):** Monitor the readiness of team documents like LRK (Laporan Rencana Kegiatan) and LPK (Laporan Pelaksanaan Kegiatan).
   4. **Logbook (`dpl.logbook.index`):** Monitor, review, and approve students' daily logbook entries.
   5. **Mentoring (`dpl.mentoring.index`):** Conduct mentoring sessions, review mentoring logs, and provide feedback.
@@ -36,3 +38,10 @@
       - If a log's status is `LogStatus::Approved`, it is locked and cannot be edited by the student.
     - **Structure:** Contains date, topic, discussion summary, optional linked program (`program_id`), target group, student count, and output.
     - **Default Status:** `LogStatus::Pending`.
+
+## Database Constraints & Schema Knowledge
+
+### `groups` Table
+- **Student Leader (`student_leader_id`):** 
+  - Represents the "Ketua Kelompok". 
+  - **Constraint:** Assigned by the DPL via the `dpl.groups.index` page. Once assigned (`student_leader_id !== null`), the decision is permanent and cannot be reassigned or changed through the application UI.
