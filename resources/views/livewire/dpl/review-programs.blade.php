@@ -178,73 +178,73 @@
                 <flux:separator />
 
                 {{-- Detail --}}
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Mahasiswa') }}</flux:text>
-                        <flux:text class="mt-1 font-medium">{{ $p->student?->name ?? '-' }}</flux:text>
-                        @if($p->student?->nim)
-                            <flux:text class="text-sm text-zinc-500">{{ $p->student->nim }}</flux:text>
-                        @endif
+                        <flux:text variant="strong" class="mb-1">{{ __('Mahasiswa') }}</flux:text>
+                        <flux:text>
+                            {{ $p->student?->name ?? '-' }}
+                            @if($p->student?->nim)
+                                <span class="text-zinc-500">({{ $p->student->nim }})</span>
+                            @endif
+                        </flux:text>
                     </div>
                     <div>
-                        <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Kelompok') }}</flux:text>
-                        <flux:text class="mt-1 font-medium">{{ $p->program->group->name }}</flux:text>
-                        <flux:text class="text-sm text-zinc-500">{{ $p->program->group->village }}</flux:text>
+                        <flux:text variant="strong" class="mb-1">{{ __('Kelompok') }}</flux:text>
+                        <flux:text>{{ $p->program->group->name }} ({{ $p->program->group->village }})</flux:text>
                     </div>
-
-                    @if($p->role_in_program)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Peran dalam Program') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->role_in_program }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->responsibility)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Tanggung Jawab') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->responsibility }}</flux:text>
-                        </div>
-                    @endif
                     @if($p->execution_date)
                         <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Tanggal Pelaksanaan') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->execution_date->translatedFormat('d F Y') }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->location)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Lokasi') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->location }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->method)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Metode') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->method }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->target_audience)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Sasaran') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->target_audience }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->output_target)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Target Luaran') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->output_target }}</flux:text>
+                            <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
+                            <flux:text>{{ $p->execution_date->translatedFormat('d M Y') }}</flux:text>
                         </div>
                     @endif
                     @if($p->problem_potential)
                         <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Potensi Masalah') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->problem_potential }}</flux:text>
+                            <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
+                            <flux:text>{{ $p->problem_potential }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->location)
+                        <div>
+                            <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
+                            <flux:text>{{ $p->location }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->method)
+                        <div>
+                            <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
+                            <flux:text>{{ $p->method }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->target_audience)
+                        <div>
+                            <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
+                            <flux:text>{{ $p->target_audience }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->output_target)
+                        <div class="sm:col-span-2">
+                            <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
+                            <flux:text>{{ $p->output_target }}</flux:text>
                         </div>
                     @endif
                     @if($p->sdg_category)
-                        <div>
-                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Kategori SDG') }}</flux:text>
-                            <flux:text class="mt-1">{{ $p->sdg_category->label() }}</flux:text>
+                        <div class="sm:col-span-2">
+                            <flux:text variant="strong" class="mb-1">{{ __('Kategori SDGs') }}</flux:text>
+                            <flux:badge size="sm" color="lime" inset="top bottom">{{ $p->sdg_category->label() }}</flux:badge>
                         </div>
+                    @endif
+                </div>
+
+                <flux:separator variant="subtle" />
+                
+                <div>
+                    <flux:heading size="md" class="mb-2">{{ __('Peran Mahasiswa') }}</flux:heading>
+                    @if($p->role_in_program)
+                        <flux:text variant="strong" class="mb-1">{{ $p->role_in_program }}</flux:text>
+                    @endif
+                    @if($p->responsibility)
+                        <flux:text>{{ $p->responsibility }}</flux:text>
                     @endif
                 </div>
 
