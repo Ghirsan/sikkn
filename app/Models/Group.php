@@ -35,6 +35,8 @@ class Group extends Model
         'survey_document_path',
         'start_date',
         'end_date',
+        'student_leader_id',
+        'lead_dpl_id',
     ];
 
     protected function casts(): array

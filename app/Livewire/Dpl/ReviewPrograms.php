@@ -7,46 +7,78 @@ use App\Enums\ProgramType;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class ReviewPrograms extends Component
 {
     public string $filterStatus = '';
+    public string $filterType = '';
     public string $selectedGroupId = '';
+    public string $search = '';
 
     // Theme management
     public string $newThemeTitle = '';
     public ?int $editingThemeId = null;
     public string $editingThemeTitle = '';
 
+    // Inspect modal
+    public ?int $inspectingParticipantId = null;
+    public string $revisionNote = '';
+    public bool $showRevisionForm = false;
+
+    public function inspect(int $participantId): void
+    {
+        $this->inspectingParticipantId = $participantId;
+        $this->revisionNote = '';
+        $this->showRevisionForm = false;
+        $this->modal('inspect-program')->show();
+    }
+
+    public function closeInspect(): void
+    {
+        $this->inspectingParticipantId = null;
+        $this->revisionNote = '';
+        $this->showRevisionForm = false;
+    }
+
+    #[Computed]
+    public function inspectingParticipant(): ?ProgramParticipant
+    {
+        if (! $this->inspectingParticipantId) {
+            return null;
+        }
+
+        return ProgramParticipant::with(['student', 'program.group'])
+            ->find($this->inspectingParticipantId);
+    }
+
     public function approve(int $participantId): void
     {
         $participant = $this->getAuthorizedParticipant($participantId);
         $participant->update(['status' => ProgramStatus::Approved, 'revision_note' => null]);
+
+        $this->modal('inspect-program')->close();
+        $this->closeInspect();
     }
 
-    public string $revisionNote = '';
-
-    public int $revisingParticipantId = 0;
-
-    public function startRevision(int $participantId): void
+    public function startRevision(): void
     {
-        $this->revisingParticipantId = $participantId;
-        $this->revisionNote = '';
+        $this->showRevisionForm = true;
     }
 
     public function submitRevision(): void
     {
         $this->validate(['revisionNote' => 'required|min:10']);
 
-        $participant = $this->getAuthorizedParticipant($this->revisingParticipantId);
+        $participant = $this->getAuthorizedParticipant($this->inspectingParticipantId);
         $participant->update([
             'status' => ProgramStatus::NeedsRevision,
             'revision_note' => $this->revisionNote,
         ]);
 
-        $this->revisingParticipantId = 0;
-        $this->revisionNote = '';
+        $this->modal('inspect-program')->close();
+        $this->closeInspect();
     }
 
     // ── Theme Management ─────────────────────────────────────────────
@@ -157,6 +189,23 @@ class ReviewPrograms extends Component
 
         if ($this->filterStatus) {
             $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterType) {
+            $query->whereHas('program', function ($q) {
+                $q->where('type', $this->filterType);
+            });
+        }
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->whereHas('student', function ($q2) {
+                    $q2->where('name', 'like', '%' . $this->search . '%')
+                       ->orWhere('nim', 'like', '%' . $this->search . '%');
+                })->orWhereHas('program', function ($q2) {
+                    $q2->where('title', 'like', '%' . $this->search . '%');
+                });
+            });
         }
 
         // Multidisiplin themes for the theme management section

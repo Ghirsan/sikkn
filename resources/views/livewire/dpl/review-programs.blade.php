@@ -7,27 +7,19 @@
         <x-stat-card icon="document-text" color="blue" :label="__('Total')" :value="$stats['total']" />
     </div>
 
-    {{-- Filters --}}
-    <div class="flex gap-4">
+
+    {{-- Tema Multidisiplin Management --}}
+    <div class="flex flex-wrap gap-4">
         @if($allGroups->count() > 1)
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-40 sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)
                     <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
                 @endforeach
             </flux:select>
         @endif
-
-        <flux:select wire:model.live="filterStatus" size="sm" class="w-48">
-            <option value="">{{ __('Semua Status') }}</option>
-            <option value="submitted">{{ __('Menunggu Review') }}</option>
-            <option value="approved">{{ __('Disetujui') }}</option>
-            <option value="needs_revision">{{ __('Revisi') }}</option>
-            <option value="draft">{{ __('Draft') }}</option>
-        </flux:select>
     </div>
 
-    {{-- Tema Multidisiplin Management --}}
     <flux:card>
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -106,6 +98,30 @@
         <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
     </div>
 
+    {{-- Filters --}}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full max-w-sm">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari mahasiswa, NIM, atau judul program...') }}" clearable />
+        </div>
+        <div class="flex flex-wrap gap-4">
+
+            <flux:select wire:model.live="filterType" size="sm" class="w-40 sm:w-48">
+                <option value="">{{ __('Semua Jenis') }}</option>
+                @foreach(\App\Enums\ProgramType::cases() as $type)
+                    <option value="{{ $type->value }}">{{ $type->label() }}</option>
+                @endforeach
+            </flux:select>
+
+            <flux:select wire:model.live="filterStatus" size="sm" class="w-40 sm:w-48">
+                <option value="">{{ __('Semua Status') }}</option>
+                <option value="submitted">{{ __('Menunggu Review') }}</option>
+                <option value="approved">{{ __('Disetujui') }}</option>
+                <option value="needs_revision">{{ __('Revisi') }}</option>
+                <option value="draft">{{ __('Draft') }}</option>
+            </flux:select>
+        </div>
+    </div>
+
     <flux:card>
 
         @if($participants->isEmpty())
@@ -115,7 +131,7 @@
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasiswa & Kelompok') }}</flux:table.column>
                     <flux:table.column>{{ __('Program') }}</flux:table.column>
-                    <flux:table.column>{{ __('Status & Catatan') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -131,30 +147,9 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
-                                @if($participant->revision_note)
-                                    <div class="mt-2 text-xs text-red-600 dark:text-red-400">
-                                        <strong>{{ __('Catatan:') }}</strong> {{ $participant->revision_note }}
-                                    </div>
-                                @endif
-
-                                @if($revisingParticipantId === $participant->id)
-                                    <flux:card class="mt-3 border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
-                                        <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
-                                        @error('revisionNote') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
-                                        <div class="mt-3 flex gap-2">
-                                            <flux:button wire:click="submitRevision" size="sm" variant="filled">{{ __('Kirim') }}</flux:button>
-                                            <flux:button wire:click="$set('revisingParticipantId', 0)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
-                                        </div>
-                                    </flux:card>
-                                @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                @if($participant->status->value === 'submitted')
-                                    <div class="flex flex-col gap-2">
-                                        <flux:button wire:click="approve({{ $participant->id }})" size="sm" variant="filled" color="green" icon="check" inset="top bottom">{{ __('Setujui') }}</flux:button>
-                                        <flux:button wire:click="startRevision({{ $participant->id }})" size="sm" variant="filled" color="amber" icon="arrow-path" inset="top bottom">{{ __('Revisi') }}</flux:button>
-                                    </div>
-                                @endif
+                                <flux:button wire:click="inspect({{ $participant->id }})" size="sm" variant="ghost" icon="eye">{{ __('Periksa') }}</flux:button>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
@@ -162,4 +157,130 @@
             </flux:table>
         @endif
     </flux:card>
+
+    {{-- Inspect Program Modal --}}
+    <flux:modal name="inspect-program" @close="closeInspect" class="md:w-2xl">
+        @if($this->inspectingParticipant)
+            @php $p = $this->inspectingParticipant; @endphp
+            <div class="space-y-6">
+                {{-- Header --}}
+                <div>
+                    <flux:heading size="lg">{{ $p->program->title }}</flux:heading>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <flux:badge size="sm" color="zinc">{{ $p->program->type->label() }}</flux:badge>
+                        <flux:badge size="sm" :color="$p->status->color()">{{ $p->status->label() }}</flux:badge>
+                        @if($p->participant_code)
+                            <flux:badge size="sm" color="blue">{{ $p->participant_code }}</flux:badge>
+                        @endif
+                    </div>
+                </div>
+
+                <flux:separator />
+
+                {{-- Detail --}}
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Mahasiswa') }}</flux:text>
+                        <flux:text class="mt-1 font-medium">{{ $p->student?->name ?? '-' }}</flux:text>
+                        @if($p->student?->nim)
+                            <flux:text class="text-sm text-zinc-500">{{ $p->student->nim }}</flux:text>
+                        @endif
+                    </div>
+                    <div>
+                        <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Kelompok') }}</flux:text>
+                        <flux:text class="mt-1 font-medium">{{ $p->program->group->name }}</flux:text>
+                        <flux:text class="text-sm text-zinc-500">{{ $p->program->group->village }}</flux:text>
+                    </div>
+
+                    @if($p->role_in_program)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Peran dalam Program') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->role_in_program }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->responsibility)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Tanggung Jawab') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->responsibility }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->execution_date)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Tanggal Pelaksanaan') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->execution_date->translatedFormat('d F Y') }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->location)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Lokasi') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->location }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->method)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Metode') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->method }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->target_audience)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Sasaran') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->target_audience }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->output_target)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Target Luaran') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->output_target }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->problem_potential)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Potensi Masalah') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->problem_potential }}</flux:text>
+                        </div>
+                    @endif
+                    @if($p->sdg_category)
+                        <div>
+                            <flux:text class="text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Kategori SDG') }}</flux:text>
+                            <flux:text class="mt-1">{{ $p->sdg_category->label() }}</flux:text>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Catatan revisi sebelumnya --}}
+                @if($p->revision_note)
+                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                        <flux:text class="text-xs font-medium uppercase tracking-wider text-red-600 dark:text-red-400">{{ __('Catatan Revisi Sebelumnya') }}</flux:text>
+                        <flux:text class="mt-1 text-red-700 dark:text-red-300">{{ $p->revision_note }}</flux:text>
+                    </div>
+                @endif
+
+                {{-- Inline revision form --}}
+                @if($showRevisionForm)
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                        <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
+                        @error('revisionNote') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
+                        <div class="mt-3 flex gap-2">
+                            <flux:button wire:click="submitRevision" size="sm" variant="primary">{{ __('Kirim Revisi') }}</flux:button>
+                            <flux:button wire:click="$set('showRevisionForm', false)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Footer actions --}}
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+                    </flux:modal.close>
+                    @if($p->status->value === 'submitted' && !$showRevisionForm)
+                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi') }}</flux:button>
+                        <flux:button wire:click="approve({{ $p->id }})" variant="primary" icon="check">{{ __('Setujui') }}</flux:button>
+                    @endif
+                </div>
+            </div>
+        @endif
+    </flux:modal>
+
 </div>

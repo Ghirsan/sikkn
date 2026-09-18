@@ -44,4 +44,4 @@
 ### `groups` Table
 - **Student Leader (`student_leader_id`):** 
   - Represents the "Ketua Kelompok". 
-  - **Constraint:** Assigned by the DPL via the `dpl.groups.index` page. Once assigned (`student_leader_id !== null`), the decision is permanent and cannot be reassigned or changed through the application UI.
+  - **Constraint:** Assigned by the DPL via the `dpl.groups.index` page. The DPL can reassign the student leader at any time if there are integrity or organizational concerns. When replacing an existing leader, a confirmation modal displays both the current and new leader names.
