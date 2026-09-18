@@ -8,8 +8,8 @@
     </div>
 
 
-    {{-- Tema Multidisiplin Management --}}
-    <div class="flex flex-wrap gap-4">
+    {{-- Filter Tema Multidisiplin --}}
+    <div class="flex justify-end">
         @if($allGroups->count() > 1)
             <flux:select wire:model.live="selectedGroupId" size="sm" class="w-40 sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
@@ -20,6 +20,7 @@
         @endif
     </div>
 
+    {{-- Tema Multidisiplin Management --}}
     <flux:card>
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
