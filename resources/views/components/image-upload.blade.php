@@ -45,34 +45,32 @@
 
     <div class="mt-4 flex flex-col gap-2">
         @if($file)
-            <div class="overflow-hidden flex items-start shadow-xs bg-white dark:bg-white/10 min-h-10 text-base sm:text-sm rounded-lg block w-full border border-zinc-200 border-b-zinc-300/80 dark:border-white/10">
-                <div class="p-[calc(0.5rem-1px)] flex items-baseline">
-                    <button type="button" x-on:click="$flux.modal('{{ $modalName }}').show()" class="cursor-pointer relative mr-1 size-11 rounded-sm overflow-hidden after:absolute after:inset-0 after:inset-ring-[1px] after:inset-ring-black/7 dark:after:inset-ring-white/10 after:rounded-sm group">
+            <x-file-preview 
+                :title="$file->getClientOriginalName()" 
+                :subtitle="__('Preview gambar baru') . ' · ' . round($file->getSize() / 1024) . ' KB'"
+            >
+                <x-slot:icon>
+                    <button type="button" x-on:click="$flux.modal('{{ $modalName }}').show()" class="cursor-pointer relative size-9 rounded-md overflow-hidden after:absolute after:inset-0 after:inset-ring-[1px] after:inset-ring-black/7 dark:after:inset-ring-white/10 after:rounded-md group block border-0 m-0 p-0">
                         <img class="h-full w-full object-cover transition group-hover:opacity-75" src="{{ $file->temporaryUrl() }}" alt="">
                     </button>
-                </div>
-                <div class="flex-1 overflow-hidden py-[calc(0.75rem-3px)] me-3 flex flex-col justify-center gap-1">
-                    <div class="text-sm font-medium text-zinc-500 dark:text-white/80 whitespace-nowrap overflow-hidden text-ellipsis">{{ $file->getClientOriginalName() }}</div>
-                    <div class="text-xs text-zinc-500">{{ __('Preview gambar baru') }} · {{ round($file->getSize() / 1024) }} KB</div>
-                </div>
-                <div class="p-[calc(0.25rem-1px)] flex-shrink-0 self-start flex h-full items-center gap-2">
-                    <button type="button" wire:click="$set('{{ $modelName }}', null)" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white self-start cursor-pointer mt-[3px] mr-1" aria-label="Hapus file">
+                </x-slot:icon>
+                <x-slot:action>
+                    <button type="button" wire:click="$set('{{ $modelName }}', null)" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 cursor-pointer" aria-label="{{ __('Hapus file') }}">
                         <flux:icon.x-mark variant="mini" class="size-4" />
                     </button>
-                </div>
-            </div>
+                </x-slot:action>
+            </x-file-preview>
         @elseif($existingPath)
-            <div class="overflow-hidden flex items-start shadow-xs bg-white dark:bg-white/10 min-h-10 text-base sm:text-sm rounded-lg block w-full border border-zinc-200 border-b-zinc-300/80 dark:border-white/10">
-                <div class="p-[calc(0.5rem-1px)] flex items-baseline">
-                    <button type="button" x-on:click="$flux.modal('{{ $modalName }}').show()" class="cursor-pointer relative mr-1 size-11 rounded-sm overflow-hidden after:absolute after:inset-0 after:inset-ring-[1px] after:inset-ring-black/7 dark:after:inset-ring-white/10 after:rounded-sm group">
+            <x-file-preview 
+                :title="basename($existingPath)" 
+                :subtitle="__('Gambar saat ini')"
+            >
+                <x-slot:icon>
+                    <button type="button" x-on:click="$flux.modal('{{ $modalName }}').show()" class="cursor-pointer relative size-9 rounded-md overflow-hidden after:absolute after:inset-0 after:inset-ring-[1px] after:inset-ring-black/7 dark:after:inset-ring-white/10 after:rounded-md group block border-0 m-0 p-0">
                         <img class="h-full w-full object-cover transition group-hover:opacity-75" src="{{ asset('storage/' . $existingPath) }}" alt="">
                     </button>
-                </div>
-                <div class="flex-1 overflow-hidden py-[calc(0.75rem-3px)] me-3 flex flex-col justify-center gap-1">
-                    <div class="text-sm font-medium text-zinc-500 dark:text-white/80 whitespace-nowrap overflow-hidden text-ellipsis">{{ basename($existingPath) }}</div>
-                    <div class="text-xs text-zinc-500">{{ __('Gambar saat ini') }}</div>
-                </div>
-            </div>
+                </x-slot:icon>
+            </x-file-preview>
         @endif
     </div>
 </div>

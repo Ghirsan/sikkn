@@ -87,39 +87,37 @@
 
                         {{-- Uploaded File Preview --}}
                         @if(!empty($outputs[$index]['file']) && is_object($outputs[$index]['file']))
-                            <div class="overflow-hidden flex items-center shadow-xs bg-white dark:bg-white/10 min-h-10 text-base sm:text-sm rounded-lg w-full border border-zinc-200 border-b-zinc-300/80 dark:border-white/10">
-                                <div class="p-2.5 shrink-0">
+                            <x-file-preview 
+                                :title="$outputs[$index]['file']->getClientOriginalName()" 
+                                :subtitle="__('File baru') . ' · ' . round($outputs[$index]['file']->getSize() / 1024) . ' KB'"
+                            >
+                                <x-slot:icon>
                                     <div class="size-9 rounded-md bg-zinc-100 dark:bg-white/10 flex items-center justify-center">
                                         <flux:icon.document variant="mini" class="text-zinc-500 dark:text-zinc-400" />
                                     </div>
-                                </div>
-                                <div class="flex-1 overflow-hidden py-2 me-3 flex flex-col justify-center gap-0.5">
-                                    <div class="text-sm font-medium text-zinc-700 dark:text-white/80 whitespace-nowrap overflow-hidden text-ellipsis">{{ $outputs[$index]['file']->getClientOriginalName() }}</div>
-                                    <div class="text-xs text-zinc-500">{{ __('File baru') }} · {{ round($outputs[$index]['file']->getSize() / 1024) }} KB</div>
-                                </div>
-                                <div class="p-1.5 shrink-0">
+                                </x-slot:icon>
+                                <x-slot:action>
                                     <button type="button" wire:click="$set('outputs.{{ $index }}.file', null)" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 cursor-pointer" aria-label="{{ __('Hapus file') }}">
                                         <flux:icon.x-mark variant="mini" class="size-4" />
                                     </button>
-                                </div>
-                            </div>
+                                </x-slot:action>
+                            </x-file-preview>
                         @elseif(!empty($outputs[$index]['file_path']))
-                            <div class="overflow-hidden flex items-center shadow-xs bg-white dark:bg-white/10 min-h-10 text-base sm:text-sm rounded-lg w-full border border-zinc-200 border-b-zinc-300/80 dark:border-white/10">
-                                <div class="p-2.5 shrink-0">
+                            <x-file-preview 
+                                :title="basename($outputs[$index]['file_path'])" 
+                                :subtitle="__('File tersimpan')"
+                            >
+                                <x-slot:icon>
                                     <div class="size-9 rounded-md bg-accent/5 dark:bg-accent/10 flex items-center justify-center">
                                         <flux:icon.document-check variant="mini" class="text-accent" />
                                     </div>
-                                </div>
-                                <div class="flex-1 overflow-hidden py-2 me-3 flex flex-col justify-center gap-0.5">
-                                    <div class="text-sm font-medium text-zinc-700 dark:text-white/80 whitespace-nowrap overflow-hidden text-ellipsis">{{ basename($outputs[$index]['file_path']) }}</div>
-                                    <div class="text-xs text-zinc-500">{{ __('File tersimpan') }}</div>
-                                </div>
-                                <div class="p-1.5 shrink-0">
+                                </x-slot:icon>
+                                <x-slot:action>
                                     <a href="{{ Storage::url($outputs[$index]['file_path']) }}" target="_blank" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-400 hover:text-accent dark:text-zinc-500 dark:hover:text-accent cursor-pointer" aria-label="{{ __('Lihat file') }}">
                                         <flux:icon.arrow-top-right-on-square variant="mini" class="size-4" />
                                     </a>
-                                </div>
-                            </div>
+                                </x-slot:action>
+                            </x-file-preview>
                         @endif
 
                         <flux:error name="outputs.{{ $index }}.file" />
