@@ -50,7 +50,7 @@
     </div>
     
     {{-- DPL List --}}
-    @if($group->dpls->isNotEmpty())
+    @if($group->dpls->isNotEmpty() && !($search && empty($selectedGroupId)))
     <flux:card>
                 <flux:heading size="sm" class="mb-3">{{ __('Dosen KKN') }}</flux:heading>
                 <div class="grid gap-3 sm:grid-cols-2">
