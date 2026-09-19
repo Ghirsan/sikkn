@@ -259,12 +259,12 @@
                         </div>
                         <div>
                             <flux:text variant="strong" class="mb-1">{{ __('Status Laporan') }}</flux:text>
-                            <flux:badge size="sm" :color="$p->lpk_status->color()" class="mt-1">{{ $p->lpk_status->label() }}</flux:badge>
+                            <flux:badge size="sm" :color="$p->lpk_status?->color() ?? 'zinc'" class="mt-1">{{ $p->lpk_status?->label() ?? 'Belum Ada' }}</flux:badge>
                         </div>
                     </div>
                 </div>
 
-                @if($p->lpk_status !== \App\Enums\ProgramStatus::Draft)
+                @if($p->lpk_status && $p->lpk_status !== \App\Enums\ProgramStatus::Draft)
                     <flux:separator variant="subtle" />
                     <div>
                         <flux:heading size="md" class="mb-2">{{ __('Laporan Pelaksanaan') }}</flux:heading>
@@ -294,10 +294,12 @@
                                 <flux:text variant="strong" class="mb-2">{{ __('Luaran Program') }}</flux:text>
                                 <div class="space-y-2">
                                     @foreach($p->outputs as $output)
-                                        <a href="{{ $output->file_path ? Storage::url($output->file_path) : $output->url }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group">
-                                            <flux:icon.{{ $output->type === 'link' ? 'link' : 'document' }} class="size-4 text-zinc-400 group-hover:text-blue-500 transition-colors" />
-                                            <span class="text-sm text-zinc-600 group-hover:text-blue-600 group-hover:underline transition-colors">{{ $output->name }}</span>
-                                        </a>
+                                        <div class="flex items-center">
+                                            <flux:link href="{{ $output->file_path ? asset('storage/' . $output->file_path) : $output->url }}" variant="ghost" class="flex items-center gap-2" external>
+                                                <flux:icon icon="{{ $output->type === 'link' ? 'link' : 'document' }}" class="size-4" />
+                                                {{ $output->name }}
+                                            </flux:link>
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>
@@ -308,7 +310,7 @@
                             <div class="mt-2">
                                 <flux:text variant="strong" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:text>
                                 <div class="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-                                    <img src="{{ Storage::url($p->documentation_image_path) }}" alt="{{ $p->documentation_caption ?? 'Dokumentasi Program' }}" class="w-full h-auto object-cover max-h-96">
+                                    <img src="{{ asset('storage/' . $p->documentation_image_path) }}" alt="{{ $p->documentation_caption ?? 'Dokumentasi Program' }}" class="w-full h-auto object-cover max-h-96">
                                     @if($p->documentation_caption)
                                     <div class="bg-zinc-50 dark:bg-zinc-800 p-3 border-t border-zinc-200 dark:border-zinc-700">
                                         <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-400 text-center">{{ $p->documentation_caption }}</flux:text>
