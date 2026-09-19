@@ -132,7 +132,8 @@
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasiswa & Kelompok') }}</flux:table.column>
                     <flux:table.column>{{ __('Program') }}</flux:table.column>
-                    <flux:table.column>{{ __('Status') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status Rencana') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status Laporan') }}</flux:table.column>
                     <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -148,6 +149,9 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge size="sm" :color="$participant->lpk_status->color()" inset="top bottom">{{ $participant->lpk_status->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:button wire:click="inspect({{ $participant->id }})" size="sm" variant="ghost" icon="eye">{{ __('Periksa') }}</flux:button>
@@ -247,12 +251,80 @@
                     @if($p->responsibility)
                         <flux:text>{{ $p->responsibility }}</flux:text>
                     @endif
+                    
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <flux:text variant="strong" class="mb-1">{{ __('Status Rencana') }}</flux:text>
+                            <flux:badge size="sm" :color="$p->status->color()" class="mt-1">{{ $p->status->label() }}</flux:badge>
+                        </div>
+                        <div>
+                            <flux:text variant="strong" class="mb-1">{{ __('Status Laporan') }}</flux:text>
+                            <flux:badge size="sm" :color="$p->lpk_status->color()" class="mt-1">{{ $p->lpk_status->label() }}</flux:badge>
+                        </div>
+                    </div>
                 </div>
+
+                @if($p->lpk_status !== \App\Enums\ProgramStatus::Draft)
+                    <flux:separator variant="subtle" />
+                    <div>
+                        <flux:heading size="md" class="mb-2">{{ __('Laporan Pelaksanaan') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-4">
+                            @if($p->achievement)
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Hasil yang Dicapai') }}</flux:text>
+                                <flux:text>{{ $p->achievement }}</flux:text>
+                            </div>
+                            @endif
+                            @if($p->obstacle)
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Hambatan') }}</flux:text>
+                                <flux:text>{{ $p->obstacle }}</flux:text>
+                            </div>
+                            @endif
+                            @if($p->solution)
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Solusi') }}</flux:text>
+                                <flux:text>{{ $p->solution }}</flux:text>
+                            </div>
+                            @endif
+
+                            {{-- Luaran Program --}}
+                            @if($p->outputs->isNotEmpty())
+                            <div>
+                                <flux:text variant="strong" class="mb-2">{{ __('Luaran Program') }}</flux:text>
+                                <div class="space-y-2">
+                                    @foreach($p->outputs as $output)
+                                        <a href="{{ $output->file_path ? Storage::url($output->file_path) : $output->url }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group">
+                                            <flux:icon.{{ $output->type === 'link' ? 'link' : 'document' }} class="size-4 text-zinc-400 group-hover:text-blue-500 transition-colors" />
+                                            <span class="text-sm text-zinc-600 group-hover:text-blue-600 group-hover:underline transition-colors">{{ $output->name }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- Foto Dokumentasi --}}
+                            @if($p->documentation_image_path)
+                            <div class="mt-2">
+                                <flux:text variant="strong" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:text>
+                                <div class="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                                    <img src="{{ Storage::url($p->documentation_image_path) }}" alt="{{ $p->documentation_caption ?? 'Dokumentasi Program' }}" class="w-full h-auto object-cover max-h-96">
+                                    @if($p->documentation_caption)
+                                    <div class="bg-zinc-50 dark:bg-zinc-800 p-3 border-t border-zinc-200 dark:border-zinc-700">
+                                        <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-400 text-center">{{ $p->documentation_caption }}</flux:text>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Catatan revisi sebelumnya --}}
                 @if($p->revision_note)
                     <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-                        <flux:text class="text-xs font-medium uppercase tracking-wider text-red-600 dark:text-red-400">{{ __('Catatan Revisi Sebelumnya') }}</flux:text>
+                        <flux:text class="text-xs font-medium uppercase tracking-wider text-red-600 dark:text-red-400">{{ __('Catatan Revisi') }}</flux:text>
                         <flux:text class="mt-1 text-red-700 dark:text-red-300">{{ $p->revision_note }}</flux:text>
                     </div>
                 @endif
@@ -276,8 +348,11 @@
                         <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
                     @if($p->status->value === 'submitted' && !$showRevisionForm)
-                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi') }}</flux:button>
-                        <flux:button wire:click="approve({{ $p->id }})" variant="primary" icon="check">{{ __('Setujui') }}</flux:button>
+                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi Rencana') }}</flux:button>
+                        <flux:button wire:click="approve({{ $p->id }})" variant="primary" icon="check">{{ __('Setujui Rencana') }}</flux:button>
+                    @elseif($p->status->value === 'approved' && $p->lpk_status->value === 'submitted' && !$showRevisionForm)
+                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi Laporan') }}</flux:button>
+                        <flux:button wire:click="approve({{ $p->id }})" variant="primary" icon="check">{{ __('Setujui Laporan') }}</flux:button>
                     @endif
                 </div>
             </div>

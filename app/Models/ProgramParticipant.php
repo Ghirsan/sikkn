@@ -19,7 +19,6 @@ class ProgramParticipant extends Model
         'obstacle',
         'solution',
         'lpk_status',
-        'lpk_revision_note',
         'execution_date',
         'problem_potential',
         'location',
@@ -107,5 +106,10 @@ class ProgramParticipant extends Model
     public function isEditable(): bool
     {
         return in_array($this->status, [\App\Enums\ProgramStatus::Draft, \App\Enums\ProgramStatus::NeedsRevision]);
+    }
+
+    public function hasFilledLpk(): bool
+    {
+        return !empty($this->achievement) && !empty($this->documentation_image_path);
     }
 }

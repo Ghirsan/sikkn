@@ -25,7 +25,7 @@
                         <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Usulan Program') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
-                        <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Pelaksanaan (LPK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
@@ -49,9 +49,7 @@
                                 <flux:table.cell>
                                     @if($myRole)
                                         <flux:badge size="sm" :color="$myRole->status->color()" inset="top bottom">{{ $myRole->status->label() }}</flux:badge>
-                                        @if($myRole->revision_note)
-                                            <div class="mt-1 text-xs text-red-600"> {{ $myRole->revision_note }}</div>
-                                        @endif
+
                                     @else
                                         <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Diisi') }}</flux:badge>
                                     @endif
@@ -67,7 +65,7 @@
                                     <div class="flex items-center gap-1">
                                         <flux:button wire:click="viewProgram({{ $program->id }}, {{ $myRole->id ?? 'null' }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
                                         @if(!$myRole || $myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision)
-                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Detail') }}</flux:button>
+                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Program') }}</flux:button>
                                             @if($myRole && ($myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision))
                                                 <flux:button wire:click="confirmSubmitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
                                                 @if($myRole->status === \App\Enums\ProgramStatus::Draft)
@@ -75,8 +73,10 @@
                                                 @endif
                                             @endif
                                         @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && $myRole->execution_date && now()->startOfDay()->gte($myRole->execution_date) && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
-                                            <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Detail') }}</flux:button>
-                                            <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                            <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Laporan') }}</flux:button>
+                                            @if($myRole->lpk_status === \App\Enums\ProgramStatus::Draft && $myRole->hasFilledLpk())
+                                                <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                            @endif
                                         @endif
                                     </div>
                                 </flux:table.cell>
@@ -108,7 +108,7 @@
                         <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
-                        <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Pelaksanaan (LPK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
@@ -127,9 +127,7 @@
                                 <flux:table.cell>
                                     @if($myRole)
                                         <flux:badge size="sm" :color="$myRole->status->color()" inset="top bottom">{{ $myRole->status->label() }}</flux:badge>
-                                        @if($myRole->revision_note)
-                                            <div class="mt-1 text-xs text-red-600"> {{ $myRole->revision_note }}</div>
-                                        @endif
+
                                     @else
                                         <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Diisi') }}</flux:badge>
                                     @endif
@@ -145,16 +143,16 @@
                                     <div class="flex items-center gap-1">
                                         <flux:button wire:click="viewProgram({{ $program->id }}, {{ $myRole->id ?? 'null' }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
                                         @if(!$myRole || $myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision)
-                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Detail') }}</flux:button>
-                                            @if($myRole && ($myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision))
+                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Program') }}</flux:button>
+                                            @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
                                                 <flux:button wire:click="confirmSubmitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
-                                                @if($myRole->status === \App\Enums\ProgramStatus::Draft)
-                                                    <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
-                                                @endif
+                                                <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                             @endif
                                         @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && $myRole->execution_date && now()->startOfDay()->gte($myRole->execution_date) && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
-                                            <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi LPK') }}</flux:button>
-                                            <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan LPK') }}</flux:button>
+                                            <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Laporan') }}</flux:button>
+                                            @if($myRole->lpk_status === \App\Enums\ProgramStatus::Draft && $myRole->hasFilledLpk())
+                                                <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                            @endif
                                         @endif
                                     </div>
                                 </flux:table.cell>
@@ -186,7 +184,7 @@
                         <flux:table.column>{{ __('Kode') }}</flux:table.column>
                         <flux:table.column>{{ __('Nama Program') }}</flux:table.column>
                         <flux:table.column>{{ __('Status Rencana (LRK)') }}</flux:table.column>
-                        <flux:table.column>{{ __('Status Laporan (LPK)') }}</flux:table.column>
+                        <flux:table.column>{{ __('Status Pelaksanaan (LPK)') }}</flux:table.column>
                         <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
@@ -205,9 +203,7 @@
                                 <flux:table.cell>
                                     @if($myRole)
                                         <flux:badge size="sm" :color="$myRole->status->color()" inset="top bottom">{{ $myRole->status->label() }}</flux:badge>
-                                        @if($myRole->revision_note)
-                                            <div class="mt-1 text-xs text-red-600"> {{ $myRole->revision_note }}</div>
-                                        @endif
+
                                     @else
                                         <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Diisi') }}</flux:badge>
                                     @endif
@@ -223,16 +219,18 @@
                                     <div class="flex items-center gap-1">
                                         <flux:button wire:click="viewProgram({{ $program->id }}, {{ $myRole->id ?? 'null' }})" variant="ghost" size="sm" icon="eye">{{ __('Lihat') }}</flux:button>
                                         @if(!$myRole || $myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision)
-                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Detail') }}</flux:button>
-                                            @if($myRole && ($myRole->status === \App\Enums\ProgramStatus::Draft || $myRole->status === \App\Enums\ProgramStatus::NeedsRevision))
+                                            <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit Program') }}</flux:button>
+                                            @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
                                                 <flux:button wire:click="confirmSubmitLrk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
-                                                @if($program->student_id === Auth::id() && $myRole->status === \App\Enums\ProgramStatus::Draft)
+                                                @if($program->student_id === Auth::id())
                                                     <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                                 @endif
                                             @endif
                                         @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && $myRole->execution_date && now()->startOfDay()->gte($myRole->execution_date) && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
-                                            <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi LPK') }}</flux:button>
-                                            <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan LPK') }}</flux:button>
+                                            <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Laporan') }}</flux:button>
+                                            @if($myRole->lpk_status === \App\Enums\ProgramStatus::Draft && $myRole->hasFilledLpk())
+                                                <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="ghost" size="sm" icon="paper-airplane" class="text-green-600">{{ __('Ajukan') }}</flux:button>
+                                            @endif
                                         @endif
                                     </div>
                                 </flux:table.cell>
@@ -307,7 +305,7 @@
                 <flux:modal.close>
                     <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="submitLpk" variant="primary">{{ __('Ya, Ajukan LPK') }}</flux:button>
+                <flux:button wire:click="submitLpk" variant="primary">{{ __('Ya, Ajukan') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -389,12 +387,9 @@
                             <div>
                                 <flux:text variant="strong" class="mb-1">{{ __('Status Rencana') }}</flux:text>
                                 <flux:badge size="sm" :color="$this->selectedParticipant->status->color()" class="mt-1">{{ $this->selectedParticipant->status->label() }}</flux:badge>
-                                @if($this->selectedParticipant->revision_note)
-                                    <div class="mt-1 text-xs text-red-600"> {{ $this->selectedParticipant->revision_note }}</div>
-                                @endif
                             </div>
                             <div>
-                                <flux:text variant="strong" class="mb-1">{{ __('Status Laporan') }}</flux:text>
+                                <flux:text variant="strong" class="mb-1">{{ __('Status Pelaksanaan') }}</flux:text>
                                 <flux:badge size="sm" :color="$this->selectedParticipant->lpk_status->color()" class="mt-1">{{ $this->selectedParticipant->lpk_status->label() }}</flux:badge>
                             </div>
                         </div>
@@ -421,6 +416,36 @@
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Solusi') }}</flux:text>
                                     <flux:text>{{ $this->selectedParticipant->solution }}</flux:text>
+                                </div>
+                                @endif
+
+                                {{-- Luaran Program --}}
+                                @if($this->selectedParticipant->outputs->isNotEmpty())
+                                <div>
+                                    <flux:text variant="strong" class="mb-2">{{ __('Luaran Program') }}</flux:text>
+                                    <div class="space-y-2">
+                                        @foreach($this->selectedParticipant->outputs as $output)
+                                            <a href="{{ $output->file_path ? Storage::url($output->file_path) : $output->url }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group">
+                                                <flux:icon.{{ $output->type === 'link' ? 'link' : 'document' }} class="size-4 text-zinc-400 group-hover:text-blue-500 transition-colors" />
+                                                <span class="text-sm text-zinc-600 group-hover:text-blue-600 group-hover:underline transition-colors">{{ $output->name }}</span>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
+                                {{-- Foto Dokumentasi --}}
+                                @if($this->selectedParticipant->documentation_image_path)
+                                <div class="mt-2">
+                                    <flux:text variant="strong" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:text>
+                                    <div class="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                                        <img src="{{ Storage::url($this->selectedParticipant->documentation_image_path) }}" alt="{{ $this->selectedParticipant->documentation_caption ?? 'Dokumentasi Program' }}" class="w-full h-auto object-cover max-h-96">
+                                        @if($this->selectedParticipant->documentation_caption)
+                                        <div class="bg-zinc-50 dark:bg-zinc-800 p-3 border-t border-zinc-200 dark:border-zinc-700">
+                                            <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-400 text-center">{{ $this->selectedParticipant->documentation_caption }}</flux:text>
+                                        </div>
+                                        @endif
+                                    </div>
                                 </div>
                                 @endif
                             </div>

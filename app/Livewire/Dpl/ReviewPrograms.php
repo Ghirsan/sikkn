@@ -49,14 +49,21 @@ class ReviewPrograms extends Component
             return null;
         }
 
-        return ProgramParticipant::with(['student', 'program.group'])
+        return ProgramParticipant::with(['student', 'program.group', 'outputs'])
             ->find($this->inspectingParticipantId);
     }
 
     public function approve(int $participantId): void
     {
         $participant = $this->getAuthorizedParticipant($participantId);
-        $participant->update(['status' => ProgramStatus::Approved, 'revision_note' => null]);
+        
+        $isLpkPhase = $participant->status === ProgramStatus::Approved && $participant->lpk_status === ProgramStatus::Submitted;
+        $statusField = $isLpkPhase ? 'lpk_status' : 'status';
+
+        $participant->update([
+            $statusField => ProgramStatus::Approved,
+            'revision_note' => null
+        ]);
 
         $this->modal('inspect-program')->close();
         $this->closeInspect();
@@ -72,8 +79,12 @@ class ReviewPrograms extends Component
         $this->validate(['revisionNote' => 'required|min:10']);
 
         $participant = $this->getAuthorizedParticipant($this->inspectingParticipantId);
+        
+        $isLpkPhase = $participant->status === ProgramStatus::Approved && $participant->lpk_status === ProgramStatus::Submitted;
+        $statusField = $isLpkPhase ? 'lpk_status' : 'status';
+
         $participant->update([
-            'status' => ProgramStatus::NeedsRevision,
+            $statusField => ProgramStatus::NeedsRevision,
             'revision_note' => $this->revisionNote,
         ]);
 
@@ -188,7 +199,10 @@ class ReviewPrograms extends Component
         })->with(['student', 'program.group']);
 
         if ($this->filterStatus) {
-            $query->where('status', $this->filterStatus);
+            $query->where(function ($q) {
+                $q->where('status', $this->filterStatus)
+                  ->orWhere('lpk_status', $this->filterStatus);
+            });
         }
 
         if ($this->filterType) {
@@ -227,15 +241,22 @@ class ReviewPrograms extends Component
             'stats' => [
                 'pending' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
-                })->where('status', ProgramStatus::Submitted)->count(),
+                })->where(function($q) {
+                    $q->where('status', ProgramStatus::Submitted)
+                      ->orWhere('lpk_status', ProgramStatus::Submitted);
+                })->count(),
                 
                 'approved' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
-                })->where('status', ProgramStatus::Approved)->count(),
+                })->where('status', ProgramStatus::Approved)
+                  ->where('lpk_status', ProgramStatus::Approved)->count(),
                 
                 'revision' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
-                })->where('status', ProgramStatus::NeedsRevision)->count(),
+                })->where(function($q) {
+                    $q->where('status', ProgramStatus::NeedsRevision)
+                      ->orWhere('lpk_status', ProgramStatus::NeedsRevision);
+                })->count(),
                 
                 'total' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);

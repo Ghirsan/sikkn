@@ -33,7 +33,7 @@ class Programs extends Component
     public function selectedParticipant()
     {
         if (!$this->selectedParticipantId) return null;
-        return \App\Models\ProgramParticipant::find($this->selectedParticipantId);
+        return \App\Models\ProgramParticipant::with('outputs')->find($this->selectedParticipantId);
     }
 
     public function confirmDelete(int $participantId)
@@ -101,7 +101,6 @@ class Programs extends Component
         if ($participant->lpk_status === ProgramStatus::Draft || $participant->lpk_status === ProgramStatus::NeedsRevision) {
             $participant->update([
                 'lpk_status' => ProgramStatus::Submitted,
-                'lpk_revision_note' => null
             ]);
             \Flux\Flux::toast(variant: 'success', heading: 'LPK Diajukan', text: 'Laporan program berhasil diajukan ke Dosen KKN.');
         }

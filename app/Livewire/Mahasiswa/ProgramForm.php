@@ -164,7 +164,7 @@ class ProgramForm extends Component
 
             $this->title = $participant->program->title;
             $this->status = $participant->lpk_status->value;
-            $this->revision_note = $participant->lpk_revision_note;
+            $this->revision_note = $participant->revision_note;
             $this->isLpkVideoProfile = $participant->program ? $participant->program->isVideoProfile() : false;
             $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$this->isLpkVideoProfile;
             
@@ -416,6 +416,8 @@ class ProgramForm extends Component
         }
         
         $participant->update([
+            'lpk_status' => \App\Enums\ProgramStatus::Draft,
+            'revision_note' => null,
             'execution_description' => $this->execution_description,
             'achievement' => $this->achievement,
             'obstacle' => $this->obstacle,
