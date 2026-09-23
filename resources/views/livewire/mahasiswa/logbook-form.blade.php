@@ -13,33 +13,16 @@
     </div>
 
     <flux:card>
-        <form wire:submit="saveLog" class="space-y-6">
+        <form wire:submit="saveDraft" class="space-y-6">
             <div>
                 <flux:heading size="md" class="mb-4">{{ __('Informasi Waktu') }}</flux:heading>
-                <flux:input type="date" wire:model="date" label="Tanggal Kegiatan" :disabled="$logId !== null" />
+                <flux:input type="text" value="{{ $date ? \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') : '' }}" label="Tanggal Kegiatan" disabled />
+                <input type="hidden" wire:model="date" />
             </div>
 
             <div>
                 <flux:heading size="md" class="mb-4">{{ __('Rincian Kegiatan') }}</flux:heading>
-                <div class="space-y-4">
-                    @foreach($activities as $index => $activity)
-                        <div class="relative group p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
-                            <div class="flex flex-col md:flex-row gap-4 items-start">
-                                <div class="flex gap-2 w-full md:w-auto">
-                                    <flux:input type="time" wire:model="activities.{{ $index }}.start_time" label="Mulai" />
-                                    <flux:input type="time" wire:model="activities.{{ $index }}.end_time" label="Selesai" />
-                                </div>
-                                <div class="w-full flex-1">
-                                    <flux:input wire:model="activities.{{ $index }}.activity_description" label="Deskripsi Kegiatan" placeholder="Contoh: Survei UMKM..." />
-                                </div>
-                            </div>
-                            @if(count($activities) > 1)
-                                <flux:button variant="danger" size="sm" icon="trash" class="absolute -top-3 -right-3 rounded-full hidden group-hover:flex" wire:click="removeActivity({{ $index }})" />
-                            @endif
-                        </div>
-                    @endforeach
-                    <flux:button variant="subtle" size="sm" icon="plus" wire:click="addActivity" class="w-full mt-2">{{ __('Tambah Kegiatan') }}</flux:button>
-                </div>
+                <x-activity-repeater :activities="$activities" />
                 @error('activities') <flux:error>{{ $message }}</flux:error> @enderror
             </div>
 
@@ -63,7 +46,7 @@
             <div class="flex gap-2">
                 <flux:spacer />
                 <flux:button variant="ghost" href="{{ route('logbook.index') }}" wire:navigate>{{ __('Batal') }}</flux:button>
-                <flux:button type="submit" variant="primary">{{ __('Simpan') }}</flux:button>
+                <flux:button type="submit" variant="primary">{{ __('Simpan Draf') }}</flux:button>
             </div>
         </form>
     </flux:card>

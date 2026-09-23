@@ -17,7 +17,8 @@ class LogbookForm extends Component
     #[Url]
     public ?int $logId = null;
 
-    public $date = '';
+    #[Url]
+    public ?string $date = null;
     public $importantNotes = '';
     public $activities = [];
     public $notesImage = null;
@@ -77,18 +78,31 @@ class LogbookForm extends Component
         }
     }
 
-    public function saveLog()
+    public function saveDraft()
+    {
+        $this->processSave(LogStatus::Draft);
+    }
+
+    public function saveAndSubmit()
+    {
+        $this->processSave(LogStatus::Pending);
+    }
+
+    private function processSave(LogStatus $status)
     {
         $this->validate();
 
         $user = Auth::user();
-        $group = $user->group()->with(['period'])->first();
-        $period = $group?->period;
+        $group = $user->group()->first();
 
-        if ($period) {
+        if ($group && $group->start_date && $group->end_date) {
             $logDate = \Carbon\Carbon::parse($this->date);
-            if ($logDate->lt($period->start_date) || $logDate->gt($period->end_date)) {
-                $this->addError('date', 'Tanggal harus berada dalam periode KKN (' . $period->start_date->format('d/m/Y') . ' - ' . $period->end_date->format('d/m/Y') . ').');
+            if ($logDate->lt($group->start_date) || $logDate->gt($group->end_date)) {
+                $this->addError('date', 'Tanggal harus berada dalam periode kelompok KKN (' . $group->start_date->format('d/m/Y') . ' - ' . $group->end_date->format('d/m/Y') . ').');
+                return;
+            }
+            if ($logDate->gt(\Carbon\Carbon::today())) {
+                $this->addError('date', 'Tanggal kegiatan tidak boleh melebihi hari ini.');
                 return;
             }
         }
@@ -108,10 +122,12 @@ class LogbookForm extends Component
             if ($log->status === LogStatus::Approved) {
                 return redirect()->route('logbook.index');
             }
+            
             $log->update([
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
                 'image_path' => $imagePath,
+                'status' => $status,
             ]);
             
             // Recreate activities
@@ -132,7 +148,7 @@ class LogbookForm extends Component
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
                 'image_path' => $imagePath,
-                'status' => LogStatus::Pending,
+                'status' => $status,
             ]);
         }
 
@@ -145,12 +161,18 @@ class LogbookForm extends Component
             ]);
         }
 
-        session()->flash('success', 'Catatan harian berhasil disimpan.');
+        session()->flash('success', $status === LogStatus::Pending ? 'Catatan harian berhasil diajukan.' : 'Catatan harian berhasil disimpan sebagai draf.');
         return $this->redirect(route('logbook.index'), navigate: true);
     }
 
     public function render()
     {
-        return view('livewire.mahasiswa.logbook-form');
+        $user = Auth::user();
+        $group = $user->group()->first();
+
+        return view('livewire.mahasiswa.logbook-form', [
+            'minDate' => $group && $group->start_date ? $group->start_date->format('Y-m-d') : null,
+            'maxDate' => $group && $group->end_date ? $group->end_date->format('Y-m-d') : null,
+        ]);
     }
 }

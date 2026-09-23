@@ -23,10 +23,9 @@ class Logbook extends Component
         $log = DailyLog::with('activities')->where('student_id', Auth::id())->findOrFail($id);
         
         $user = Auth::user();
-        $group = $user->group()->with(['period'])->first();
-        $period = $group?->period;
+        $group = $user->group()->first();
         
-        $dayDiff = $period ? $period->start_date->diffInDays($log->date) : 0;
+        $dayDiff = ($group && $group->start_date) ? Carbon::parse($group->start_date)->diffInDays($log->date) : 0;
         $log->day_number = $dayDiff + 1;
         $log->week_number = floor($dayDiff / 7) + 1;
         
@@ -34,28 +33,65 @@ class Logbook extends Component
         \Flux::modal('log-view-modal')->show();
     }
 
+    public function submitLog($id)
+    {
+        $log = DailyLog::where('student_id', Auth::id())->findOrFail($id);
+        if ($log->status === LogStatus::Draft) {
+            $log->update(['status' => LogStatus::Pending]);
+            session()->flash('success', 'Logbook berhasil diajukan.');
+        }
+    }
+
     public function render()
     {
         $user = Auth::user();
         
-        $group = $user->group()->with(['period'])->first();
-        $period = $group?->period;
+        $group = $user->group()->first();
         
         $query = DailyLog::with('activities')->where('student_id', $user->id);
 
         $logs = $query->orderBy('date', 'asc')->get();
+        
+        $logsByDate = $logs->keyBy(function($log) {
+            return $log->date->format('Y-m-d');
+        });
 
         $logsGroupedByWeek = [];
-        if ($period) {
-            foreach ($logs as $log) {
-                $dayDiff = $period->start_date->diffInDays($log->date);
-                $weekNum = floor($dayDiff / 7) + 1;
-                $log->day_number = $dayDiff + 1;
+        $allWeeks = [];
+
+        if ($group && $group->start_date && $group->end_date) {
+            $startDate = Carbon::parse($group->start_date);
+            $endDate = Carbon::parse($group->end_date);
+            $today = Carbon::today();
+            
+            if ($endDate->gt($today)) {
+                $endDate = $today;
+            }
+            
+            $currentDate = $startDate->copy();
+            
+            $dayNumber = 1;
+            while ($currentDate->lte($endDate)) {
+                $dateStr = $currentDate->format('Y-m-d');
+                $weekNum = floor(($dayNumber - 1) / 7) + 1;
+                
+                $log = $logsByDate->get($dateStr);
                 
                 if (!isset($logsGroupedByWeek[$weekNum])) {
                     $logsGroupedByWeek[$weekNum] = [];
+                    $allWeeks[] = $weekNum;
                 }
-                $logsGroupedByWeek[$weekNum][] = $log;
+                
+                $logsGroupedByWeek[$weekNum][] = [
+                    'date' => $currentDate->copy(),
+                    'dateStr' => $dateStr,
+                    'day_number' => $dayNumber,
+                    'week_number' => $weekNum,
+                    'log' => $log,
+                ];
+                
+                $currentDate->addDay();
+                $dayNumber++;
             }
         }
 
@@ -63,17 +99,20 @@ class Logbook extends Component
         $filteredLogsGrouped = [];
         if ($this->selectedWeek !== 'all') {
             if (isset($logsGroupedByWeek[(int)$this->selectedWeek])) {
-                $filteredLogsGrouped[(int)$this->selectedWeek] = $logsGroupedByWeek[(int)$this->selectedWeek];
+                $filteredLogsGrouped[(int)$this->selectedWeek] = array_reverse($logsGroupedByWeek[(int)$this->selectedWeek]);
             }
         } else {
-            $filteredLogsGrouped = $logsGroupedByWeek;
+            foreach ($logsGroupedByWeek as $weekNum => $days) {
+                $filteredLogsGrouped[$weekNum] = array_reverse($days);
+            }
         }
 
         krsort($filteredLogsGrouped); // Latest weeks first
+        sort($allWeeks);
 
         return view('livewire.mahasiswa.logbook', [
             'logsGroupedByWeek' => $filteredLogsGrouped,
-            'allWeeks' => array_keys($logsGroupedByWeek),
+            'allWeeks' => $allWeeks,
             'student' => $user,
             'logs' => $logs,
             'stats' => [

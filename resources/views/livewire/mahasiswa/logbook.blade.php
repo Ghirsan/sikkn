@@ -25,9 +25,6 @@
                     {{ __('Cetak Logbook') }}
                 </flux:button>
             @endif
-            <flux:button variant="filled" size="sm" icon="plus" href="{{ route('logbook.form') }}" wire:navigate>
-                {{ __('Tambah Entri') }}
-            </flux:button>
         </div>
     </div>
 
@@ -45,77 +42,105 @@
                     :defaultOpen="$selectedWeek === (string)$weekNumber || $selectedWeek === 'all'"
                 >
                     <div class="flex flex-col gap-4">
-                        @foreach($weekLogs as $log)
-                            <flux:card class="flex flex-col gap-4">
-                                {{-- Card Header --}}
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800/10 dark:border-white/10 pb-4">
-                                    <div class="flex items-center gap-3">
-                                        <flux:badge size="sm" color="zinc" class="font-medium whitespace-nowrap">
-                                            {{ __('Hari ke: ') }}{{ $log->day_number }}
-                                        </flux:badge>
-                                        <flux:text variant="strong" class="text-sm">
-                                            {{ $log->date->translatedFormat('d M Y') }} · <span class="text-neutral-500 font-normal">{{ $log->date->translatedFormat('l') }}</span>
-                                        </flux:text>
-                                    </div>
-                                    <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge>
-                                </div>
+                        @foreach($weekLogs as $dayData)
+                            @php 
+                                $log = $dayData['log']; 
+                                $dateObj = $dayData['date'];
+                                $dayNum = $dayData['day_number'];
+                                $dateStr = $dayData['dateStr'];
+                            @endphp
 
-                                {{-- Activity Table --}}
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-sm">
-                                        <thead>
-                                            <tr class="border-b border-zinc-800/10 dark:border-white/10 text-left">
-                                                <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400 w-12">{{ __('No') }}</th>
-                                                <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400 w-32">{{ __('Waktu') }}</th>
-                                                <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400">{{ __('Kegiatan') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-zinc-800/10 dark:divide-white/10">
-                                            @foreach($log->activities as $index => $activity)
-                                                <tr>
-                                                    <td class="py-2 text-zinc-500 dark:text-zinc-400 align-top">{{ $index + 1 }}</td>
-                                                    <td class="py-2 text-zinc-500 dark:text-zinc-400 align-top whitespace-nowrap">
-                                                        {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
-                                                    </td>
-                                                    <td class="py-2 text-zinc-800 dark:text-zinc-200 align-top">
-                                                        {{ $activity->activity_description }}
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                            @if($log->activities->isEmpty())
-                                                <tr>
-                                                    <td colspan="3" class="py-4 text-center text-zinc-500">Belum ada kegiatan yang dicatat.</td>
-                                                </tr>
-                                            @endif
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {{-- Important Notes --}}
-                                @if($log->important_notes || $log->image_path)
-                                    <div class="mt-2 rounded-lg bg-zinc-50 dark:bg-white/5 p-4">
-                                        <flux:text variant="strong" class="mb-2 text-sm">{{ __('Catatan Penting Harian:') }}</flux:text>
-                                        @if($log->important_notes)
-                                            <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-300">
-                                                "{{ $log->important_notes }}"
+                            @if($log)
+                                <flux:card class="flex flex-col gap-4">
+                                    {{-- Card Header --}}
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800/10 dark:border-white/10 pb-4">
+                                        <div class="flex items-center gap-3">
+                                            <flux:badge size="sm" color="zinc" class="font-medium whitespace-nowrap">
+                                                {{ __('Hari ke: ') }}{{ $dayNum }}
+                                            </flux:badge>
+                                            <flux:text variant="strong" class="text-sm">
+                                                {{ $dateObj->translatedFormat('d M Y') }} · <span class="text-neutral-500 font-normal">{{ $dateObj->translatedFormat('l') }}</span>
                                             </flux:text>
+                                        </div>
+                                        <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge>
+                                    </div>
+
+                                    {{-- Activity Table --}}
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead>
+                                                <tr class="border-b border-zinc-800/10 dark:border-white/10 text-left">
+                                                    <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400 w-12">{{ __('No') }}</th>
+                                                    <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400 w-32">{{ __('Waktu') }}</th>
+                                                    <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400">{{ __('Kegiatan') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-zinc-800/10 dark:divide-white/10">
+                                                @foreach($log->activities as $index => $activity)
+                                                    <tr>
+                                                        <td class="py-2 text-zinc-500 dark:text-zinc-400 align-top">{{ $index + 1 }}</td>
+                                                        <td class="py-2 text-zinc-500 dark:text-zinc-400 align-top whitespace-nowrap">
+                                                            {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                                                        </td>
+                                                        <td class="py-2 text-zinc-800 dark:text-zinc-200 align-top">
+                                                            {{ $activity->activity_description }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                                @if($log->activities->isEmpty())
+                                                    <tr>
+                                                        <td colspan="3" class="py-4 text-center text-zinc-500">Belum ada kegiatan yang dicatat.</td>
+                                                    </tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {{-- Important Notes --}}
+                                    @if($log->important_notes || $log->image_path)
+                                        <div class="mt-2 rounded-lg bg-zinc-50 dark:bg-white/5 p-4">
+                                            <flux:text variant="strong" class="mb-2 text-sm">{{ __('Catatan Penting Harian:') }}</flux:text>
+                                            @if($log->important_notes)
+                                                <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-300">
+                                                    "{{ $log->important_notes }}"
+                                                </flux:text>
+                                            @endif
+                                            @if($log->image_path)
+                                                <div class="mt-3">
+                                                    <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" />
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    {{-- Actions --}}
+                                    <div class="flex items-center justify-end gap-2 pt-2">
+                                        <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
+                                        @if($log->status === \App\Enums\LogStatus::Draft)
+                                            <flux:button variant="ghost" size="sm" icon="paper-airplane" wire:click="submitLog({{ $log->id }})">{{ __('Ajukan') }}</flux:button>
                                         @endif
-                                        @if($log->image_path)
-                                            <div class="mt-3">
-                                                <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" />
-                                            </div>
+                                        @if($log->status === \App\Enums\LogStatus::Pending || $log->status === \App\Enums\LogStatus::Draft)
+                                            <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('logbook.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
                                         @endif
                                     </div>
-                                @endif
-
-                                {{-- Actions --}}
-                                <div class="flex items-center justify-end gap-2 pt-2">
-                                    <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
-                                    @if($log->status === \App\Enums\LogStatus::Pending)
-                                        <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('logbook.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
-                                    @endif
-                                </div>
-                            </flux:card>
+                                </flux:card>
+                            @else
+                                <flux:card class="flex flex-col gap-4 border-dashed border-zinc-300 dark:border-zinc-700 bg-transparent">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <flux:badge size="sm" color="zinc" class="font-medium whitespace-nowrap">
+                                                {{ __('Hari ke: ') }}{{ $dayNum }}
+                                            </flux:badge>
+                                            <flux:text variant="strong" class="text-sm text-zinc-500">
+                                                {{ $dateObj->translatedFormat('d M Y') }} · <span class="font-normal">{{ $dateObj->translatedFormat('l') }}</span>
+                                            </flux:text>
+                                        </div>
+                                        <flux:button size="sm" variant="filled" href="{{ route('logbook.form', ['date' => $dateStr]) }}" wire:navigate>
+                                            {{ __('Isi Logbook') }}
+                                        </flux:button>
+                                    </div>
+                                </flux:card>
+                            @endif
                         @endforeach
                     </div>
                 </x-accordion>
