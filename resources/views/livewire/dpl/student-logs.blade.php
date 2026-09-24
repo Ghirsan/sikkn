@@ -1,49 +1,80 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Stats --}}
-    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+    <div class="grid auto-rows-min gap-4 md:grid-cols-3 {{ isset($totalHours) ? 'lg:grid-cols-4' : '' }}">
         <x-stat-card icon="clock" color="amber" :label="__('Menunggu Persetujuan')" :value="$stats['pending']" />
         <x-stat-card icon="check-circle" color="green" :label="__('Disetujui')" :value="$stats['approved']" />
         <x-stat-card icon="book-open" color="blue" :label="__('Total Entri')" :value="$stats['total']" />
+        @if(isset($totalHours))
+            <x-stat-card icon="calculator" color="zinc" :label="__('Total Jam Kerja')" :value="$totalHours . ' Jam'" />
+        @endif
     </div>
 
-    {{-- Filter & Actions --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex items-center gap-3">
-            @if($allGroups->count() > 1)
-                <flux:select wire:model.live="selectedGroupId" size="sm" class="w-48">
-                    <option value="">{{ __('Semua Kelompok') }}</option>
-                    @foreach($allGroups as $g)
-                        <option value="{{ $g->id }}">{{ $g->name }}</option>
+    {{-- Filters --}}
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+            <div class="flex flex-wrap items-center gap-3">
+                @if($allGroups->count() > 1)
+                    <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
+                        <option value="">{{ __('Semua Kelompok') }}</option>
+                        @foreach($allGroups as $g)
+                            <option value="{{ $g->id }}">{{ $g->name }}</option>
+                        @endforeach
+                    </flux:select>
+                @endif
+    
+                <flux:select wire:model.live="filterStudent" size="sm" class="w-full sm:w-48">
+                    <option value="">{{ __('Semua Mahasiswa') }}</option>
+                    @foreach($students as $student)
+                        <option value="{{ $student->id }}">{{ $student->name }}</option>
                     @endforeach
                 </flux:select>
-            @endif
 
-            <flux:select wire:model.live="filterStudent" size="sm" class="w-56">
-                <option value="">{{ __('Semua Mahasiswa') }}</option>
-                @foreach($students as $student)
-                    <option :value="$student->id">{{ $student->name }}</option>
-                @endforeach
-            </flux:select>
+                <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-48">
+                    <option value="">{{ __('Semua Status') }}</option>
+                    <option value="pending">{{ __('Menunggu Persetujuan') }}</option>
+                    <option value="approved">{{ __('Disetujui') }}</option>
+                </flux:select>
+            </div>
+            
+            <div class="flex items-center gap-3 shrink-0">
+                @if(count($selectedLogs) > 0)
+                    <flux:modal.trigger name="confirm-bulk-approve-modal">
+                        <flux:button variant="primary" size="sm" icon="check-circle">{{ __('Setujui Terpilih (:count)', ['count' => count($selectedLogs)]) }}</flux:button>
+                    </flux:modal.trigger>
+                @endif
+                
+                @if($filterStudent && $logs->isNotEmpty())
+                    <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $filterStudent)" target="_blank">
+                        {{ __('Cetak') }}
+                    </flux:button>
+                @endif
+            </div>
         </div>
-        @if($filterStudent && $logs->isNotEmpty())
-            <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $filterStudent)" target="_blank">
-                {{ __('Cetak Logbook') }}
-            </flux:button>
+
+        @if($selectedGroupId && count($weeks) > 0)
+            <div class="mt-2">
+                <x-tabs>
+                    <x-tab wire:click="$set('selectedWeek', 'all')" :active="$selectedWeek === 'all'">{{ __('Semua') }}</x-tab>
+                    @foreach($weeks as $week)
+                        <x-tab wire:click="$set('selectedWeek', '{{ $week }}')" :active="$selectedWeek == $week">
+                            {{ __('Minggu ') . $week }}
+                        </x-tab>
+                    @endforeach
+                </x-tabs>
+            </div>
         @endif
     </div>
 
     {{-- Logs --}}
-    <div class="flex items-center justify-between">
-        <flux:heading size="lg">{{ __('Catatan Harian Mahasiswa') }}</flux:heading>
-    </div>
-
     <flux:card>
-
         @if($logs->isEmpty())
-            <x-empty-state icon="book-open" :heading="__('Belum Ada Logbook')" :description="__('Mahasiswa belum mengisi catatan harian.')" />
+            <x-empty-state icon="book-open" :heading="__('Belum Ada Logbook')" :description="__('Tidak ada logbook yang sesuai dengan filter pencarian.')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$logs">
                 <flux:table.columns>
+                    <flux:table.column>
+                        <flux:checkbox wire:model.live="selectAll" />
+                    </flux:table.column>
                     <flux:table.column>{{ __('Mahasiswa & Tanggal') }}</flux:table.column>
                     <flux:table.column>{{ __('Kegiatan') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
@@ -52,6 +83,11 @@
                 <flux:table.rows>
                     @foreach($logs as $log)
                         <flux:table.row :key="$log->id">
+                            <flux:table.cell>
+                                @if($log->status->value === 'pending')
+                                    <flux:checkbox wire:model.live="selectedLogs" value="{{ $log->id }}" />
+                                @endif
+                            </flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex items-center gap-3">
                                     <flux:avatar :name="$log->student->name" :initials="$log->student->initials()" size="xs" />
@@ -80,9 +116,12 @@
                                 <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
-                                @if($log->status->value === 'pending')
-                                    <flux:button wire:click="approveDailyLog({{ $log->id }})" size="sm" variant="filled" icon="check" inset="top bottom">{{ __('Setujui') }}</flux:button>
-                                @endif
+                                <div class="flex gap-2">
+                                    <flux:button wire:click="viewLog({{ $log->id }})" size="sm" variant="ghost" icon="eye">{{ __('Lihat') }}</flux:button>
+                                    @if($log->status->value === 'pending')
+                                        <flux:button wire:click="confirmApprove({{ $log->id }})" size="sm" variant="filled" icon="check" class="text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20">{{ __('Setujui') }}</flux:button>
+                                    @endif
+                                </div>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
@@ -90,4 +129,103 @@
             </flux:table>
         @endif
     </flux:card>
+
+    {{-- View Modal --}}
+    <flux:modal name="log-view-modal" class="md:w-3/4 lg:w-[40rem]">
+        @if($viewLogData)
+            <div class="flex flex-col gap-6">
+                {{-- Header --}}
+                <div class="flex items-start gap-3">
+                    <flux:avatar :name="$viewLogData->student->name" :initials="$viewLogData->student->initials()" size="sm" class="mt-0.5" />
+                    <div class="flex flex-col gap-1.5 min-w-0">
+                        <flux:heading size="lg">{{ $viewLogData->student->name }}</flux:heading>
+                        <flux:text class="text-sm text-zinc-500">Logbook Hari Ke-{{ $viewLogData->day_number }} · {{ $viewLogData->date->translatedFormat('l, d M Y') }}</flux:text>
+                        <div>
+                            <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Activities --}}
+                <div class="flex flex-col gap-3">
+                    <flux:heading size="sm" class="font-medium">Kegiatan</flux:heading>
+                    <div class="flex flex-col gap-2">
+                        @foreach($viewLogData->activities as $index => $activity)
+                            <div class="flex gap-4 p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5">
+                                <div class="text-sm font-medium text-zinc-500 whitespace-nowrap min-w-[80px]">
+                                    {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                                </div>
+                                <div class="text-sm text-zinc-800 dark:text-zinc-200">
+                                    {{ $activity->activity_description }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Notes & Image --}}
+                @if($viewLogData->important_notes || $viewLogData->image_path)
+                    <div class="flex flex-col gap-3">
+                        <flux:heading size="sm" class="font-medium">Catatan Penting</flux:heading>
+                        <div class="p-4 border border-zinc-200 dark:border-white/10 rounded-lg bg-zinc-50 dark:bg-white/5 text-sm">
+                            @if($viewLogData->important_notes)
+                                {!! nl2br(e($viewLogData->important_notes)) !!}
+                            @endif
+                            @if($viewLogData->important_notes && $viewLogData->image_path)
+                                <div class="my-3 border-t border-zinc-200 dark:border-white/10"></div>
+                            @endif
+                            @if($viewLogData->image_path)
+                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain" />
+                            @endif
+                        </div>
+                    </div>
+                @endif
+                
+                {{-- Actions --}}
+                <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-white/10">
+                    <flux:modal.close>
+                        <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+                    </flux:modal.close>
+                    
+                    @if($viewLogData->status->value === 'pending')
+                        <flux:button wire:click="approveDailyLog({{ $viewLogData->id }})" variant="primary" icon="check">
+                            {{ __('Setujui Logbook') }}
+                        </flux:button>
+                    @endif
+                </div>
+            </div>
+        @endif
+    </flux:modal>
+
+    {{-- Confirm Approve Modal --}}
+    <flux:modal name="confirm-approve-modal" class="min-w-[22rem]">
+        <form wire:submit.prevent="executeApprove">
+            <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
+            <flux:text class="mt-2 text-sm text-zinc-500">
+                {{ __('Apakah Anda yakin ingin menyetujui logbook ini? Tindakan ini tidak dapat dibatalkan.') }}
+            </flux:text>
+            <div class="mt-6 flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Ya, Setujui') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Confirm Bulk Approve Modal --}}
+    <flux:modal name="confirm-bulk-approve-modal" class="min-w-[22rem]">
+        <form wire:submit.prevent="executeBulkApprove">
+            <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
+            <flux:text class="mt-2 text-sm text-zinc-500">
+                {{ __('Apakah Anda yakin ingin menyetujui :count logbook yang dipilih? Tindakan ini tidak dapat dibatalkan.', ['count' => count($selectedLogs)]) }}
+            </flux:text>
+            <div class="mt-6 flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Ya, Setujui') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

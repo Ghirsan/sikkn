@@ -12,6 +12,8 @@ use Livewire\Component;
 
 class ReviewPrograms extends Component
 {
+    use \Livewire\WithPagination;
+
     public string $filterStatus = '';
     public string $filterType = '';
     public string $selectedGroupId = '';
@@ -234,7 +236,7 @@ class ReviewPrograms extends Component
             : collect();
 
         return view('livewire.dpl.review-programs', [
-            'participants' => $query->latest()->get(),
+            'participants' => $query->latest()->paginate(10),
             'allGroups' => $user->dplGroups()->get(),
             'multidisiplinThemes' => $multidisiplinThemes,
             'canManageThemes' => $themeGroupId !== null,

@@ -107,7 +107,16 @@
                                             @endif
                                             @if($log->image_path)
                                                 <div class="mt-3">
-                                                    <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" />
+                                                    <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-{{ $log->id }}').show()" />
+                                                    
+                                                    <flux:modal name="image-preview-{{ $log->id }}" class="max-w-4xl w-full space-y-4">
+                                                        <div>
+                                                            <flux:heading size="lg">{{ __('Preview Gambar') }}</flux:heading>
+                                                        </div>
+                                                        <div>
+                                                            <img src="{{ asset('storage/' . $log->image_path) }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
+                                                        </div>
+                                                    </flux:modal>
                                                 </div>
                                             @endif
                                         </div>
@@ -153,14 +162,14 @@
         @if($viewLogData)
             <div class="flex flex-col gap-6">
                 {{-- Header --}}
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-center justify-between">
-                        <flux:heading size="lg">Logbook Hari Ke-{{ $viewLogData->day_number }}</flux:heading>
-                        <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
-                    </div>
+                <div class="flex flex-col gap-1.5 pr-8">
+                    <flux:heading size="lg">Logbook Hari Ke-{{ $viewLogData->day_number }}</flux:heading>
                     <flux:text class="text-sm text-zinc-500">
                         {{ $viewLogData->date->translatedFormat('l, d M Y') }}
                     </flux:text>
+                    <div>
+                        <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
+                    </div>
                 </div>
 
                 {{-- Activities --}}
@@ -192,7 +201,16 @@
                                 <div class="my-3 border-t border-zinc-200 dark:border-white/10"></div>
                             @endif
                             @if($viewLogData->image_path)
-                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain" />
+                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-view').show()" />
+                                
+                                <flux:modal name="image-preview-view" class="max-w-4xl w-full space-y-4">
+                                    <div>
+                                        <flux:heading size="lg">{{ __('Preview Gambar') }}</flux:heading>
+                                    </div>
+                                    <div>
+                                        <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
+                                    </div>
+                                </flux:modal>
                             @endif
                         </div>
                     </div>

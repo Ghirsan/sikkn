@@ -102,7 +102,7 @@
     {{-- Filters --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full max-w-sm">
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari mahasiswa, NIM, atau judul program...') }}" clearable />
+            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau judul program...') }}" clearable class="w-full sm:w-80" />
         </div>
         <div class="flex flex-wrap gap-4">
 
@@ -128,7 +128,7 @@
         @if($participants->isEmpty())
             <x-empty-state icon="light-bulb" :heading="__('Tidak Ada Program')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$participants">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasiswa & Kelompok') }}</flux:table.column>
                     <flux:table.column>{{ __('Program') }}</flux:table.column>

@@ -25,7 +25,7 @@
     @if(empty($selectedGroupId))
         <div class="flex items-center gap-4">
             <div class="w-full max-w-sm">
-                <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable />
+                <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
             </div>
         </div>
     @endif
@@ -79,7 +79,7 @@
         @if(!empty($selectedGroupId))
             <div class="mb-4 flex items-center gap-4">
                 <div class="w-full max-w-sm">
-                    <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable />
+                    <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
                 </div>
             </div>
         @endif
