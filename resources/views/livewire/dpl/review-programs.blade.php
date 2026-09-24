@@ -164,7 +164,7 @@
     </flux:card>
 
     {{-- Inspect Program Modal --}}
-    <flux:modal name="inspect-program" @close="closeInspect" class="md:w-2xl">
+    <flux:modal name="inspect-program" @close="closeInspect" class="max-w-2xl w-full">
         @if($this->inspectingParticipant)
             @php $p = $this->inspectingParticipant; @endphp
             <div class="space-y-6">

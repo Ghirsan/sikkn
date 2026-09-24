@@ -15,11 +15,24 @@ class StudentLogs extends Component
     public string $selectedGroupId = '';
     public string $filterStatus = '';
     public string $selectedWeek = 'all';
+    
+    public string $sortBy = 'date';
+    public string $sortDirection = 'desc';
 
     public array $selectedLogs = [];
     public bool $selectAll = false;
 
     public $viewLogData = null;
+
+    public function sort($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+    }
 
     public function updatedSelectAll($value)
     {
@@ -161,7 +174,7 @@ class StudentLogs extends Component
             'total' => (clone $query)->count(),
         ];
 
-        $logs = $query->latest('date')->paginate(10);
+        $logs = $query->orderBy($this->sortBy, $this->sortDirection)->paginate(10);
         
         // Calculate total stats independent of filters (optional) or dependent on filter.
         // We will base stats on the current filter view, or all logs? Previously it was based on $logs.

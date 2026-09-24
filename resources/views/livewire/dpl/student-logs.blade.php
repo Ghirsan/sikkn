@@ -75,7 +75,8 @@
                     <flux:table.column>
                         <flux:checkbox wire:model.live="selectAll" />
                     </flux:table.column>
-                    <flux:table.column>{{ __('Mahasiswa & Tanggal') }}</flux:table.column>
+                    <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
+                    <flux:table.column sortable :sorted="$sortBy === 'date'" :direction="$sortDirection" wire:click="sort('date')">{{ __('Tanggal') }}</flux:table.column>
                     <flux:table.column>{{ __('Kegiatan') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column>{{ __('Aksi') }}</flux:table.column>
@@ -93,9 +94,13 @@
                                     <flux:avatar :name="$log->student->name" :initials="$log->student->initials()" size="xs" />
                                     <div>
                                         <span class="font-medium">{{ $log->student->name }}</span>
-                                        <div class="text-xs text-neutral-500">{{ $log->date->translatedFormat('l, d F Y') }}</div>
+                                        <div class="text-xs text-neutral-500">{{ $log->student->nim }}</div>
                                     </div>
                                 </div>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <div class="text-sm font-medium">{{ $log->date->translatedFormat('d M Y') }}</div>
+                                <div class="text-xs text-neutral-500">{{ $log->date->translatedFormat('l') }}</div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="space-y-1">
@@ -175,7 +180,9 @@
                                 <div class="my-3 border-t border-zinc-200 dark:border-white/10"></div>
                             @endif
                             @if($viewLogData->image_path)
-                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain" />
+                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-view').show()" />
+                                
+                                <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $viewLogData->image_path) }}" />
                             @endif
                         </div>
                     </div>
@@ -198,7 +205,7 @@
     </flux:modal>
 
     {{-- Confirm Approve Modal --}}
-    <flux:modal name="confirm-approve-modal" class="min-w-[22rem]">
+    <flux:modal name="confirm-approve-modal" class="max-w-sm w-full">
         <form wire:submit.prevent="executeApprove">
             <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
             <flux:text class="mt-2 text-sm text-zinc-500">
@@ -214,7 +221,7 @@
     </flux:modal>
 
     {{-- Confirm Bulk Approve Modal --}}
-    <flux:modal name="confirm-bulk-approve-modal" class="min-w-[22rem]">
+    <flux:modal name="confirm-bulk-approve-modal" class="max-w-sm w-full">
         <form wire:submit.prevent="executeBulkApprove">
             <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
             <flux:text class="mt-2 text-sm text-zinc-500">

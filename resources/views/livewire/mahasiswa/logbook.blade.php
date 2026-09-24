@@ -66,35 +66,30 @@
                                     </div>
 
                                     {{-- Activity Table --}}
-                                    <div class="overflow-x-auto">
-                                        <table class="w-full text-sm">
-                                            <thead>
-                                                <tr class="border-b border-zinc-800/10 dark:border-white/10 text-left">
-                                                    <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400 w-12">{{ __('No') }}</th>
-                                                    <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400 w-32">{{ __('Waktu') }}</th>
-                                                    <th class="pb-2 font-medium text-zinc-500 dark:text-zinc-400">{{ __('Kegiatan') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-zinc-800/10 dark:divide-white/10">
-                                                @foreach($log->activities as $index => $activity)
-                                                    <tr>
-                                                        <td class="py-2 text-zinc-500 dark:text-zinc-400 align-top">{{ $index + 1 }}</td>
-                                                        <td class="py-2 text-zinc-500 dark:text-zinc-400 align-top whitespace-nowrap">
-                                                            {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
-                                                        </td>
-                                                        <td class="py-2 text-zinc-800 dark:text-zinc-200 align-top">
-                                                            {{ $activity->activity_description }}
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                                @if($log->activities->isEmpty())
-                                                    <tr>
-                                                        <td colspan="3" class="py-4 text-center text-zinc-500">Belum ada kegiatan yang dicatat.</td>
-                                                    </tr>
-                                                @endif
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <flux:table>
+                                        <flux:table.columns>
+                                            <flux:table.column class="w-12">{{ __('No') }}</flux:table.column>
+                                            <flux:table.column class="w-32">{{ __('Waktu') }}</flux:table.column>
+                                            <flux:table.column>{{ __('Kegiatan') }}</flux:table.column>
+                                        </flux:table.columns>
+                                        <flux:table.rows>
+                                            @forelse($log->activities as $index => $activity)
+                                                <flux:table.row :key="$activity->id ?? $index">
+                                                    <flux:table.cell variant="strong">{{ $index + 1 }}</flux:table.cell>
+                                                    <flux:table.cell class="whitespace-nowrap">
+                                                        {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                                                    </flux:table.cell>
+                                                    <flux:table.cell>
+                                                        {{ $activity->activity_description }}
+                                                    </flux:table.cell>
+                                                </flux:table.row>
+                                            @empty
+                                                <flux:table.row>
+                                                    <flux:table.cell colspan="3" class="text-center text-zinc-500">{{ __('Belum ada kegiatan yang dicatat.') }}</flux:table.cell>
+                                                </flux:table.row>
+                                            @endforelse
+                                        </flux:table.rows>
+                                    </flux:table>
 
                                     {{-- Important Notes --}}
                                     @if($log->important_notes || $log->image_path)
@@ -109,14 +104,7 @@
                                                 <div class="mt-3">
                                                     <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-{{ $log->id }}').show()" />
                                                     
-                                                    <flux:modal name="image-preview-{{ $log->id }}" class="max-w-4xl w-full space-y-4">
-                                                        <div>
-                                                            <flux:heading size="lg">{{ __('Preview Gambar') }}</flux:heading>
-                                                        </div>
-                                                        <div>
-                                                            <img src="{{ asset('storage/' . $log->image_path) }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
-                                                        </div>
-                                                    </flux:modal>
+                                                    <x-image-preview-modal name="image-preview-{{ $log->id }}" url="{{ asset('storage/' . $log->image_path) }}" />
                                                 </div>
                                             @endif
                                         </div>
@@ -203,14 +191,7 @@
                             @if($viewLogData->image_path)
                                 <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-view').show()" />
                                 
-                                <flux:modal name="image-preview-view" class="max-w-4xl w-full space-y-4">
-                                    <div>
-                                        <flux:heading size="lg">{{ __('Preview Gambar') }}</flux:heading>
-                                    </div>
-                                    <div>
-                                        <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
-                                    </div>
-                                </flux:modal>
+                                <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $viewLogData->image_path) }}" />
                             @endif
                         </div>
                     </div>

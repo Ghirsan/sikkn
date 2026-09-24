@@ -139,7 +139,7 @@
     @endforelse
 
     {{-- Confirm Leader Modal --}}
-    <flux:modal name="confirm-leader" @close="resetLeaderState" class="min-w-[22rem]">
+    <flux:modal name="confirm-leader" @close="resetLeaderState" class="max-w-sm w-full">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $isReplacing ? __('Ganti Ketua Kelompok?') : __('Tetapkan Ketua Kelompok?') }}</flux:heading>

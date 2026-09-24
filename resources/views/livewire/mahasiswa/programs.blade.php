@@ -248,7 +248,7 @@
 
 
     {{-- Delete Confirmation Modal --}}
-    <flux:modal name="delete-participant" class="min-w-[22rem]">
+    <flux:modal name="delete-participant" class="max-w-sm w-full">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ __('Hapus Program?') }}</flux:heading>
@@ -269,7 +269,7 @@
     </flux:modal>
 
     {{-- Submit Confirmation Modal --}}
-    <flux:modal name="submit-lrk" class="min-w-[22rem]">
+    <flux:modal name="submit-lrk" class="max-w-sm w-full">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ __('Ajukan Program?') }}</flux:heading>
@@ -290,7 +290,7 @@
     </flux:modal>
 
     {{-- Submit LPK Confirmation Modal --}}
-    <flux:modal name="submit-lpk" class="min-w-[22rem]">
+    <flux:modal name="submit-lpk" class="max-w-sm w-full">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ __('Ajukan Laporan LPK?') }}</flux:heading>
