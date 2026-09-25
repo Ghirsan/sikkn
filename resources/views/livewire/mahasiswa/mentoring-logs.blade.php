@@ -7,8 +7,7 @@
     </div>
 
     {{-- Mentoring Logs --}}
-    <div class="flex items-center justify-between">
-        <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
+    <div class="flex items-center justify-end">
         <div class="flex items-center gap-3">
             @if($logs->isNotEmpty())
                 <flux:button variant="ghost" size="sm" icon="printer" :href="route('mentoring-logs.pdf', $student)" target="_blank">
@@ -83,8 +82,9 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
-                            @if($log->status === \App\Enums\LogStatus::Pending)
+                            @if($log->status === \App\Enums\LogStatus::Draft)
                                 <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('mentoring-logs.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
+                                <flux:button variant="primary" size="sm" icon="paper-airplane" wire:click="submitLog({{ $log->id }})">{{ __('Ajukan') }}</flux:button>
                             @endif
                         </div>
                     </div>

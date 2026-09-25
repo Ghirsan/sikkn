@@ -1,17 +1,4 @@
 <div>
-    <flux:breadcrumbs class="mb-6">
-        <flux:breadcrumbs.item href="{{ route('dashboard') }}">{{ __('Dashboard') }}</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item href="{{ route('logbook.index') }}">{{ __('Logbook') }}</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>{{ $logId ? __('Edit Entri') : __('Tambah Entri') }}</flux:breadcrumbs.item>
-    </flux:breadcrumbs>
-
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <flux:heading size="xl" level="1">{{ $logId ? __('Edit Catatan Harian') : __('Catatan Harian Baru') }}</flux:heading>
-            <flux:subheading>{{ __('Isi detail kegiatan dan catatan penting Anda hari ini.') }}</flux:subheading>
-        </div>
-    </div>
-
     <flux:card>
         <form wire:submit="saveDraft" class="space-y-6">
             <div>

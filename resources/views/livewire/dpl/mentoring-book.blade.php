@@ -6,25 +6,24 @@
     </div>
 
     {{-- Filter --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <div class="flex items-center gap-3">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-48">
-                    <option value="">{{ __('Semua Kelompok') }}</option>
-                    @foreach($allGroups as $g)
-                        <option value="{{ $g->id }}">{{ $g->name }}</option>
+                    <flux:select.option value="">{{ __('Semua Kelompok') }}</flux:select.option>
+                    @foreach($allGroups as $group)
+                        <flux:select.option value="{{ $group->id }}">{{ $group->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
             @endif
 
             <flux:select wire:model.live="filterStudent" size="sm" class="w-56">
-                <option value="">{{ __('Semua Mahasiswa') }}</option>
+                <flux:select.option value="">{{ __('Semua Mahasiswa') }}</flux:select.option>
                 @foreach($students as $student)
-                    <option :value="$student->id">{{ $student->name }}</option>
+                    <flux:select.option value="{{ $student->id }}">{{ $student->name }}</flux:select.option>
                 @endforeach
             </flux:select>
         </div>
-        <flux:heading size="lg">{{ __('Catatan Pembimbingan') }}</flux:heading>
     </div>
 
     @if($logs->isEmpty())

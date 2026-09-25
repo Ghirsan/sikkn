@@ -24,14 +24,29 @@ class MentoringLogForm extends Component
 
     protected function rules()
     {
+        $group = Auth::user()?->group;
+        $maxStudentCount = $group?->students()->count();
+
         return [
             'date' => 'required|date',
             'topic' => 'required|string|max:255',
             'discussion_summary' => 'required|string',
             'program_id' => 'nullable|exists:programs,id',
             'target_group' => 'nullable|string|max:255',
-            'student_count' => 'nullable|integer|min:1',
+            'student_count' => array_filter([
+                'nullable',
+                'integer',
+                'min:1',
+                $maxStudentCount ? 'max:' . $maxStudentCount : null,
+            ]),
             'output' => 'nullable|string|max:255',
+        ];
+    }
+
+    protected function messages()
+    {
+        return [
+            'student_count.max' => 'Jumlah mahasiswa terlibat tidak boleh melebihi jumlah anggota tim (:max).',
         ];
     }
 
@@ -59,13 +74,12 @@ class MentoringLogForm extends Component
         $this->validate();
 
         $user = Auth::user();
-        $group = $user->group()->with(['period'])->first();
-        $period = $group?->period;
+        $group = $user->group()->first();
 
-        if ($period) {
+        if ($group && $group->start_date && $group->end_date) {
             $logDate = \Carbon\Carbon::parse($this->date);
-            if ($logDate->lt($period->start_date) || $logDate->gt($period->end_date)) {
-                $this->addError('date', 'Tanggal harus berada dalam periode KKN (' . $period->start_date->format('d/m/Y') . ' - ' . $period->end_date->format('d/m/Y') . ').');
+            if ($logDate->lt($group->start_date) || $logDate->gt($group->end_date)) {
+                $this->addError('date', 'Tanggal harus berada dalam periode kelompok KKN (' . $group->start_date->format('d/m/Y') . ' - ' . $group->end_date->format('d/m/Y') . ').');
                 return;
             }
         }
@@ -96,6 +110,7 @@ class MentoringLogForm extends Component
                 'target_group' => $this->target_group,
                 'student_count' => $this->student_count,
                 'output' => $this->output,
+                'status' => LogStatus::Draft,
             ]);
         } else {
             MentoringLog::create([
@@ -108,11 +123,11 @@ class MentoringLogForm extends Component
                 'target_group' => $this->target_group,
                 'student_count' => $this->student_count,
                 'output' => $this->output,
-                'status' => LogStatus::Pending,
+                'status' => LogStatus::Draft,
             ]);
         }
 
-        session()->flash('success', 'Catatan pembimbingan berhasil disimpan.');
+        session()->flash('success', 'Catatan pembimbingan berhasil disimpan sebagai draf.');
         return $this->redirect(route('mentoring-logs.index'), navigate: true);
     }
 
@@ -123,9 +138,14 @@ class MentoringLogForm extends Component
             ->orWhere('group_id', $user->group_id)
             ->orderBy('sequence')
             ->get();
+        $group = $user->group()->first();
+        $studentCount = $group?->students()->count();
 
         return view('livewire.mahasiswa.mentoring-log-form', [
             'programs' => $programs,
+            'minDate' => $group && $group->start_date ? $group->start_date->format('Y-m-d') : null,
+            'maxDate' => $group && $group->end_date ? $group->end_date->format('Y-m-d') : null,
+            'maxStudentCount' => $studentCount,
         ]);
     }
 }

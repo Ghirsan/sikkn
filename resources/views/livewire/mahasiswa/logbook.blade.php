@@ -7,7 +7,7 @@
         <x-stat-card icon="calculator" color="purple" :label="__('Total Jam Kerja')" :value="$stats['totalHours']" />
     </div>
 
-    {{-- Header & Actions --}}
+    {{-- Filter --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <x-tabs>
             <x-tab :selected="$selectedWeek === 'all'" wire:click="$set('selectedWeek', 'all')">
@@ -113,11 +113,11 @@
                                     {{-- Actions --}}
                                     <div class="flex items-center justify-end gap-2 pt-2">
                                         <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
-                                        @if($log->status === \App\Enums\LogStatus::Draft)
-                                            <flux:button variant="ghost" size="sm" icon="paper-airplane" wire:click="submitLog({{ $log->id }})">{{ __('Ajukan') }}</flux:button>
-                                        @endif
                                         @if($log->status === \App\Enums\LogStatus::Pending || $log->status === \App\Enums\LogStatus::Draft)
                                             <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('logbook.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
+                                        @endif
+                                        @if($log->status === \App\Enums\LogStatus::Draft)
+                                            <flux:button variant="primary" size="sm" icon="paper-airplane" wire:click="submitLog({{ $log->id }})">{{ __('Ajukan') }}</flux:button>
                                         @endif
                                     </div>
                                 </flux:card>

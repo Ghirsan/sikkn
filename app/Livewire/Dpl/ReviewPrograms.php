@@ -23,6 +23,8 @@ class ReviewPrograms extends Component
     public string $newThemeTitle = '';
     public ?int $editingThemeId = null;
     public string $editingThemeTitle = '';
+    public ?int $deletingThemeId = null;
+    public string $deletingThemeTitle = '';
 
     // Inspect modal
     public ?int $inspectingParticipantId = null;
@@ -154,6 +156,36 @@ class ReviewPrograms extends Component
         }
 
         $program->delete();
+    }
+
+    public function confirmDeleteTheme(int $programId): void
+    {
+        $program = $this->getAuthorizedTheme($programId);
+
+        if ($program->participants()->count() > 0) {
+            return;
+        }
+
+        $this->deletingThemeId = $program->id;
+        $this->deletingThemeTitle = $program->title;
+        $this->modal('delete-theme')->show();
+    }
+
+    public function cancelDeleteTheme(): void
+    {
+        $this->deletingThemeId = null;
+        $this->deletingThemeTitle = '';
+    }
+
+    public function confirmDelete(): void
+    {
+        if (! $this->deletingThemeId) {
+            return;
+        }
+
+        $this->deleteTheme($this->deletingThemeId);
+        $this->modal('delete-theme')->close();
+        $this->cancelDeleteTheme();
     }
 
     private function getSelectedGroupIdForThemes(): ?int

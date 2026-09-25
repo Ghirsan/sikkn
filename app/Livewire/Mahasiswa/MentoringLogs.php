@@ -17,6 +17,18 @@ class MentoringLogs extends Component
         \Flux::modal('mentoring-view-modal')->show();
     }
 
+    public function submitLog($id): void
+    {
+        $log = MentoringLog::where('student_id', Auth::id())->findOrFail($id);
+
+        if ($log->status !== LogStatus::Draft) {
+            return;
+        }
+
+        $log->update(['status' => LogStatus::Pending]);
+        session()->flash('success', 'Catatan pembimbingan berhasil diajukan untuk persetujuan.');
+    }
+
     public function render()
     {
         $user = Auth::user();
