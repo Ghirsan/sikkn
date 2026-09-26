@@ -1,10 +1,10 @@
-<x-layouts::app :title="request('logId') ? __('Edit Logbook') : __('Tambah Logbook')">
-    <flux:breadcrumbs class="mb-6">
-        <flux:breadcrumbs.item icon="home" href="{{ route('dashboard') }}" wire:navigate />
-        <flux:breadcrumbs.item href="{{ route('logbook.index') }}" wire:navigate>{{ __('Logbook') }}</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>{{ request('logId') ? __('Edit Entri') : __('Tambah Entri') }}</flux:breadcrumbs.item>
-    </flux:breadcrumbs>
-
+<x-layouts::app
+    :title="request('logId') ? __('Edit Logbook') : __('Tambah Logbook')"
+    :breadcrumbs="[
+        ['label' => __('Logbook'), 'url' => route('logbook.index')],
+        ['label' => __('Form Logbook')],
+    ]"
+>
     <div class="flex h-full w-full flex-1 flex-col gap-6 rounded-xl">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>

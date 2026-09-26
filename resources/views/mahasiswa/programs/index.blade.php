@@ -1,9 +1,4 @@
 <x-layouts::app :title="__('Program Saya')">
-    <flux:breadcrumbs class="mb-6">
-        <flux:breadcrumbs.item icon="home" href="{{ route('dashboard') }}" wire:navigate />
-        <flux:breadcrumbs.item>{{ __('Program Saya') }}</flux:breadcrumbs.item>
-    </flux:breadcrumbs>
-
     <div class="flex h-full w-full flex-1 flex-col gap-6 rounded-xl">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>

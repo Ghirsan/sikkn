@@ -1,10 +1,10 @@
-<x-layouts::app :title="__('Form Laporan LRK')">
-    <flux:breadcrumbs class="mb-6">
-        <flux:breadcrumbs.item icon="home" href="{{ route('dashboard') }}" wire:navigate />
-        <flux:breadcrumbs.item href="{{ route('lrk.index') }}" wire:navigate>{{ __('LRK') }}</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>{{ __('Form Laporan') }}</flux:breadcrumbs.item>
-    </flux:breadcrumbs>
-
+<x-layouts::app
+    :title="__('Form Laporan LRK')"
+    :breadcrumbs="[
+        ['label' => __('LRK'), 'url' => route('lrk.index')],
+        ['label' => __('Form LRK')],
+    ]"
+>
     <div class="flex h-full w-full flex-1 flex-col gap-6 rounded-xl">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
