@@ -133,7 +133,30 @@
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
-        <flux:header sticky class="lg:hidden bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+        <flux:header
+            sticky
+            x-data="{
+                lastScrollY: 0,
+                isHidden: false,
+                updateVisibility() {
+                    const currentScrollY = window.scrollY;
+
+                    if (currentScrollY <= 12) {
+                        this.isHidden = false;
+                    } else if (currentScrollY > this.lastScrollY + 4) {
+                        this.isHidden = true;
+                    } else if (currentScrollY < this.lastScrollY - 4) {
+                        this.isHidden = false;
+                    }
+
+                    this.lastScrollY = currentScrollY;
+                },
+            }"
+            x-init="lastScrollY = window.scrollY"
+            x-on:scroll.window.passive="updateVisibility()"
+            x-bind:class="isHidden ? '-translate-y-full' : 'translate-y-0'"
+            class="lg:hidden bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 transition-transform duration-200 ease-out"
+        >
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
