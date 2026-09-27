@@ -10,45 +10,43 @@
     </div>
 
     {{-- Filters --}}
-    <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-            <div class="flex flex-wrap items-center gap-3">
-                @if($allGroups->count() > 1)
-                    <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
-                        <option value="">{{ __('Semua Kelompok') }}</option>
-                        @foreach($allGroups as $g)
-                            <option value="{{ $g->id }}">{{ $g->name }}</option>
-                        @endforeach
-                    </flux:select>
-                @endif
-    
-                <flux:select wire:model.live="filterStudent" size="sm" class="w-full sm:w-48">
-                    <option value="">{{ __('Semua Mahasiswa') }}</option>
-                    @foreach($students as $student)
-                        <option value="{{ $student->id }}">{{ $student->name }}</option>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+        <div class="flex flex-wrap items-center gap-3">
+            @if($allGroups->count() > 1)
+                <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
+                    <option value="">{{ __('Semua Kelompok') }}</option>
+                    @foreach($allGroups as $g)
+                        <option value="{{ $g->id }}">{{ $g->name }}</option>
                     @endforeach
                 </flux:select>
+            @endif
 
-                <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-48">
-                    <option value="">{{ __('Semua Status') }}</option>
-                    <option value="pending">{{ __('Menunggu Persetujuan') }}</option>
-                    <option value="approved">{{ __('Disetujui') }}</option>
-                </flux:select>
-            </div>
+            <flux:select wire:model.live="filterStudent" size="sm" class="w-full sm:w-48">
+                <option value="">{{ __('Semua Mahasiswa') }}</option>
+                @foreach($students as $student)
+                    <option value="{{ $student->id }}">{{ $student->name }}</option>
+                @endforeach
+            </flux:select>
+
+            <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-48">
+                <option value="">{{ __('Semua Status') }}</option>
+                <option value="pending">{{ __('Menunggu Persetujuan') }}</option>
+                <option value="approved">{{ __('Disetujui') }}</option>
+            </flux:select>
+        </div>
+        
+        <div class="flex items-center gap-3 shrink-0">
+            @if(count($selectedLogs) > 0)
+                <flux:modal.trigger name="confirm-bulk-approve-modal">
+                    <flux:button variant="primary" size="sm" icon="check-circle">{{ __('Setujui Terpilih (:count)', ['count' => count($selectedLogs)]) }}</flux:button>
+                </flux:modal.trigger>
+            @endif
             
-            <div class="flex items-center gap-3 shrink-0">
-                @if(count($selectedLogs) > 0)
-                    <flux:modal.trigger name="confirm-bulk-approve-modal">
-                        <flux:button variant="primary" size="sm" icon="check-circle">{{ __('Setujui Terpilih (:count)', ['count' => count($selectedLogs)]) }}</flux:button>
-                    </flux:modal.trigger>
-                @endif
-                
-                @if($filterStudent && $logs->isNotEmpty())
-                    <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $filterStudent)" target="_blank">
-                        {{ __('Cetak') }}
-                    </flux:button>
-                @endif
-            </div>
+            @if($filterStudent && $logs->isNotEmpty())
+                <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $filterStudent)" target="_blank">
+                    {{ __('Cetak') }}
+                </flux:button>
+            @endif
         </div>
 
         @if($selectedGroupId && count($weeks) > 0)

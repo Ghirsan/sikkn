@@ -2,8 +2,8 @@
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
         <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
-        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Difeedback')" :value="$stats['reviewed']" />
-        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Feedback')" :value="$stats['pending']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Ditanggapi')" :value="$stats['reviewed']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Tanggapan')" :value="$stats['pending']" />
     </div>
 
     {{-- Mentoring Logs --}}
@@ -46,7 +46,7 @@
                                 </div>
                             @endif
                         </div>
-                        <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge>
+                        <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->mentoringLabel() }}</flux:badge>
                     </div>
 
                     {{-- Body --}}
@@ -62,31 +62,18 @@
                                     <div class="whitespace-pre-wrap">{{ $log->dpl_feedback }}</div>
                                 </flux:callout>
                             @else
-                                <div class="text-sm text-zinc-400 dark:text-zinc-500 italic bg-zinc-50 dark:bg-white/5 rounded-lg p-3 h-full flex items-center">{{ __('Belum ada feedback dari Dosen KKN.') }}</div>
+                                <div class="text-sm text-zinc-400 dark:text-zinc-500 italic bg-zinc-50 dark:bg-white/5 rounded-lg p-3 h-full flex items-center">{{ __('Belum ada tanggapan dari Dosen KKN.') }}</div>
                             @endif
                         </div>
                     </div>
 
-                    {{-- Bottom info & Actions --}}
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-zinc-800/10 dark:border-white/10">
-                        <div class="flex flex-wrap gap-2">
-                            @if($log->target_group)
-                                <flux:badge size="sm" color="zinc" icon="user-group">{{ __('Sasaran: ') }} {{ $log->target_group }}</flux:badge>
-                            @endif
-                            @if($log->student_count)
-                                <flux:badge size="sm" color="zinc" icon="users">{{ __('Jml: ') }} {{ $log->student_count }} {{ __('Mahasiswa') }}</flux:badge>
-                            @endif
-                            @if($log->output)
-                                <flux:badge size="sm" color="zinc" icon="document-text">{{ __('Luaran: ') }} {{ $log->output }}</flux:badge>
-                            @endif
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
-                            @if($log->status === \App\Enums\LogStatus::Draft)
-                                <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('mentoring-logs.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
-                                <flux:button variant="primary" size="sm" icon="paper-airplane" wire:click="submitLog({{ $log->id }})">{{ __('Ajukan') }}</flux:button>
-                            @endif
-                        </div>
+                    {{-- Actions --}}
+                    <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-white/10">
+                        <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat') }}</flux:button>
+                        @if($log->status === \App\Enums\LogStatus::Draft)
+                            <flux:button variant="ghost" size="sm" icon="pencil-square" href="{{ route('mentoring-logs.form', ['logId' => $log->id]) }}" wire:navigate>{{ __('Edit') }}</flux:button>
+                            <flux:button variant="primary" size="sm" icon="paper-airplane" wire:click="submitLog({{ $log->id }})">{{ __('Ajukan') }}</flux:button>
+                        @endif
                     </div>
                 </flux:card>
             @endforeach
@@ -98,14 +85,14 @@
         @if($viewLogData)
             <div class="flex flex-col gap-6">
                 {{-- Header --}}
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-center justify-between">
-                        <flux:heading size="lg">{{ $viewLogData->topic }}</flux:heading>
-                        <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
-                    </div>
+                <div class="flex flex-col gap-3">
+                    <flux:heading size="lg">{{ $viewLogData->topic }}</flux:heading>
                     <flux:text class="text-sm text-zinc-500">
                         {{ $viewLogData->date->translatedFormat('l, d M Y') }}
                     </flux:text>
+                    <div>
+                        <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->mentoringLabel() }}</flux:badge>
+                    </div>
                     @if($viewLogData->program)
                         <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
                             <flux:icon.folder variant="micro" class="text-zinc-400" />
@@ -134,7 +121,7 @@
                             </flux:callout>
                         @else
                             <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-400 dark:text-zinc-500 italic flex items-center">
-                                {{ __('Belum ada feedback dari Dosen KKN.') }}
+                                {{ __('Belum ada tanggapan dari Dosen KKN.') }}
                             </div>
                         @endif
                     </div>
@@ -147,7 +134,7 @@
                         <span class="text-sm font-medium">{{ $viewLogData->target_group ?? '-' }}</span>
                     </div>
                     <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
-                        <span class="text-xs text-zinc-500">Jml Mahasiswa</span>
+                        <span class="text-xs text-zinc-500">Jumlah Mahasiswa</span>
                         <span class="text-sm font-medium">{{ $viewLogData->student_count ?? '-' }}</span>
                     </div>
                     <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">

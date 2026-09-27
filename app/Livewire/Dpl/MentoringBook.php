@@ -13,6 +13,7 @@ class MentoringBook extends Component
     public int $feedbackLogId = 0;
     public string $filterStudent = '';
     public string $selectedGroupId = '';
+    public string $filterStatus = '';
 
     public function startFeedback(int $logId): void
     {
@@ -55,6 +56,10 @@ class MentoringBook extends Component
 
         if ($this->filterStudent) {
             $query->where('student_id', $this->filterStudent);
+        }
+
+        if ($this->filterStatus) {
+            $query->where('status', $this->filterStatus);
         }
 
         $logs = $query->latest('date')->get();

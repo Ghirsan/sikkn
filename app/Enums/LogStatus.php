@@ -25,4 +25,12 @@ enum LogStatus: string
             self::Approved => 'green',
         };
     }
+    public function mentoringLabel(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draf',
+            self::Pending => 'Menunggu Tanggapan',
+            self::Approved => 'Ditanggapi',
+        };
+    }
 }
