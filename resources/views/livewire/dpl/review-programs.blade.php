@@ -17,7 +17,7 @@
     {{-- Filter Tema --}}
     <div class="flex justify-end">
         @if($allGroups->count() > 1)
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-40 sm:w-48">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)
                     <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
@@ -139,14 +139,14 @@
         </div>
         <div class="flex flex-wrap gap-4">
 
-            <flux:select wire:model.live="filterType" size="sm" class="w-40 sm:w-48">
+            <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Jenis') }}</option>
                 @foreach(\App\Enums\ProgramType::cases() as $type)
                     <option value="{{ $type->value }}">{{ $type->label() }}</option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="filterStatus" size="sm" class="w-40 sm:w-48">
+            <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Status') }}</option>
                 <option value="submitted">{{ __('Menunggu Review') }}</option>
                 <option value="approved">{{ __('Disetujui') }}</option>
@@ -166,7 +166,7 @@
                     <flux:table.column>{{ __('Mahasiswa & Kelompok') }}</flux:table.column>
                     <flux:table.column>{{ __('Program') }}</flux:table.column>
                     <flux:table.column>{{ __('Status Rencana') }}</flux:table.column>
-                    <flux:table.column>{{ __('Status Laporan') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status Pelaksanaan') }}</flux:table.column>
                     <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -197,206 +197,234 @@
     </flux:card>
 
     {{-- Inspect Program Modal --}}
-    <flux:modal name="inspect-program" @close="closeInspect" class="max-w-2xl w-full">
+    <flux:modal name="inspect-program" scroll="body" @close="closeInspect" class="max-w-2xl w-full">
         @if($this->inspectingParticipant)
-            @php $p = $this->inspectingParticipant; @endphp
-            <div class="space-y-6">
-                {{-- Header --}}
-                <div>
-                    <flux:heading size="lg">{{ $p->program->title }}</flux:heading>
-                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                        <flux:badge size="sm" color="zinc">{{ $p->program->type->label() }}</flux:badge>
-                        <flux:badge size="sm" :color="$p->status->color()">{{ $p->status->label() }}</flux:badge>
-                        @if($p->participant_code)
-                            <flux:badge size="sm" color="blue">{{ $p->participant_code }}</flux:badge>
-                        @endif
+            <div class="flex flex-col gap-6">
+                <div class="flex items-start gap-3">
+                    <flux:avatar
+                        :name="$this->inspectingParticipant->student?->name ?? __('Mahasiswa')"
+                        :initials="$this->inspectingParticipant->student?->initials() ?? '?'"
+                        size="sm"
+                        class="mt-0.5"
+                    />
+                    <div class="flex min-w-0 flex-col gap-1.5">
+                        <flux:heading size="lg">{{ $this->inspectingParticipant->student?->name ?? __('Mahasiswa') }}</flux:heading>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <flux:text variant="subtle" class="text-sm">
+                            {{ $this->inspectingParticipant->student?->nim ?? __('Belum diisi') }}
+                            </flux:text>
+                            <flux:separator vertical variant="subtle" class="h-4" />
+                            <flux:text variant="subtle" class="text-sm">{{ $this->inspectingParticipant->program->group->name }}</flux:text>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div class="space-y-1.5">
+                                <flux:heading size="sm">{{ __('Status Rencana') }}</flux:heading>
+                                <flux:badge size="sm" :color="$this->inspectingParticipant->status->color()">
+                                    {{ $this->inspectingParticipant->status->label() }}
+                                </flux:badge>
+                            </div>
+                            <div class="space-y-1.5">
+                                <flux:heading size="sm">{{ __('Status Pelaksanaan') }}</flux:heading>
+                                <flux:badge size="sm" :color="$this->inspectingParticipant->lpk_status?->color() ?? 'zinc'">
+                                    {{ $this->inspectingParticipant->lpk_status?->label() ?? __('Belum Ada') }}
+                                </flux:badge>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <flux:separator />
 
-                {{-- Detail --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Mahasiswa') }}</flux:text>
-                        <flux:text>
-                            {{ $p->student?->name ?? '-' }}
-                            @if($p->student?->nim)
-                                <span class="text-zinc-500">({{ $p->student->nim }})</span>
-                            @endif
-                        </flux:text>
-                    </div>
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Kelompok') }}</flux:text>
-                        <flux:text>{{ $p->program->group->name }} ({{ $p->program->group->village }})</flux:text>
-                    </div>
-                    @if($p->execution_date)
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
-                            <flux:text>{{ $p->execution_date->translatedFormat('d M Y') }}</flux:text>
+                <div class="space-y-6">
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Identitas Program') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Program') }}</flux:text>
+                                <flux:text>{{ $this->inspectingParticipant->program->title ?: __('(Belum ada judul)') }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Jenis Program') }}</flux:text>
+                                <flux:text>{{ $this->inspectingParticipant->program->type->label() }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
+                                <flux:text>{{ $this->inspectingParticipant->participant_code ?: __('Belum diisi') }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
+                                <flux:text>{{ $this->inspectingParticipant->execution_date?->translatedFormat('d M Y') ?? __('Belum diisi') }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Kelompok') }}</flux:text>
+                                <flux:text>{{ $this->inspectingParticipant->program->group->name }} ({{ $this->inspectingParticipant->program->group->village ?: __('Belum diisi') }})</flux:text>
+                            </div>
                         </div>
-                    @endif
-                    @if($p->problem_potential)
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
-                            <flux:text>{{ $p->problem_potential }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->location)
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
-                            <flux:text>{{ $p->location }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->method)
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
-                            <flux:text>{{ $p->method }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->target_audience)
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
-                            <flux:text>{{ $p->target_audience }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->output_target)
-                        <div class="sm:col-span-2">
-                            <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
-                            <flux:text>{{ $p->output_target }}</flux:text>
-                        </div>
-                    @endif
-                    @if($p->sdg_category)
-                        <div class="sm:col-span-2">
-                            <flux:text variant="strong" class="mb-1">{{ __('Kategori SDGs') }}</flux:text>
-                            <flux:badge size="sm" color="lime" inset="top bottom">{{ $p->sdg_category->label() }}</flux:badge>
-                        </div>
-                    @endif
-                </div>
+                    </section>
 
-                <flux:separator variant="subtle" />
-                
-                <div>
-                    <flux:heading size="md" class="mb-2">{{ __('Peran Mahasiswa') }}</flux:heading>
-                    @if($p->role_in_program)
-                        <flux:text variant="strong" class="mb-1">{{ $p->role_in_program }}</flux:text>
-                    @endif
-                    @if($p->responsibility)
-                        <flux:text>{{ $p->responsibility }}</flux:text>
-                    @endif
-                    
-                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Status Rencana') }}</flux:text>
-                            <flux:badge size="sm" :color="$p->status->color()" class="mt-1">{{ $p->status->label() }}</flux:badge>
-                        </div>
-                        <div>
-                            <flux:text variant="strong" class="mb-1">{{ __('Status Laporan') }}</flux:text>
-                            <flux:badge size="sm" :color="$p->lpk_status?->color() ?? 'zinc'" class="mt-1">{{ $p->lpk_status?->label() ?? 'Belum Ada' }}</flux:badge>
-                        </div>
-                    </div>
-                </div>
-
-                @if($p->lpk_status && $p->lpk_status !== \App\Enums\ProgramStatus::Draft)
                     <flux:separator variant="subtle" />
-                    <div>
-                        <flux:heading size="md" class="mb-2">{{ __('Laporan Pelaksanaan') }}</flux:heading>
-                        <div class="grid grid-cols-1 gap-4">
-                            @if($p->achievement)
-                            <div>
-                                <flux:text variant="strong" class="mb-1">{{ __('Hasil yang Dicapai') }}</flux:text>
-                                <flux:text>{{ $p->achievement }}</flux:text>
-                            </div>
-                            @endif
-                            @if($p->obstacle)
-                            <div>
-                                <flux:text variant="strong" class="mb-1">{{ __('Hambatan') }}</flux:text>
-                                <flux:text>{{ $p->obstacle }}</flux:text>
-                            </div>
-                            @endif
-                            @if($p->solution)
-                            <div>
-                                <flux:text variant="strong" class="mb-1">{{ __('Solusi') }}</flux:text>
-                                <flux:text>{{ $p->solution }}</flux:text>
-                            </div>
-                            @endif
 
-                            {{-- Luaran Program --}}
-                            @if($p->outputs->isNotEmpty())
-                            <div>
-                                <flux:text variant="strong" class="mb-2">{{ __('Luaran Program') }}</flux:text>
-                                <div class="space-y-2">
-                                    @foreach($p->outputs as $output)
-                                        <x-file-preview 
-                                            :title="$output->name" 
-                                            :subtitle="$output->type === 'link' ? __('Tautan (URL)') : __('File dokumen')"
-                                        >
-                                            <x-slot:icon>
-                                                <div class="size-9 rounded-md bg-accent/5 dark:bg-accent/10 flex items-center justify-center">
-                                                    <flux:icon icon="{{ $output->type === 'link' ? 'link' : 'document-check' }}" variant="mini" class="text-accent" />
-                                                </div>
-                                            </x-slot:icon>
-                                            <x-slot:action>
-                                                <a href="{{ $output->file_path ? asset('storage/' . $output->file_path) : $output->url }}" target="_blank" rel="noopener noreferrer" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-400 hover:text-accent dark:text-zinc-500 dark:hover:text-accent cursor-pointer" aria-label="{{ __('Buka luaran') }}">
-                                                    <flux:icon icon="arrow-top-right-on-square" variant="mini" class="size-4" />
-                                                </a>
-                                            </x-slot:action>
-                                        </x-file-preview>
-                                    @endforeach
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Rancangan Program') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                            @if($this->inspectingParticipant->program->type === \App\Enums\ProgramType::Multidisiplin)
+                                <div class="sm:col-span-2">
+                                    <flux:text variant="strong" class="mb-1">{{ __('Usulan Program (Spesifik)') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->participant_title ?: __('Belum diisi') }}</flux:text>
                                 </div>
-                            </div>
                             @endif
+                            @if($this->inspectingParticipant->program->type === \App\Enums\ProgramType::Multidisiplin && !$this->inspectingParticipant->program->isVideoProfile())
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->problem_potential ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->location ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->method ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->target_audience ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->output_target ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                            @endif
+                            @if($this->inspectingParticipant->program->type !== \App\Enums\ProgramType::Multidisiplin)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Peran Anda') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->role_in_program ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Deskripsi Tugas dan Tanggung Jawab') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->responsibility ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                            @endif
+                            <div class="sm:col-span-2">
+                                <flux:text variant="strong" class="mb-1">{{ __('Kategori SDGs') }}</flux:text>
+                                @if($this->inspectingParticipant->sdg_category)
+                                    <flux:badge size="sm" color="lime" inset="top bottom">{{ $this->inspectingParticipant->sdg_category->label() }}</flux:badge>
+                                @else
+                                    <flux:text>{{ __('Belum diisi') }}</flux:text>
+                                @endif
+                            </div>
+                        </div>
+                    </section>
 
-                            {{-- Foto Dokumentasi --}}
-                            @if($p->documentation_image_path)
-                            <div class="mt-2">
-                                <flux:text variant="strong" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:text>
-                                <div class="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-                                    <img src="{{ asset('storage/' . $p->documentation_image_path) }}" alt="{{ $p->documentation_caption ?? 'Dokumentasi Program' }}" class="w-full h-auto object-cover max-h-96">
-                                    @if($p->documentation_caption)
-                                    <div class="bg-zinc-50 dark:bg-zinc-800 p-3 border-t border-zinc-200 dark:border-zinc-700">
-                                        <flux:text class="text-sm italic text-zinc-600 dark:text-zinc-400 text-center">{{ $p->documentation_caption }}</flux:text>
+                    <flux:separator variant="subtle" />
+
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Pelaksanaan Program') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                            @if($this->inspectingParticipant->program->type === \App\Enums\ProgramType::Multidisiplin && !$this->inspectingParticipant->program->isVideoProfile())
+                                <div class="sm:col-span-2">
+                                    <flux:text variant="strong" class="mb-1">{{ __('Pelaksanaan Kegiatan') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->execution_description ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <flux:text variant="strong" class="mb-1">{{ __('Ketercapaian') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->achievement ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Hambatan') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->obstacle ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Tindak Lanjut') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->solution ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                            @else
+                                <div class="sm:col-span-2">
+                                    <flux:text variant="strong" class="mb-1">{{ __('Hasil') }}</flux:text>
+                                    <flux:text>{{ $this->inspectingParticipant->achievement ?: __('Belum diisi') }}</flux:text>
+                                </div>
+                            @endif
+                        </div>
+                    </section>
+
+                    <flux:separator variant="subtle" />
+
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Luaran Program') }}</flux:heading>
+                        @if($this->inspectingParticipant->outputs->isNotEmpty())
+                            <div class="space-y-2">
+                                @foreach($this->inspectingParticipant->outputs as $output)
+                                    <x-file-preview
+                                        :title="$output->name"
+                                        :subtitle="$output->type === 'link' ? __('Tautan (URL)') : __('File dokumen')"
+                                    >
+                                        <x-slot:icon>
+                                            <div class="size-9 rounded-md bg-accent/5 dark:bg-accent/10 flex items-center justify-center">
+                                                <flux:icon icon="{{ $output->type === 'link' ? 'link' : 'document-check' }}" variant="mini" class="text-accent" />
+                                            </div>
+                                        </x-slot:icon>
+                                        <x-slot:action>
+                                            <a href="{{ $output->file_path ? asset('storage/' . $output->file_path) : $output->url }}" target="_blank" rel="noopener noreferrer" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-400 hover:text-accent dark:text-zinc-500 dark:hover:text-accent cursor-pointer" aria-label="{{ __('Buka luaran') }}">
+                                                <flux:icon icon="arrow-top-right-on-square" variant="mini" class="size-4" />
+                                            </a>
+                                        </x-slot:action>
+                                    </x-file-preview>
+                                @endforeach
+                            </div>
+                        @else
+                            <flux:text>{{ __('Belum diisi') }}</flux:text>
+                        @endif
+
+                        <div>
+                            <flux:heading size="sm" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:heading>
+                            @if($this->inspectingParticipant->documentation_image_path)
+                                <flux:card variant="soft" class="overflow-hidden p-0">
+                                    <img src="{{ asset('storage/' . $this->inspectingParticipant->documentation_image_path) }}" alt="{{ $this->inspectingParticipant->documentation_caption ?? 'Dokumentasi Program' }}" class="mx-auto block max-h-96 max-w-full object-contain">
+                                    <flux:separator variant="subtle" />
+                                    <div class="p-3">
+                                        <flux:text variant="subtle" class="text-center text-sm italic">{{ $this->inspectingParticipant->documentation_caption ?: __('Belum diisi') }}</flux:text>
                                     </div>
-                                    @endif
-                                </div>
-                            </div>
+                                </flux:card>
+                            @else
+                                <flux:text>{{ __('Belum diisi') }}</flux:text>
                             @endif
                         </div>
-                    </div>
-                @endif
+                    </section>
 
-                {{-- Catatan revisi sebelumnya --}}
-                @if($p->revision_note)
-                    <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-                        <flux:text class="text-xs font-medium uppercase tracking-wider text-red-600 dark:text-red-400">{{ __('Catatan Revisi') }}</flux:text>
-                        <flux:text class="mt-1 text-red-700 dark:text-red-300">{{ $p->revision_note }}</flux:text>
-                    </div>
-                @endif
+                    @if($this->inspectingParticipant->revision_note)
+                        <flux:separator variant="subtle" />
+                        <section class="space-y-2">
+                            <flux:heading size="sm">{{ __('Catatan Revisi') }}</flux:heading>
+                            <flux:text>{{ $this->inspectingParticipant->revision_note }}</flux:text>
+                        </section>
+                    @endif
 
-                {{-- Inline revision form --}}
-                @if($showRevisionForm)
-                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
-                        <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
-                        @error('revisionNote') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
-                        <div class="mt-3 flex gap-2">
-                            <flux:button wire:click="submitRevision" size="sm" variant="primary">{{ __('Kirim Revisi') }}</flux:button>
-                            <flux:button wire:click="$set('showRevisionForm', false)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
-                        </div>
-                    </div>
-                @endif
+                    @if($showRevisionForm)
+                        <flux:separator variant="subtle" />
+                        <section class="space-y-3">
+                            <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
+                            @error('revisionNote')
+                                <flux:text class="text-xs text-red-500">{{ $message }}</flux:text>
+                            @enderror
+                            <div class="flex justify-end gap-2">
+                                <flux:button wire:click="$set('showRevisionForm', false)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
+                                <flux:button wire:click="submitRevision" size="sm" variant="primary">{{ __('Kirim Revisi') }}</flux:button>
+                            </div>
+                        </section>
+                    @endif
+                </div>
 
-                {{-- Footer actions --}}
                 <div class="flex gap-2">
                     <flux:spacer />
                     <flux:modal.close>
                         <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
-                    @if($p->status->value === 'submitted' && !$showRevisionForm)
+                    @if($this->inspectingParticipant->status->value === 'submitted' && !$showRevisionForm)
                         <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi Rencana') }}</flux:button>
-                        <flux:button wire:click="approve({{ $p->id }})" variant="primary" icon="check">{{ __('Setujui Rencana') }}</flux:button>
-                    @elseif($p->status->value === 'approved' && $p->lpk_status->value === 'submitted' && !$showRevisionForm)
+                        <flux:button wire:click="approve({{ $this->inspectingParticipant->id }})" variant="primary" icon="check">{{ __('Setujui Rencana') }}</flux:button>
+                    @elseif($this->inspectingParticipant->status->value === 'approved' && $this->inspectingParticipant->lpk_status?->value === 'submitted' && !$showRevisionForm)
                         <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi Laporan') }}</flux:button>
-                        <flux:button wire:click="approve({{ $p->id }})" variant="primary" icon="check">{{ __('Setujui Laporan') }}</flux:button>
+                        <flux:button wire:click="approve({{ $this->inspectingParticipant->id }})" variant="primary" icon="check">{{ __('Setujui Laporan') }}</flux:button>
                     @endif
                 </div>
             </div>

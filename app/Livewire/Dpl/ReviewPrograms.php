@@ -6,29 +6,40 @@ use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ReviewPrograms extends Component
 {
-    use \Livewire\WithPagination;
+    use WithPagination;
 
     public string $filterStatus = '';
+
     public string $filterType = '';
+
     public string $selectedGroupId = '';
+
     public string $search = '';
 
     // Theme management
     public string $newThemeTitle = '';
+
     public ?int $editingThemeId = null;
+
     public string $editingThemeTitle = '';
+
     public ?int $deletingThemeId = null;
+
     public string $deletingThemeTitle = '';
 
     // Inspect modal
     public ?int $inspectingParticipantId = null;
+
     public string $revisionNote = '';
+
     public bool $showRevisionForm = false;
 
     public function inspect(int $participantId): void
@@ -60,17 +71,23 @@ class ReviewPrograms extends Component
     public function approve(int $participantId): void
     {
         $participant = $this->getAuthorizedParticipant($participantId);
-        
+
         $isLpkPhase = $participant->status === ProgramStatus::Approved && $participant->lpk_status === ProgramStatus::Submitted;
         $statusField = $isLpkPhase ? 'lpk_status' : 'status';
 
         $participant->update([
             $statusField => ProgramStatus::Approved,
-            'revision_note' => null
+            'revision_note' => null,
         ]);
 
         $this->modal('inspect-program')->close();
         $this->closeInspect();
+
+        Flux::toast(
+            variant: 'success',
+            heading: $isLpkPhase ? __('Laporan Disetujui') : __('Rencana Disetujui'),
+            text: $isLpkPhase ? __('Laporan program berhasil disetujui.') : __('Rencana program berhasil disetujui.'),
+        );
     }
 
     public function startRevision(): void
@@ -83,7 +100,7 @@ class ReviewPrograms extends Component
         $this->validate(['revisionNote' => 'required|min:10']);
 
         $participant = $this->getAuthorizedParticipant($this->inspectingParticipantId);
-        
+
         $isLpkPhase = $participant->status === ProgramStatus::Approved && $participant->lpk_status === ProgramStatus::Submitted;
         $statusField = $isLpkPhase ? 'lpk_status' : 'status';
 
@@ -94,6 +111,12 @@ class ReviewPrograms extends Component
 
         $this->modal('inspect-program')->close();
         $this->closeInspect();
+
+        Flux::toast(
+            variant: 'success',
+            heading: __('Revisi Dikirim'),
+            text: $isLpkPhase ? __('Permintaan revisi laporan berhasil dikirim.') : __('Permintaan revisi rencana berhasil dikirim.'),
+        );
     }
 
     // ── Theme Management ─────────────────────────────────────────────
@@ -103,7 +126,9 @@ class ReviewPrograms extends Component
         $this->validate(['newThemeTitle' => 'required|string|max:255']);
 
         $groupId = $this->getSelectedGroupIdForThemes();
-        if (! $groupId) return;
+        if (! $groupId) {
+            return;
+        }
 
         $this->authorizeGroup($groupId);
 
@@ -113,11 +138,11 @@ class ReviewPrograms extends Component
             ->max('sequence') + 1;
 
         Program::create([
-            'group_id'  => $groupId,
+            'group_id' => $groupId,
             'student_id' => null,
-            'title'     => $this->newThemeTitle,
-            'type'      => ProgramType::Multidisiplin,
-            'sequence'  => $nextSequence,
+            'title' => $this->newThemeTitle,
+            'type' => ProgramType::Multidisiplin,
+            'sequence' => $nextSequence,
         ]);
 
         $this->newThemeTitle = '';
@@ -151,18 +176,36 @@ class ReviewPrograms extends Component
     {
         $program = $this->getAuthorizedTheme($programId);
 
-        if ($program->participants()->count() > 0) {
+        if ($program->participants()->exists()) {
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Tema Tidak Dapat Dihapus'),
+                text: __('Tema tidak dapat dihapus karena sudah ada mahasiswa yang bergabung.'),
+            );
+
             return; // Block deletion if students have joined
         }
 
         $program->delete();
+
+        Flux::toast(
+            variant: 'success',
+            heading: __('Tema Dihapus'),
+            text: __('Tema multidisiplin berhasil dihapus.'),
+        );
     }
 
     public function confirmDeleteTheme(int $programId): void
     {
         $program = $this->getAuthorizedTheme($programId);
 
-        if ($program->participants()->count() > 0) {
+        if ($program->participants()->exists()) {
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Tema Tidak Dapat Dihapus'),
+                text: __('Tema tidak dapat dihapus karena sudah ada mahasiswa yang bergabung.'),
+            );
+
             return;
         }
 
@@ -235,7 +278,7 @@ class ReviewPrograms extends Component
         if ($this->filterStatus) {
             $query->where(function ($q) {
                 $q->where('status', $this->filterStatus)
-                  ->orWhere('lpk_status', $this->filterStatus);
+                    ->orWhere('lpk_status', $this->filterStatus);
             });
         }
 
@@ -248,10 +291,10 @@ class ReviewPrograms extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('student', function ($q2) {
-                    $q2->where('name', 'like', '%' . $this->search . '%')
-                       ->orWhere('nim', 'like', '%' . $this->search . '%');
+                    $q2->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('nim', 'like', '%'.$this->search.'%');
                 })->orWhereHas('program', function ($q2) {
-                    $q2->where('title', 'like', '%' . $this->search . '%');
+                    $q2->where('title', 'like', '%'.$this->search.'%');
                 });
             });
         }
@@ -275,23 +318,23 @@ class ReviewPrograms extends Component
             'stats' => [
                 'pending' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
-                })->where(function($q) {
+                })->where(function ($q) {
                     $q->where('status', ProgramStatus::Submitted)
-                      ->orWhere('lpk_status', ProgramStatus::Submitted);
+                        ->orWhere('lpk_status', ProgramStatus::Submitted);
                 })->count(),
-                
+
                 'approved' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
                 })->where('status', ProgramStatus::Approved)
-                  ->where('lpk_status', ProgramStatus::Approved)->count(),
-                
+                    ->where('lpk_status', ProgramStatus::Approved)->count(),
+
                 'revision' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
-                })->where(function($q) {
+                })->where(function ($q) {
                     $q->where('status', ProgramStatus::NeedsRevision)
-                      ->orWhere('lpk_status', ProgramStatus::NeedsRevision);
+                        ->orWhere('lpk_status', ProgramStatus::NeedsRevision);
                 })->count(),
-                
+
                 'total' => ProgramParticipant::whereHas('program', function ($q) use ($groupIds) {
                     $q->whereIn('group_id', $groupIds);
                 })->count(),

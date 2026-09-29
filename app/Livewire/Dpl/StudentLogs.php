@@ -4,22 +4,30 @@ namespace App\Livewire\Dpl;
 
 use App\Enums\LogStatus;
 use App\Models\DailyLog;
+use App\Models\Group;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class StudentLogs extends Component
 {
-    use \Livewire\WithPagination;
+    use WithPagination;
 
     public string $filterStudent = '';
+
     public string $selectedGroupId = '';
+
     public string $filterStatus = '';
+
     public string $selectedWeek = 'all';
-    
+
     public string $sortBy = 'date';
+
     public string $sortDirection = 'desc';
 
     public array $selectedLogs = [];
+
     public bool $selectAll = false;
 
     public $viewLogData = null;
@@ -38,9 +46,9 @@ class StudentLogs extends Component
     {
         if ($value) {
             $this->selectedLogs = $this->buildQuery()
-                ->where('status', \App\Enums\LogStatus::Pending)
+                ->where('status', LogStatus::Pending)
                 ->pluck('id')
-                ->map(fn($id) => (string) $id)
+                ->map(fn ($id) => (string) $id)
                 ->toArray();
         } else {
             $this->selectedLogs = [];
@@ -76,11 +84,13 @@ class StudentLogs extends Component
         $log = DailyLog::whereIn('student_id', $studentIds)->findOrFail($logId);
         if ($log->status === LogStatus::Pending) {
             $log->update(['status' => LogStatus::Approved]);
-            
+
             if ($this->viewLogData && $this->viewLogData->id === $logId) {
                 // Refresh the modal data
-                $this->viewLogData = \App\Models\DailyLog::with(['activities', 'student', 'student.group'])->find($logId);
+                $this->viewLogData = DailyLog::with(['activities', 'student', 'student.group'])->find($logId);
             }
+
+            \Flux\Flux::toast(variant: 'success', heading: __('Logbook Disetujui'), text: __('Logbook berhasil disetujui.'));
         }
     }
 
@@ -92,7 +102,9 @@ class StudentLogs extends Component
 
     public function bulkApprove()
     {
-        if (empty($this->selectedLogs)) return;
+        if (empty($this->selectedLogs)) {
+            return;
+        }
 
         $studentIds = $this->getStudentIds();
         DailyLog::whereIn('student_id', $studentIds)
@@ -102,20 +114,20 @@ class StudentLogs extends Component
 
         $this->selectedLogs = [];
         $this->selectAll = false;
-        
-        session()->flash('success', 'Logbook yang dipilih berhasil disetujui.');
+
+        \Flux\Flux::toast(variant: 'success', heading: __('Logbook Disetujui'), text: __('Logbook yang dipilih berhasil disetujui.'));
     }
 
     public function viewLog($id)
     {
         $studentIds = $this->getStudentIds();
         $log = DailyLog::with(['activities', 'student', 'student.group'])->whereIn('student_id', $studentIds)->findOrFail($id);
-        
+
         $group = $log->student->group;
-        $dayDiff = ($group && $group->start_date) ? \Carbon\Carbon::parse($group->start_date)->diffInDays($log->date) : 0;
+        $dayDiff = ($group && $group->start_date) ? Carbon::parse($group->start_date)->diffInDays($log->date) : 0;
         $log->day_number = $dayDiff + 1;
         $log->week_number = floor($dayDiff / 7) + 1;
-        
+
         $this->viewLogData = $log;
         \Flux::modal('log-view-modal')->show();
     }
@@ -123,13 +135,13 @@ class StudentLogs extends Component
     private function buildQuery()
     {
         $user = Auth::user();
-        
+
         $groupsQuery = $user->dplGroups()->with('students');
-        
+
         if ($this->selectedGroupId) {
             $groupsQuery->where('groups.id', $this->selectedGroupId);
         }
-        
+
         $groups = $groupsQuery->get();
         $studentIds = $groups->pluck('students')->flatten()->pluck('id');
 
@@ -144,9 +156,9 @@ class StudentLogs extends Component
         }
 
         if ($this->selectedGroupId && $this->selectedWeek !== 'all') {
-            $group = \App\Models\Group::find($this->selectedGroupId);
+            $group = Group::find($this->selectedGroupId);
             if ($group && $group->start_date) {
-                $startDate = \Carbon\Carbon::parse($group->start_date)->addDays(((int)$this->selectedWeek - 1) * 7);
+                $startDate = Carbon::parse($group->start_date)->addDays(((int) $this->selectedWeek - 1) * 7);
                 $endDate = $startDate->copy()->addDays(6);
                 $query->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
             }
@@ -159,15 +171,15 @@ class StudentLogs extends Component
     {
         $user = Auth::user();
         $allGroups = $user->dplGroups()->get();
-        
-        $groupsForFilter = $this->selectedGroupId 
-            ? $allGroups->where('id', $this->selectedGroupId) 
+
+        $groupsForFilter = $this->selectedGroupId
+            ? $allGroups->where('id', $this->selectedGroupId)
             : $allGroups;
-            
+
         $students = $groupsForFilter->pluck('students')->flatten();
 
         $query = $this->buildQuery();
-        
+
         $stats = [
             'pending' => (clone $query)->where('status', LogStatus::Pending)->count(),
             'approved' => (clone $query)->where('status', LogStatus::Approved)->count(),
@@ -175,17 +187,17 @@ class StudentLogs extends Component
         ];
 
         $logs = $query->orderBy($this->sortBy, $this->sortDirection)->paginate(10);
-        
+
         // Calculate total stats independent of filters (optional) or dependent on filter.
         // We will base stats on the current filter view, or all logs? Previously it was based on $logs.
-        
+
         $weeks = [];
         if ($this->selectedGroupId) {
             $selectedGroup = $allGroups->firstWhere('id', $this->selectedGroupId);
             if ($selectedGroup && $selectedGroup->start_date && $selectedGroup->end_date) {
-                $startDate = \Carbon\Carbon::parse($selectedGroup->start_date);
-                $endDate = \Carbon\Carbon::parse($selectedGroup->end_date);
-                $today = \Carbon\Carbon::today();
+                $startDate = Carbon::parse($selectedGroup->start_date);
+                $endDate = Carbon::parse($selectedGroup->end_date);
+                $today = Carbon::today();
                 if ($endDate->gt($today)) {
                     $endDate = $today;
                 }
@@ -199,14 +211,14 @@ class StudentLogs extends Component
 
         $totalHours = null;
         if ($this->filterStudent) {
-            $studentLogs = \App\Models\DailyLog::with('activities')
+            $studentLogs = DailyLog::with('activities')
                 ->where('student_id', $this->filterStudent)
                 ->get();
             $totalMinutes = 0;
             foreach ($studentLogs as $log) {
                 foreach ($log->activities as $activity) {
-                    $start = \Carbon\Carbon::parse($activity->start_time);
-                    $end = \Carbon\Carbon::parse($activity->end_time);
+                    $start = Carbon::parse($activity->start_time);
+                    $end = Carbon::parse($activity->end_time);
                     $totalMinutes += $start->diffInMinutes($end);
                 }
             }
@@ -226,6 +238,7 @@ class StudentLogs extends Component
     private function getStudentIds()
     {
         $user = Auth::user();
+
         return $user->dplGroups()->with('students')->get()->pluck('students')->flatten()->pluck('id');
     }
 }

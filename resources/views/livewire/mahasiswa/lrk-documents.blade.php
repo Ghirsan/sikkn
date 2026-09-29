@@ -110,17 +110,17 @@
             <div class="flex flex-col sm:flex-row items-center gap-2 w-full xl:w-auto">
                 <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari judul atau kode...') }}" class="w-full sm:w-48" />
                 
-                <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-40">
-                    <flux:select.option value="">Semua Jenis Program</flux:select.option>
-                    <flux:select.option value="multidisiplin">Multidisiplin</flux:select.option>
-                    <flux:select.option value="sosial_kemasyarakatan">Sosial Kemasyarakatan</flux:select.option>
-                    <flux:select.option value="lainnya">Lainnya</flux:select.option>
+                <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-48">
+                    <option value="">Semua Jenis Program</option>
+                    <option value="multidisiplin">Multidisiplin</option>
+                    <option value="sosial_kemasyarakatan">Sosial Kemasyarakatan</option>
+                    <option value="lainnya">Lainnya</option>
                 </flux:select>
                 
-                <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-40">
-                    <flux:select.option value="">Semua Status</flux:select.option>
+                <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-48">
+                    <option value="">Semua Status</option>
                     @foreach(\App\Enums\ProgramStatus::cases() as $status)
-                        <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
+                        <option value="{{ $status->value }}">{{ $status->label() }}</option>
                     @endforeach
                 </flux:select>
             </div>

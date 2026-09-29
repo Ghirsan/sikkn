@@ -1,7 +1,7 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     @if($allGroups->count() > 1)
         <div class="flex items-center justify-end">
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)
                     <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
@@ -18,7 +18,7 @@
                 <flux:text>{{ $data->group->location }}</flux:text>
             </div>
             <div class="flex items-center gap-2">
-                <flux:badge :color="$data->lrkReady ? 'green' : 'zinc'">{{ $data->lrkReady ? __('Siap PDF') : $data->approvedCount.'/'.$data->totalPrograms.' '.__('approved') }}</flux:badge>
+                <flux:badge size="sm" :color="$data->lrkReady ? 'green' : 'zinc'">{{ $data->lrkReady ? __('Siap PDF') : $data->approvedCount.'/'.$data->totalPrograms.' '.__('approved') }}</flux:badge>
             </div>
         </div>
 
@@ -117,21 +117,7 @@
                                 </flux:table.cell>
                                 <flux:table.cell>{{ $participant->student?->name ?? __('Kelompok') }}</flux:table.cell>
                                 <flux:table.cell>
-                                    @php
-                                        $statusColor = match($participant->status->value) {
-                                            'approved' => 'green',
-                                            'submitted' => 'amber',
-                                            'needs_revision' => 'red',
-                                            default => 'zinc',
-                                        };
-                                        $statusLabel = match($participant->status->value) {
-                                            'approved' => __('Disetujui'),
-                                            'submitted' => __('Diajukan'),
-                                            'needs_revision' => __('Revisi'),
-                                            default => __('Draft'),
-                                        };
-                                    @endphp
-                                    <flux:badge size="sm" :color="$statusColor" inset="top bottom">{{ $statusLabel }}</flux:badge>
+                                    <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
                                 </flux:table.cell>
                             </flux:table.row>
                         @endforeach

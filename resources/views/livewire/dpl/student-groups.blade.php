@@ -2,7 +2,7 @@
     {{-- Group Filter --}}
     @if($allGroups->count() > 1)
         <div class="flex justify-end">
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64 shrink-0">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)
                     <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>

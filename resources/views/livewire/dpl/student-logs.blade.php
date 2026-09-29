@@ -9,59 +9,97 @@
         @endif
     </div>
 
-    {{-- Filters --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+    {{-- Filters + Actions --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end">
+
+        {{-- Filters --}}
         <div class="flex flex-wrap items-center gap-3">
             @if($allGroups->count() > 1)
-                <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
+                <flux:select
+                    wire:model.live="selectedGroupId"
+                    size="sm"
+                    class="w-full sm:w-48"
+                >
                     <option value="">{{ __('Semua Kelompok') }}</option>
+
                     @foreach($allGroups as $g)
                         <option value="{{ $g->id }}">{{ $g->name }}</option>
                     @endforeach
                 </flux:select>
             @endif
 
-            <flux:select wire:model.live="filterStudent" size="sm" class="w-full sm:w-48">
+            <flux:select
+                wire:model.live="filterStudent"
+                size="sm"
+                class="w-full sm:w-48"
+            >
                 <option value="">{{ __('Semua Mahasiswa') }}</option>
+
                 @foreach($students as $student)
                     <option value="{{ $student->id }}">{{ $student->name }}</option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="filterStatus" size="sm" class="w-full sm:w-48">
+            <flux:select
+                wire:model.live="filterStatus"
+                size="sm"
+                class="w-full sm:w-48"
+            >
                 <option value="">{{ __('Semua Status') }}</option>
                 <option value="pending">{{ __('Menunggu Persetujuan') }}</option>
                 <option value="approved">{{ __('Disetujui') }}</option>
             </flux:select>
         </div>
-        
-        <div class="flex items-center gap-3 shrink-0">
+
+        {{-- Actions --}}
+        <div class="mt-3 flex items-center gap-3 sm:mt-0 sm:ml-3 shrink-0">
             @if(count($selectedLogs) > 0)
                 <flux:modal.trigger name="confirm-bulk-approve-modal">
-                    <flux:button variant="primary" size="sm" icon="check-circle">{{ __('Setujui Terpilih (:count)', ['count' => count($selectedLogs)]) }}</flux:button>
+                    <flux:button
+                        variant="primary"
+                        size="sm"
+                        icon="check-circle"
+                    >
+                        {{ __('Setujui Terpilih (:count)', ['count' => count($selectedLogs)]) }}
+                    </flux:button>
                 </flux:modal.trigger>
             @endif
-            
+
             @if($filterStudent && $logs->isNotEmpty())
-                <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $filterStudent)" target="_blank">
+                <flux:button
+                    variant="ghost"
+                    size="sm"
+                    icon="printer"
+                    :href="route('logbook.pdf', $filterStudent)"
+                    target="_blank"
+                >
                     {{ __('Cetak') }}
                 </flux:button>
             @endif
         </div>
-
-        @if($selectedGroupId && count($weeks) > 0)
-            <div class="mt-2">
-                <x-tabs>
-                    <x-tab wire:click="$set('selectedWeek', 'all')" :active="$selectedWeek === 'all'">{{ __('Semua') }}</x-tab>
-                    @foreach($weeks as $week)
-                        <x-tab wire:click="$set('selectedWeek', '{{ $week }}')" :active="$selectedWeek == $week">
-                            {{ __('Minggu ') . $week }}
-                        </x-tab>
-                    @endforeach
-                </x-tabs>
-            </div>
-        @endif
     </div>
+
+    {{-- Weeks --}}
+    @if($selectedGroupId && count($weeks) > 0)
+        <x-tabs>
+            <x-tab
+                wire:click="$set('selectedWeek', 'all')"
+                :active="$selectedWeek === 'all'"
+            >
+                {{ __('Semua') }}
+            </x-tab>
+
+            @foreach($weeks as $week)
+                <x-tab
+                    wire:click="$set('selectedWeek', '{{ $week }}')"
+                    :active="$selectedWeek == $week"
+                >
+                    {{ __('Minggu ') . $week }}
+                </x-tab>
+            @endforeach
+        </x-tabs>
+    @endif
+
 
     {{-- Logs --}}
     <flux:card>
@@ -204,12 +242,15 @@
 
     {{-- Confirm Approve Modal --}}
     <flux:modal name="confirm-approve-modal" class="max-w-sm w-full">
-        <form wire:submit.prevent="executeApprove">
-            <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
-            <flux:text class="mt-2 text-sm text-zinc-500">
-                {{ __('Apakah Anda yakin ingin menyetujui logbook ini? Tindakan ini tidak dapat dibatalkan.') }}
-            </flux:text>
-            <div class="mt-6 flex justify-end gap-2">
+        <form wire:submit.prevent="executeApprove" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
+                <flux:text class="mt-2 text-sm text-zinc-500">
+                    {{ __('Apakah Anda yakin ingin menyetujui logbook ini? Tindakan ini tidak dapat dibatalkan.') }}
+                </flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
                 <flux:modal.close>
                     <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
@@ -220,12 +261,15 @@
 
     {{-- Confirm Bulk Approve Modal --}}
     <flux:modal name="confirm-bulk-approve-modal" class="max-w-sm w-full">
-        <form wire:submit.prevent="executeBulkApprove">
-            <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
-            <flux:text class="mt-2 text-sm text-zinc-500">
-                {{ __('Apakah Anda yakin ingin menyetujui :count logbook yang dipilih? Tindakan ini tidak dapat dibatalkan.', ['count' => count($selectedLogs)]) }}
-            </flux:text>
-            <div class="mt-6 flex justify-end gap-2">
+        <form wire:submit.prevent="executeBulkApprove" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Konfirmasi Persetujuan') }}</flux:heading>
+                <flux:text class="mt-2 text-sm text-zinc-500">
+                    {{ __('Apakah Anda yakin ingin menyetujui :count logbook yang dipilih? Tindakan ini tidak dapat dibatalkan.', ['count' => count($selectedLogs)]) }}
+                </flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
                 <flux:modal.close>
                     <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>

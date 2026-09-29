@@ -1,7 +1,7 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     @if($allGroups->count() > 1)
         <div class="flex items-center justify-end">
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-64">
+            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)
                     <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
@@ -49,9 +49,9 @@
                             <flux:table.cell>{{ $student->prodi }}</flux:table.cell>
                             <flux:table.cell>
                                 @if($student->grade)
-                                    <flux:badge color="green" inset="top bottom">{{ $student->grade->grade_letter }} ({{ $student->grade->final_grade }})</flux:badge>
+                                    <flux:badge size="sm" color="green" inset="top bottom">{{ $student->grade->grade_letter }} ({{ $student->grade->final_grade }})</flux:badge>
                                 @else
-                                    <flux:badge color="zinc" inset="top bottom">{{ __('Belum Dinilai') }}</flux:badge>
+                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Dinilai') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                         </flux:table.row>

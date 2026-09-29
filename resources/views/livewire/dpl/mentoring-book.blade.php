@@ -10,17 +10,17 @@
         <div class="flex flex-wrap items-center gap-3">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
-                    <flux:select.option value="">{{ __('Semua Kelompok') }}</flux:select.option>
+                    <option value="">{{ __('Semua Kelompok') }}</option>
                     @foreach($allGroups as $group)
-                        <flux:select.option value="{{ $group->id }}">{{ $group->name }}</flux:select.option>
+                        <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
                 </flux:select>
             @endif
 
             <flux:select wire:model.live="filterStudent" size="sm" class="w-full sm:w-48">
-                <flux:select.option value="">{{ __('Semua Mahasiswa') }}</flux:select.option>
+                <option value="">{{ __('Semua Mahasiswa') }}</option>
                 @foreach($students as $student)
-                    <flux:select.option value="{{ $student->id }}">{{ $student->name }}</flux:select.option>
+                    <option value="{{ $student->id }}">{{ $student->name }}</option>
                 @endforeach
             </flux:select>
 

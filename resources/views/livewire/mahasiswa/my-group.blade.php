@@ -134,40 +134,36 @@
             </div>
 
             @if($members->isNotEmpty())
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-b border-zinc-800/10 dark:border-white/10 text-left">
-                                <th class="pb-3 font-medium text-zinc-500 dark:text-zinc-400 w-12">{{ __('No') }}</th>
-                                <th class="pb-3 font-medium text-zinc-500 dark:text-zinc-400">{{ __('Nama') }}</th>
-                                <th class="pb-3 font-medium text-zinc-500 dark:text-zinc-400">{{ __('NIM') }}</th>
-                                <th class="pb-3 font-medium text-zinc-500 dark:text-zinc-400">{{ __('Program Studi') }}</th>
-                                <th class="pb-3 font-medium text-zinc-500 dark:text-zinc-400">{{ __('Fakultas') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-800/10 dark:divide-white/10">
-                            @foreach($members as $index => $member)
-                                <tr @class(['bg-blue-50/50 dark:bg-blue-900/10' => $member->id === $currentUser->id])>
-                                    <td class="py-3 text-zinc-500 dark:text-zinc-400">{{ $index + 1 }}</td>
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-2">
-                                            <flux:text variant="strong" class="text-zinc-800 dark:text-zinc-200">{{ $member->name }}</flux:text>
-                                            @if($group->student_leader_id === $member->id)
-                                                <flux:badge size="sm" color="amber">{{ __('Ketua') }}</flux:badge>
-                                            @endif
-                                            @if($member->id === $currentUser->id)
-                                                <flux:badge size="sm" color="blue">{{ __('Anda') }}</flux:badge>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td class="py-3 text-zinc-600 dark:text-zinc-400 font-mono text-xs">{{ $member->nim ?? '-' }}</td>
-                                    <td class="py-3 text-zinc-600 dark:text-zinc-400">{{ $member->prodi ?? '-' }}</td>
-                                    <td class="py-3 text-zinc-600 dark:text-zinc-400">{{ $member->fakultas ?? '-' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column class="w-12">{{ __('No') }}</flux:table.column>
+                        <flux:table.column>{{ __('Nama') }}</flux:table.column>
+                        <flux:table.column>{{ __('NIM') }}</flux:table.column>
+                        <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
+                        <flux:table.column>{{ __('Fakultas') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach($members as $index => $member)
+                            <flux:table.row :key="$member->id" :class="$member->id === $currentUser->id ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''">
+                                <flux:table.cell class="text-zinc-500 dark:text-zinc-400">{{ $index + 1 }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <div class="flex items-center gap-2">
+                                        <flux:text variant="strong" class="text-zinc-800 dark:text-zinc-200">{{ $member->name }}</flux:text>
+                                        @if($group->student_leader_id === $member->id)
+                                            <flux:badge size="sm" color="amber">{{ __('Ketua') }}</flux:badge>
+                                        @endif
+                                        @if($member->id === $currentUser->id)
+                                            <flux:badge size="sm" color="blue">{{ __('Anda') }}</flux:badge>
+                                        @endif
+                                    </div>
+                                </flux:table.cell>
+                                <flux:table.cell class="font-mono text-xs text-zinc-600 dark:text-zinc-400">{{ $member->nim ?? '-' }}</flux:table.cell>
+                                <flux:table.cell class="text-zinc-600 dark:text-zinc-400">{{ $member->prodi ?? '-' }}</flux:table.cell>
+                                <flux:table.cell class="text-zinc-600 dark:text-zinc-400">{{ $member->fakultas ?? '-' }}</flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
             @else
                 <x-empty-state icon="users" :heading="__('Belum Ada Anggota')" :description="__('Kelompok ini belum memiliki anggota.')" />
             @endif
