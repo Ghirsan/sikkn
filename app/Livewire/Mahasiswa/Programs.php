@@ -5,6 +5,7 @@ namespace App\Livewire\Mahasiswa;
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
 use App\Models\Program;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -56,7 +57,7 @@ class Programs extends Component
                 $program->delete();
             }
 
-            \Flux\Flux::toast(variant: 'success', heading: 'Dihapus', text: 'Data program berhasil dihapus.');
+            Flux::toast(variant: 'success', heading: 'Dihapus', text: 'Data program berhasil dihapus.');
         }
 
         $this->participantToDelete = null;
@@ -80,7 +81,7 @@ class Programs extends Component
         $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
         if ($participant->status === ProgramStatus::Draft || $participant->status === ProgramStatus::NeedsRevision) {
             $participant->update(['status' => ProgramStatus::Submitted]);
-            \Flux\Flux::toast(variant: 'success', heading: 'LRK Diajukan', text: 'Rencana program berhasil diajukan ke Dosen KKN.');
+            Flux::toast(variant: 'success', heading: 'LRK Diajukan', text: 'Rencana program berhasil diajukan ke Dosen KKN.');
         }
 
         $this->participantToSubmit = null;

@@ -4,6 +4,7 @@ namespace App\Livewire\Dpl;
 
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Flux\Flux;
 
 class StudentGroups extends Component
 {
@@ -63,6 +64,13 @@ class StudentGroups extends Component
 
         $this->modal('confirm-leader')->close();
         $this->resetLeaderState();
+
+        
+        Flux::toast(
+            variant: 'success',
+            heading: __('Ketua Ditetapkan'),
+            text: __('Ketua berhasil ditetapkan.'),
+        );
     }
 
     public function resetLeaderState(): void

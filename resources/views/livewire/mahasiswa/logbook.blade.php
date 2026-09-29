@@ -10,9 +10,13 @@
     {{-- Filter --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <x-tabs>
-            <x-tab :selected="$selectedWeek === 'all'" wire:click="$set('selectedWeek', 'all')">
+            <x-tab
+                :selected="$selectedWeek === 'all'"
+                wire:click="$set('selectedWeek', 'all')"
+            >
                 Semua Minggu
             </x-tab>
+
             @foreach($allWeeks as $week)
                 <x-tab :selected="$selectedWeek === (string)$week" wire:click="$set('selectedWeek', '{{ $week }}')">
                     Minggu {{ $week }}
@@ -31,7 +35,7 @@
     {{-- Logs Timeline --}}
     @if(empty($logsGroupedByWeek))
         <flux:card>
-            <x-empty-state icon="book-open" :heading="__('Belum Ada Catatan')" :description="__('Mulai catat aktivitas harian KKN Anda.')" />
+            <x-empty-state icon="book-open" :heading="__('Belum Ada Catatan')" :description="__('Catatan aktivitas harian tersedia selama periode kelompok KKN Anda.')" />
         </flux:card>
     @else
         <div class="flex flex-col gap-6">
@@ -53,16 +57,22 @@
                             @if($log)
                                 <flux:card class="flex flex-col gap-4">
                                     {{-- Card Header --}}
-                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800/10 dark:border-white/10 pb-4">
-                                        <div class="flex items-center gap-3">
-                                            <flux:badge size="sm" color="zinc" class="font-medium whitespace-nowrap">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="flex items-start flex-col sm:flex-row sm:items-center gap-3">
+                                            <flux:badge size="sm" color="zinc">
                                                 {{ __('Hari ke: ') }}{{ $dayNum }}
                                             </flux:badge>
-                                            <flux:text variant="strong" class="text-sm">
-                                                {{ $dateObj->translatedFormat('d M Y') }} · <span class="text-neutral-500 font-normal">{{ $dateObj->translatedFormat('l') }}</span>
-                                            </flux:text>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <flux:text variant="strong">
+                                                    {{ $dateObj->translatedFormat('d M Y') }}
+                                                </flux:text>
+                                                <flux:separator vertical variant="subtle"/>
+                                                <flux:text variant="subtle">
+                                                    {{ $dateObj->translatedFormat('l') }}
+                                                </flux:text>
+                                            </div>
                                         </div>
-                                        <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge>
+                                        <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->label() }}</flux:badge> 
                                     </div>
 
                                     {{-- Activity Table --}}

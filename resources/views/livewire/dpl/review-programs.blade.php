@@ -85,11 +85,13 @@
                                     @else
                                         <div class="flex items-center gap-2">
                                             <flux:button wire:click="startEditTheme({{ $theme->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
-                                            @if($theme->participants_count > 0)
-                                                <flux:button size="sm" variant="danger" icon="trash" disabled tooltip="{{ __('Tidak dapat dihapus karena sudah ada mahasiswa yang bergabung') }}">{{ __('Hapus') }}</flux:button>
-                                            @else
-                                                <flux:button wire:click="confirmDeleteTheme({{ $theme->id }})" size="sm" variant="danger" icon="trash">{{ __('Hapus') }}</flux:button>
-                                            @endif
+                                            <flux:button wire:click="confirmDeleteTheme({{ $theme->id }})"
+                                                size="sm"
+                                                variant="danger"
+                                                icon="trash"
+                                                class="{{ $theme->participants_count > 0 ? 'cursor-pointer opacity-75' : '' }}"
+                                                aria-disabled="{{ $theme->participants_count > 0 ? 'true' : 'false' }}">{{ __('Hapus') }}
+                                            </flux:button>
                                         </div>
                                     @endif
                                 </flux:table.cell>
@@ -173,11 +175,11 @@
                     @foreach($participants as $participant)
                         <flux:table.row :key="$participant->id">
                             <flux:table.cell>
-                                <span class="font-medium">{{ $participant->student?->name ?? __('Kelompok') }}</span>
-                                <div class="text-xs text-neutral-500">{{ $participant->program->group->name }}</div>
+                                <flux:text variant="strong">{{ $participant->student?->name ?? __('Kelompok') }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs">{{ $participant->program->group->name }}</flux:text>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <div class="font-medium">{{ $participant->program->title }}</div>
+                                <flux:text variant="strong">{{ $participant->program->title }}</flux:text>
                                 <flux:badge size="sm" color="zinc" class="mt-1">{{ $participant->program->type->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
@@ -375,20 +377,27 @@
                             <flux:text>{{ __('Belum diisi') }}</flux:text>
                         @endif
 
-                        <div>
-                            <flux:heading size="sm" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:heading>
-                            @if($this->inspectingParticipant->documentation_image_path)
+                        @if($this->inspectingParticipant->documentation_image_path)
+                            <flux:heading size="sm">{{ __('Foto Dokumentasi') }}</flux:heading>
+                            <div>
                                 <flux:card variant="soft" class="overflow-hidden p-0">
-                                    <img src="{{ asset('storage/' . $this->inspectingParticipant->documentation_image_path) }}" alt="{{ $this->inspectingParticipant->documentation_caption ?? 'Dokumentasi Program' }}" class="mx-auto block max-h-96 max-w-full object-contain">
-                                    <flux:separator variant="subtle" />
-                                    <div class="p-3">
-                                        <flux:text variant="subtle" class="text-center text-sm italic">{{ $this->inspectingParticipant->documentation_caption ?: __('Belum diisi') }}</flux:text>
-                                    </div>
+                                <img
+                                    src="{{ asset('storage/' . $this->inspectingParticipant->documentation_image_path) }}"
+                                    alt="{{ $this->inspectingParticipant->documentation_caption ?? 'Dokumentasi Program' }}"
+                                    class="mx-auto block max-h-96 max-w-full object-contain"
+                                    x-on:click="$flux.modal('image-preview-view').show()"
+                                    />
+                                    
+                                <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $this->inspectingParticipant->documentation_image_path) }}" />
+                                <flux:separator variant="subtle" />
+                                <div class="p-3">
+                                    <flux:text variant="subtle" class="text-center text-sm italic">{{ $this->inspectingParticipant->documentation_caption ?: __('Belum diisi') }}</flux:text>
+                                </div>
                                 </flux:card>
-                            @else
-                                <flux:text>{{ __('Belum diisi') }}</flux:text>
-                            @endif
-                        </div>
+                            </div>
+                        @else
+                            <flux:text>{{ __('Belum diisi') }}</flux:text>
+                        @endif
                     </section>
 
                     @if($this->inspectingParticipant->revision_note)
@@ -414,8 +423,7 @@
                     @endif
                 </div>
 
-                <div class="flex gap-2">
-                    <flux:spacer />
+                <div class="flex justify-end">
                     <flux:modal.close>
                         <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>

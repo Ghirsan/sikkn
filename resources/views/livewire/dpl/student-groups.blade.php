@@ -1,4 +1,5 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
+    
     {{-- Group Filter --}}
     @if($allGroups->count() > 1)
         <div class="flex justify-end">
@@ -51,83 +52,89 @@
     
     {{-- DPL List --}}
     @if($group->dpls->isNotEmpty() && !($search && empty($selectedGroupId)))
-    <flux:card>
-                <flux:heading size="sm" class="mb-3">{{ __('Dosen KKN') }}</flux:heading>
-                <div class="grid gap-3 sm:grid-cols-2">
-                    @foreach($group->dpls as $dpl)
-                        <div class="flex items-center gap-3 rounded-lg bg-neutral-50 px-4 py-3 dark:bg-zinc-700/50">
-                            <flux:avatar :name="$dpl->name" :initials="$dpl->initials()" size="sm" />
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-2">
-                                    <flux:text variant="strong" class="truncate">{{ $dpl->name }}</flux:text>
-                                    @if($group->lead_dpl_id === $dpl->id)
-                                    <flux:badge color="green" size="sm">{{ __('Ketua') }}</flux:badge>
-                                    @endif
-                                </div>
-                                <flux:text class="text-xs truncate">{{ $dpl->nip ?? '-' }}</flux:text>
-                                @if($dpl->prodi)
-                                <flux:text class="text-xs truncate">{{ $dpl->prodi }}</flux:text>
+        <flux:card>
+            <flux:heading size="sm" class="mb-3">{{ __('Dosen KKN') }}</flux:heading>
+            <div class="grid gap-3 sm:grid-cols-2">
+                @foreach($group->dpls as $dpl)
+                    <flux:card variant="soft">
+                        <flux:avatar :name="$dpl->name" :initials="$dpl->initials()" size="sm" />
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <flux:text variant="strong" class="truncate">{{ $dpl->name }}</flux:text>
+                                @if($group->lead_dpl_id === $dpl->id)
+                                <flux:badge color="green" size="sm">{{ __('Ketua') }}</flux:badge>
                                 @endif
                             </div>
+                            <flux:text class="text-xxs truncate">{{ $dpl->nip ?? '-' }}</flux:text>
+                            @if($dpl->prodi)
+                            <flux:text class="text-xs truncate">{{ $dpl->prodi }}</flux:text>
+                            @endif
                         </div>
-                    @endforeach
-                </div>
-            </flux:card>
-        @endif
-    
-        {{-- Search Filter (Specific Group) --}}
-        @if(!empty($selectedGroupId))
-            <div class="mb-4 flex items-center gap-4">
-                <div class="w-full max-w-sm">
-                    <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
-                </div>
+                    </flux:card>
+                @endforeach
             </div>
-        @endif
-        
-        {{-- Students Table --}}
-        <flux:card>
-            <flux:heading size="sm" class="mb-3">{{ __('Daftar Mahasiswa') }}</flux:heading>
-            @if($group->students->isEmpty())
-                <div class="py-4">
-                    <x-empty-state icon="magnifying-glass" :heading="__('Tidak Ada Mahasiswa')" :description="__('Tidak ada mahasiswa dalam kelompok ini yang sesuai dengan kata kunci pencarian.')" />
-                </div>
-            @else
-                <flux:table>
-                    <flux:table.columns>
-                        <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">{{ __('Mahasiswa') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'nim'" :direction="$sortDirection" wire:click="sort('nim')">{{ __('NIM') }}</flux:table.column>
-                        <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
-                        <flux:table.column>{{ __('Fakultas') }}</flux:table.column>
-                        <flux:table.column>{{ __('Status') }}</flux:table.column>
-                    </flux:table.columns>
-                    <flux:table.rows>
-                        @foreach($group->students as $student)
-                            <flux:table.row :key="$student->id">
-                                <flux:table.cell class="flex items-center gap-3">
-                                    <flux:avatar :name="$student->name" :initials="$student->initials()" size="sm" />
-                                    <span class="font-medium">{{ $student->name }}</span>
-                                </flux:table.cell>
-                                <flux:table.cell>{{ $student->nim }}</flux:table.cell>
-                                <flux:table.cell>{{ $student->prodi }}</flux:table.cell>
-                                <flux:table.cell>{{ $student->fakultas ?? '-' }}</flux:table.cell>
-                                <flux:table.cell>
-                                    @if($group->student_leader_id === $student->id)
-                                        <flux:badge color="blue" size="sm">{{ __('Ketua Kelompok') }}</flux:badge>
-                                    @else
-                                        <flux:button
-                                            wire:click="confirmLeader({{ $group->id }}, {{ $student->id }}, '{{ addslashes($student->name) }}', '{{ addslashes($group->studentLeader?->name ?? '') }}')"
-                                            size="sm"
-                                            variant="ghost"
-                                            icon="star"
-                                        >{{ __('Tetapkan Ketua') }}</flux:button>
-                                    @endif
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @endforeach
-                    </flux:table.rows>
-                </flux:table>
-            @endif
         </flux:card>
+    @endif
+    
+    {{-- Search Filter (Specific Group) --}}
+    @if(!empty($selectedGroupId))
+        <div class="mb-4 flex items-center gap-4">
+            <div class="w-full max-w-sm">
+                <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
+            </div>
+        </div>
+    @endif
+        
+    {{-- Students Table --}}
+    <flux:card>
+        <flux:heading size="sm" class="mb-3">{{ __('Daftar Mahasiswa') }}</flux:heading>
+        @if($group->students->isEmpty())
+            <div class="py-4">
+                <x-empty-state icon="magnifying-glass" :heading="__('Tidak Ada Mahasiswa')" :description="__('Tidak ada mahasiswa dalam kelompok ini yang sesuai dengan kata kunci pencarian.')" />
+            </div>
+        @else
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">{{ __('Mahasiswa') }}</flux:table.column>
+                    <flux:table.column>{{ __('NIM') }}</flux:table.column>
+                    <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
+                    <flux:table.column>{{ __('Fakultas') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status') }}</flux:table.column>
+                </flux:table.columns>
+                <flux:table.rows>
+                    @foreach($group->students as $student)
+                        <flux:table.row :key="$student->id">
+                            <flux:table.cell class="flex items-center gap-3">
+                                <flux:avatar :name="$student->name" :initials="$student->initials()" size="sm" />
+                                <flux:text>{{ $student->name }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:text>{{ $student->nim }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:text>{{ $student->prodi }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:text>{{ $student->fakultas ?? '-' }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if($group->student_leader_id === $student->id)
+                                    <flux:badge color="blue" size="sm">{{ __('Ketua Kelompok') }}</flux:badge>
+                                @else
+                                    <flux:button
+                                        wire:click="confirmLeader({{ $group->id }}, {{ $student->id }}, '{{ addslashes($student->name) }}', '{{ addslashes($group->studentLeader?->name ?? '') }}')"
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="star"
+                                    >{{ __('Tetapkan Ketua') }}</flux:button>
+                                @endif
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        @endif
+    </flux:card>
     @empty
         <flux:card>
             @if($search)

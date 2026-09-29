@@ -84,15 +84,15 @@
         <x-tabs>
             <x-tab
                 wire:click="$set('selectedWeek', 'all')"
-                :active="$selectedWeek === 'all'"
+                :selected="$selectedWeek === 'all'"
             >
-                {{ __('Semua') }}
+                Semua Minggu
             </x-tab>
 
             @foreach($weeks as $week)
                 <x-tab
                     wire:click="$set('selectedWeek', '{{ $week }}')"
-                    :active="$selectedWeek == $week"
+                    :selected="$selectedWeek == $week"
                 >
                     {{ __('Minggu ') . $week }}
                 </x-tab>
@@ -126,30 +126,25 @@
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <div class="flex items-center gap-3">
-                                    <flux:avatar :name="$log->student->name" :initials="$log->student->initials()" size="xs" />
-                                    <div>
-                                        <span class="font-medium">{{ $log->student->name }}</span>
-                                        <div class="text-xs text-neutral-500">{{ $log->student->nim }}</div>
-                                    </div>
-                                </div>
+                                <flux:text variant="strong">{{ $log->student->name }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs">{{ $log->student->nim }}</flux:text>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <div class="text-sm font-medium">{{ $log->date->translatedFormat('d M Y') }}</div>
-                                <div class="text-xs text-neutral-500">{{ $log->date->translatedFormat('l') }}</div>
+                                <flux:text variant="strong">{{ $log->date->translatedFormat('d M Y') }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs">{{ $log->date->translatedFormat('l') }}</flux:text>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="space-y-1">
                                     @foreach($log->activities->take(3) as $activity)
                                         <div class="flex items-start gap-2 text-sm">
-                                            <span class="whitespace-nowrap text-xs text-neutral-400">
+                                            <flux:text variant="subtle" class="text-xs">
                                                 {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
-                                            </span>
-                                            <span class="line-clamp-1 text-neutral-600 dark:text-neutral-300">{{ $activity->activity_description }}</span>
+                                            </flux:text>
+                                            <flux:text variant="strong">{{ $activity->activity_description }}</flux:text>
                                         </div>
                                     @endforeach
                                     @if($log->activities->count() > 3)
-                                        <flux:text class="text-xs text-neutral-400">{{ __('+ :count kegiatan lainnya', ['count' => $log->activities->count() - 3]) }}</flux:text>
+                                        <flux:text variant="subtle" class="text-xs"> {{ __('+ :count kegiatan lainnya', ['count' => $log->activities->count() - 3]) }}</flux:text>
                                     @endif
                                 </div>
                             </flux:table.cell>
@@ -172,64 +167,81 @@
     </flux:card>
 
     {{-- View Modal --}}
-    <flux:modal name="log-view-modal" class="md:w-3/4 lg:w-[40rem]">
+    <flux:modal name="log-view-modal" scroll="body" class="max-w-2xl w-full">
         @if($viewLogData)
             <div class="flex flex-col gap-6">
                 {{-- Header --}}
                 <div class="flex items-start gap-3">
-                    <flux:avatar :name="$viewLogData->student->name" :initials="$viewLogData->student->initials()" size="sm" class="mt-0.5" />
-                    <div class="flex flex-col gap-1.5 min-w-0">
+                    <flux:avatar
+                        :name="$viewLogData->student->name"
+                        :initials="$viewLogData->student->initials()"
+                        size="sm"
+                        class="mt-0.5"
+                    />
+                    <div class="flex flex-col gap-1.5">
                         <flux:heading size="lg">{{ $viewLogData->student->name }}</flux:heading>
-                        <flux:text class="text-sm text-zinc-500">Logbook Hari Ke-{{ $viewLogData->day_number }} · {{ $viewLogData->date->translatedFormat('l, d M Y') }}</flux:text>
-                        <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <flux:text variant="subtle">Logbook Hari Ke-{{ $viewLogData->day_number }}</flux:text>
+                            <flux:separator vertical variant="subtle" />
+                            <flux:text variant="subtle">{{ $viewLogData->date->translatedFormat('l, d M Y') }}</flux:text>
+                        </div>
+                        <div class="space-y-1.5">
                             <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
                         </div>
                     </div>
                 </div>
 
+                <flux:separator />
+
                 {{-- Activities --}}
                 <div class="flex flex-col gap-3">
-                    <flux:heading size="sm" class="font-medium">Kegiatan</flux:heading>
+                    <flux:heading size="sm">Kegiatan</flux:heading>
                     <div class="flex flex-col gap-2">
                         @foreach($viewLogData->activities as $index => $activity)
-                            <div class="flex gap-4 p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5">
-                                <div class="text-sm font-medium text-zinc-500 whitespace-nowrap min-w-[80px]">
+                            <flux:card variant="subtle" class="flex gap-4 p-2">
+                                <flux:text variant="subtle" class="text-sm">
                                     {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
-                                </div>
-                                <div class="text-sm text-zinc-800 dark:text-zinc-200">
+                                </flux:text>
+                                <flux:text variant="strong" class="text-sm">
                                     {{ $activity->activity_description }}
-                                </div>
-                            </div>
+                                </flux:text>
+                            </flux:card>
                         @endforeach
                     </div>
                 </div>
 
+                <flux:separator variant="subtle" />
+
                 {{-- Notes & Image --}}
                 @if($viewLogData->important_notes || $viewLogData->image_path)
-                    <div class="flex flex-col gap-3">
-                        <flux:heading size="sm" class="font-medium">Catatan Penting</flux:heading>
-                        <div class="p-4 border border-zinc-200 dark:border-white/10 rounded-lg bg-zinc-50 dark:bg-white/5 text-sm">
-                            @if($viewLogData->important_notes)
-                                {!! nl2br(e($viewLogData->important_notes)) !!}
-                            @endif
-                            @if($viewLogData->important_notes && $viewLogData->image_path)
-                                <div class="my-3 border-t border-zinc-200 dark:border-white/10"></div>
-                            @endif
+                    <flux:heading size="sm">Catatan Penting</flux:heading>
+                    @if($viewLogData->important_notes)
+                        <flux:text>
+                            {{ ($viewLogData->important_notes) }}
+                        </flux:text>
+                    @endif
+                    <div>
+                        <flux:card variant="soft" class="overflow-hidden p-0">
                             @if($viewLogData->image_path)
-                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-view').show()" />
+                                <img
+                                    src="{{ asset('storage/' . $viewLogData->image_path) }}"
+                                    alt="Catatan gambar"
+                                    class="mx-auto block max-h-96 max-w-full object-contain"
+                                    x-on:click="$flux.modal('image-preview-view').show()"
+                                    />
                                 
                                 <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $viewLogData->image_path) }}" />
                             @endif
-                        </div>
+                        </flux:card>
                     </div>
                 @endif
                 
                 {{-- Actions --}}
-                <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-white/10">
+                <div class="flex justify-end">
                     <flux:modal.close>
                         <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
-                    
+                        
                     @if($viewLogData->status->value === 'pending')
                         <flux:button wire:click="approveDailyLog({{ $viewLogData->id }})" variant="primary" icon="check">
                             {{ __('Setujui Logbook') }}
@@ -250,7 +262,6 @@
                 </flux:text>
             </div>
             <div class="flex gap-2">
-                <flux:spacer />
                 <flux:modal.close>
                     <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
@@ -269,7 +280,6 @@
                 </flux:text>
             </div>
             <div class="flex gap-2">
-                <flux:spacer />
                 <flux:modal.close>
                     <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>

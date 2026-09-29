@@ -6,6 +6,7 @@ use App\Enums\LogStatus;
 use App\Models\DailyLog;
 use App\Models\Group;
 use Carbon\Carbon;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -66,7 +67,7 @@ class StudentLogs extends Component
     public function confirmApprove(int $logId): void
     {
         $this->logIdToApprove = $logId;
-        \Flux::modal('confirm-approve-modal')->show();
+        Flux::modal('confirm-approve-modal')->show();
     }
 
     public function executeApprove(): void
@@ -75,7 +76,7 @@ class StudentLogs extends Component
             $this->approveDailyLog($this->logIdToApprove);
             $this->logIdToApprove = null;
         }
-        \Flux::modal('confirm-approve-modal')->close();
+        Flux::modal('confirm-approve-modal')->close();
     }
 
     public function approveDailyLog(int $logId): void
@@ -90,14 +91,14 @@ class StudentLogs extends Component
                 $this->viewLogData = DailyLog::with(['activities', 'student', 'student.group'])->find($logId);
             }
 
-            \Flux\Flux::toast(variant: 'success', heading: __('Logbook Disetujui'), text: __('Logbook berhasil disetujui.'));
+            Flux::toast(variant: 'success', heading: __('Logbook Disetujui'), text: __('Logbook berhasil disetujui.'));
         }
     }
 
     public function executeBulkApprove()
     {
         $this->bulkApprove();
-        \Flux::modal('confirm-bulk-approve-modal')->close();
+        Flux::modal('confirm-bulk-approve-modal')->close();
     }
 
     public function bulkApprove()
@@ -115,7 +116,7 @@ class StudentLogs extends Component
         $this->selectedLogs = [];
         $this->selectAll = false;
 
-        \Flux\Flux::toast(variant: 'success', heading: __('Logbook Disetujui'), text: __('Logbook yang dipilih berhasil disetujui.'));
+        Flux::toast(variant: 'success', heading: __('Logbook Disetujui'), text: __('Logbook yang dipilih berhasil disetujui.'));
     }
 
     public function viewLog($id)
@@ -129,7 +130,7 @@ class StudentLogs extends Component
         $log->week_number = floor($dayDiff / 7) + 1;
 
         $this->viewLogData = $log;
-        \Flux::modal('log-view-modal')->show();
+        Flux::modal('log-view-modal')->show();
     }
 
     private function buildQuery()
