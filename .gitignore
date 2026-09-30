@@ -24,7 +24,6 @@ yarn-error.log
 /.zed
 /.agents
 /anti-slop
-/tests
 AGENTS.md
 CLAUDE.md
 refactor_cards.php
