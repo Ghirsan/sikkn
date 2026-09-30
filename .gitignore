@@ -22,3 +22,11 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.agents
+/anti-slop
+/tests
+.phpunit.result.cache
+AGENTS.md
+CLAUDE.md
+refactor_cards.php
+/docs-source
