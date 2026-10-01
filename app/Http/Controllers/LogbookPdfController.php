@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Enums\UserRole;
 use App\Models\DailyLog;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class LogbookPdfController extends Controller
 {
     public function download(User $student)
     {
         // Pastikan user yang dicetak adalah mahasiswa
-        if ($student->role !== \App\Enums\UserRole::Mahasiswa) {
+        if ($student->role !== UserRole::Mahasiswa) {
             abort(404, 'User is not a student');
         }
 
         // Ambil grup dan period
         $group = $student->group()->with(['period', 'dpls'])->first();
-        if (!$group || !$group->period) {
+        if (! $group || ! $group->period) {
             abort(404, 'Group or Period not found for this student');
         }
 
@@ -35,16 +34,16 @@ class LogbookPdfController extends Controller
 
         // Kelompokkan logs per minggu (Minggu Ke-N)
         $logsGroupedByWeek = [];
-        
+
         foreach ($logs as $log) {
             // Hitung minggu ke-berapa
             $dayDiff = $period->start_date->diffInDays($log->date);
             $weekNumber = floor($dayDiff / 7) + 1;
-            
+
             // Hitung hari ke-berapa
             $log->day_number = $dayDiff + 1;
-            
-            if (!isset($logsGroupedByWeek[$weekNumber])) {
+
+            if (! isset($logsGroupedByWeek[$weekNumber])) {
                 $logsGroupedByWeek[$weekNumber] = [];
             }
             $logsGroupedByWeek[$weekNumber][] = $log;

@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\LogbookPdfController;
+use App\Http\Controllers\LpkPdfController;
+use App\Http\Controllers\LrkPdfController;
+use App\Http\Controllers\MentoringLogsPdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -8,10 +12,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     // LRK & LPK Print Page (accessible by all authenticated roles)
-    Route::get('lrk/{group}/pdf', [\App\Http\Controllers\LrkPdfController::class, 'download'])->name('lrk.pdf');
-    Route::get('lpk/{group}/pdf', [\App\Http\Controllers\LpkPdfController::class, 'download'])->name('lpk.pdf');
-    Route::get('logbook/{student}/pdf', [\App\Http\Controllers\LogbookPdfController::class, 'download'])->name('logbook.pdf');
-    Route::get('mentoring-logs/{student}/pdf', [\App\Http\Controllers\MentoringLogsPdfController::class, 'download'])->name('mentoring-logs.pdf');
+    Route::get('lrk/{group}/pdf', [LrkPdfController::class, 'download'])->name('lrk.pdf');
+    Route::get('lpk/{group}/pdf', [LpkPdfController::class, 'download'])->name('lpk.pdf');
+    Route::get('logbook/{student}/pdf', [LogbookPdfController::class, 'download'])->name('logbook.pdf');
+    Route::get('mentoring-logs/{student}/pdf', [MentoringLogsPdfController::class, 'download'])->name('mentoring-logs.pdf');
 
     // P2KKN Admin Routes
     Route::middleware('role:p2kkn')->prefix('admin')->group(function () {

@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\GroupType;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Group extends Model
@@ -42,7 +45,7 @@ class Group extends Model
     protected function casts(): array
     {
         return [
-            'type' => \App\Enums\GroupType::class,
+            'type' => GroupType::class,
             'is_lrk_locked' => 'boolean',
             'is_lpk_locked' => 'boolean',
             'start_date' => 'date',
@@ -61,7 +64,7 @@ class Group extends Model
     /**
      * Get the DPLs assigned to this group.
      */
-    public function dpls(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function dpls(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'dpl_group', 'group_id', 'dpl_id');
     }
@@ -71,7 +74,7 @@ class Group extends Model
      */
     public function students(): HasMany
     {
-        return $this->hasMany(User::class)->where('role', \App\Enums\UserRole::Mahasiswa);
+        return $this->hasMany(User::class)->where('role', UserRole::Mahasiswa);
     }
 
     /**
@@ -97,8 +100,6 @@ class Group extends Model
     {
         return $this->hasMany(ScheduleEvent::class);
     }
-
-
 
     /**
      * Get the lead DPL assigned to this group.

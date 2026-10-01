@@ -99,6 +99,7 @@
                     <flux:table.column>{{ __('NIM') }}</flux:table.column>
                     <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
                     <flux:table.column>{{ __('Fakultas') }}</flux:table.column>
+                    <flux:table.column>{{ __('WhatsApp') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -116,6 +117,15 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:text>{{ $student->fakultas ?? '-' }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if($student->phone)
+                                    <a href="{{ $student->whatsappUrl() }}" target="_blank" rel="noopener noreferrer" class="text-accent underline underline-offset-2" aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}">
+                                        {{ $student->phone }}
+                                    </a>
+                                @else
+                                    <flux:text class="text-zinc-400">-</flux:text>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if($group->student_leader_id === $student->id)

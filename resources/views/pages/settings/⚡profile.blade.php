@@ -1,6 +1,7 @@
 <?php
 
 use App\Concerns\ProfileValidationRules;
+use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,8 @@ new #[Title('Profile settings')] class extends Component {
 
     public string $name = '';
     public string $email = '';
+    public ?string $phone = null;
+    public ?string $emergency_phone = null;
 
     /**
      * Mount the component.
@@ -21,6 +24,8 @@ new #[Title('Profile settings')] class extends Component {
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->phone = Auth::user()->phone;
+        $this->emergency_phone = Auth::user()->emergency_phone;
     }
 
     /**
@@ -30,7 +35,13 @@ new #[Title('Profile settings')] class extends Component {
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        $rules = $this->profileRules($user->id);
+
+        if (! $user->hasRole(UserRole::Mahasiswa)) {
+            unset($rules['emergency_phone']);
+        }
+
+        $validated = $this->validate($rules);
 
         $user->fill($validated);
 
@@ -80,7 +91,7 @@ new #[Title('Profile settings')] class extends Component {
 
     <flux:heading class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
-    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name, email address, and contact details')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
 
@@ -100,6 +111,24 @@ new #[Title('Profile settings')] class extends Component {
                     </div>
                 @endif
             </div>
+
+            <x-phone-input
+                wire:model="phone"
+                name="phone"
+                :label="__('Phone number')"
+                country-code="+62"
+                placeholder="812 3456 7890"
+            />
+
+            @if (Auth::user()->hasRole(UserRole::Mahasiswa))
+                <x-phone-input
+                    wire:model="emergency_phone"
+                    name="emergency_phone"
+                    :label="__('Emergency phone number')"
+                    country-code="+62"
+                    placeholder="812 3456 7890"
+                />
+            @endif
 
             <div class="flex items-center gap-4">
                 <flux:button variant="primary" type="submit" data-test="update-profile-button">

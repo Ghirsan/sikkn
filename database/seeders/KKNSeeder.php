@@ -2,10 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\GroupType;
 use App\Enums\LogStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
+use App\Enums\Semester;
 use App\Models\DailyLog;
+use App\Models\DailyLogActivity;
 use App\Models\Group;
 use App\Models\MentoringLog;
 use App\Models\Period;
@@ -19,7 +22,7 @@ class KKNSeeder extends Seeder
     {
         // ── 1. Period ─────────────────────────────────────────────
         $period = Period::create([
-            'semester' => \App\Enums\Semester::Genap,
+            'semester' => Semester::Genap,
             'year' => 2026,
             'start_date' => '2026-07-01',
             'end_date' => '2026-08-15',
@@ -52,7 +55,7 @@ class KKNSeeder extends Seeder
         $group1 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 01',
-            'type' => \App\Enums\GroupType::Reguler,
+            'type' => GroupType::Reguler,
             'village' => 'Desa Sukamakmur',
             'district' => 'Kec. Karanganyar',
             'regency' => 'Kab. Karanganyar',
@@ -69,7 +72,7 @@ class KKNSeeder extends Seeder
         $group2 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 02',
-            'type' => \App\Enums\GroupType::Tematik,
+            'type' => GroupType::Tematik,
             'village' => 'Desa Sidoharjo',
             'district' => 'Kec. Polanharjo',
             'regency' => 'Kab. Klaten',
@@ -87,7 +90,7 @@ class KKNSeeder extends Seeder
         $group3 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 03',
-            'type' => \App\Enums\GroupType::Reguler,
+            'type' => GroupType::Reguler,
             'village' => 'Desa Sendangtirto',
             'district' => 'Kec. Berbah',
             'regency' => 'Kab. Sleman',
@@ -107,7 +110,7 @@ class KKNSeeder extends Seeder
         }
         // Assign dpl2 to group2 and group3
         $dpl2->dplGroups()->syncWithoutDetaching([$group2->id, $group3->id]);
-        
+
         // Assign dpl3 to group3
         $dpl3->dplGroups()->syncWithoutDetaching([$group3->id]);
 
@@ -115,7 +118,6 @@ class KKNSeeder extends Seeder
         $group1->update(['lead_dpl_id' => $dpl1?->id]);
         $group2->update(['lead_dpl_id' => $dpl2->id]); // Group 2 has dpl1 and dpl2, dpl2 is lead
         $group3->update(['lead_dpl_id' => $dpl3->id]); // Group 3 has dpl2 and dpl3, dpl3 is lead
-
 
         // ── 4. Students ───────────────────────────────────────────
         $studentsData = [
@@ -158,26 +160,26 @@ class KKNSeeder extends Seeder
         }
 
         // ── 5. Programs & Participants ─────────────────────────
-        
+
         // --- GROUP 1: Siap Cetak LRK & LPK (Semua LPK Approved) ---
         $md1_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Digitalisasi dan Pemetaan Potensi UMKM Desa', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
         $md2_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Edukasi Pola Hidup Sehat & Pembuatan Apotek Hidup', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
         $md3_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Video Profil Desa Sukamakmur', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
-        
+
         $g1_students = [$students[0], $students[1], $students[2], $students[3]];
-        
+
         // Custom programs for Group 1
         $sosmas_titles_g1 = [
             'Pendampingan Pembelajaran Jarak Jauh Anak Sekolah Dasar',
             'Penyuluhan Pemasaran Online Melalui Media Sosial',
             'Sosialisasi Pengolahan Sampah Organik Menjadi Kompos',
-            'Pemeriksaan Kesehatan Gratis untuk Lansia'
+            'Pemeriksaan Kesehatan Gratis untuk Lansia',
         ];
         $lainnya_titles_g1 = [
             'Pembuatan Plang Penunjuk Jalan Utama Desa',
             'Lomba Mewarnai Tingkat TK/PAUD Desa Sukamakmur',
             'Kerja Bakti Membersihkan Saluran Irigasi Warga',
-            'Pelatihan Cuci Tangan Pakai Sabun untuk Anak Usia Dini'
+            'Pelatihan Cuci Tangan Pakai Sabun untuk Anak Usia Dini',
         ];
 
         foreach ($g1_students as $idx => $student) {
@@ -187,8 +189,8 @@ class KKNSeeder extends Seeder
                     'student_id' => $student->id,
                     'status' => ProgramStatus::Approved,
                     'lpk_status' => ProgramStatus::Approved,
-                    'execution_date' => '2026-07-' . (10 + $idx),
-                    'participant_title' => $md->sequence != 3 ? 'Usulan Spesifik ' . $student->name : null,
+                    'execution_date' => '2026-07-'.(10 + $idx),
+                    'participant_title' => $md->sequence != 3 ? 'Usulan Spesifik '.$student->name : null,
                     'role_in_program' => $md->sequence == 3 ? ($idx == 0 ? 'Sutradara/Editor' : 'Kameramen/Talent') : 'Ketua Sub-Program',
                     'responsibility' => 'Mengkoordinasikan dan melaksanakan program sesuai bidang ilmu.',
                     'achievement' => 'Terlaksana 100% dan mendapat antusiasme tinggi dari warga.',
@@ -203,18 +205,18 @@ class KKNSeeder extends Seeder
             // Sosmas
             $sos = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g1[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
             $sos->participants()->create([
-                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved, 
-                'execution_date' => '2026-07-15', 'role_in_program' => 'Ketua Pelaksana', 
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved,
+                'execution_date' => '2026-07-15', 'role_in_program' => 'Ketua Pelaksana',
                 'responsibility' => 'Bertanggung jawab penuh atas pelaksanaan acara sosmas.',
-                'achievement' => 'Dihadiri 30 orang warga desa, target tercapai.', 'obstacle' => 'Cuaca hujan di awal acara.', 'solution' => 'Memindahkan lokasi ke dalam balai desa.'
+                'achievement' => 'Dihadiri 30 orang warga desa, target tercapai.', 'obstacle' => 'Cuaca hujan di awal acara.', 'solution' => 'Memindahkan lokasi ke dalam balai desa.',
             ]);
             // Lainnya
             $lain = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g1[$idx], 'type' => ProgramType::Lainnya]);
             $lain->participants()->create([
-                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved, 
-                'execution_date' => '2026-07-20', 'role_in_program' => 'Koordinator', 
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved,
+                'execution_date' => '2026-07-20', 'role_in_program' => 'Koordinator',
                 'responsibility' => 'Memimpin persiapan teknis dan alat.',
-                'achievement' => 'Acara berjalan lancar.', 'obstacle' => '-', 'solution' => '-'
+                'achievement' => 'Acara berjalan lancar.', 'obstacle' => '-', 'solution' => '-',
             ]);
         }
 
@@ -222,18 +224,18 @@ class KKNSeeder extends Seeder
         $md1_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Peningkatan Kualitas Pendidikan Dasar', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
         $md2_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Pembuatan Media Pembelajaran Interaktif', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
         $md3_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Video Profil Potensi Edukasi Desa Sidoharjo', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
-        
+
         $g2_students = [$students[4], $students[5], $students[6]];
-        
+
         $sosmas_titles_g2 = [
             'Bimbingan Belajar Matematika SD',
             'Pelatihan Bahasa Inggris Dasar untuk Anak-anak',
-            'Pelatihan Senam Pagi untuk Siswa SD'
+            'Pelatihan Senam Pagi untuk Siswa SD',
         ];
         $lainnya_titles_g2 = [
             'Pembuatan Pojok Baca di Balai Desa',
             'Storytelling Anak-anak Desa',
-            'Kerja Bakti Membersihkan Lingkungan Sekolah'
+            'Kerja Bakti Membersihkan Lingkungan Sekolah',
         ];
 
         foreach ($g2_students as $idx => $student) {
@@ -243,7 +245,7 @@ class KKNSeeder extends Seeder
                     'status' => ProgramStatus::Approved,
                     'lpk_status' => ProgramStatus::Draft, // <--- LPK MASIH DRAFT
                     'execution_date' => '2026-07-12',
-                    'participant_title' => $md->sequence != 3 ? 'Integrasi ' . $student->prodi . ' pada Pendidikan' : null,
+                    'participant_title' => $md->sequence != 3 ? 'Integrasi '.$student->prodi.' pada Pendidikan' : null,
                     'role_in_program' => 'Fasilitator',
                     'responsibility' => 'Menyusun materi dan menyampaikan di depan kelas.',
                     'problem_potential' => 'Anak-anak kurang mendapatkan pendampingan belajar di rumah.',
@@ -254,14 +256,14 @@ class KKNSeeder extends Seeder
             }
             $sos = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g2[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
             $sos->participants()->create([
-                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft, 
-                'execution_date' => '2026-07-18', 'role_in_program' => 'Instruktur', 
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft,
+                'execution_date' => '2026-07-18', 'role_in_program' => 'Instruktur',
                 'responsibility' => 'Menyiapkan modul dan lembar kerja.',
             ]);
             $lain = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g2[$idx], 'type' => ProgramType::Lainnya]);
             $lain->participants()->create([
-                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft, 
-                'execution_date' => '2026-07-22', 'role_in_program' => 'Penanggung Jawab', 
+                'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft,
+                'execution_date' => '2026-07-22', 'role_in_program' => 'Penanggung Jawab',
                 'responsibility' => 'Mengawasi berjalannya program tambahan.',
             ]);
         }
@@ -270,18 +272,18 @@ class KKNSeeder extends Seeder
         $md1_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pengembangan Pariwisata Berbasis Masyarakat (CBT)', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
         $md2_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pemetaan Potensi Alam dan Konservasi', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
         $md3_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Video Promosi Wisata Desa Sendangtirto', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
-        
+
         $g3_students = [$students[7], $students[8], $students[9]];
-        
+
         $sosmas_titles_g3 = [
             'Pelatihan Manajemen Keuangan untuk Pokdarwis',
             'Pemasaran Digital Objek Wisata Desa',
-            'Sosialisasi Pengelolaan Sampah Kawasan Wisata'
+            'Sosialisasi Pengelolaan Sampah Kawasan Wisata',
         ];
         $lainnya_titles_g3 = [
             'Pembuatan Spot Foto Menarik di Area Wisata',
             'Pembuatan Brosur Wisata Desa',
-            'Penanaman Pohon di Area Kritis'
+            'Penanaman Pohon di Area Kritis',
         ];
 
         foreach ($g3_students as $idx => $student) {
@@ -289,7 +291,7 @@ class KKNSeeder extends Seeder
                 $md->participants()->create([
                     'student_id' => $student->id,
                     'status' => ProgramStatus::Draft, // <--- LRK MASIH DRAFT
-                    'participant_title' => $md->sequence != 3 ? 'Peran ' . $student->prodi . ' dalam Pariwisata' : null,
+                    'participant_title' => $md->sequence != 3 ? 'Peran '.$student->prodi.' dalam Pariwisata' : null,
                     'role_in_program' => 'Konseptor',
                     'responsibility' => 'Mendesain tata kelola sesuai prodi.',
                     'problem_potential' => 'Potensi wisata ada namun belum dikelola dengan baik.',
@@ -375,7 +377,7 @@ class KKNSeeder extends Seeder
             ]);
 
             foreach ($logData['activities'] as $act) {
-                \App\Models\DailyLogActivity::create([
+                DailyLogActivity::create([
                     'daily_log_id' => $log->id,
                     'start_time' => $act['start_time'],
                     'end_time' => $act['end_time'],

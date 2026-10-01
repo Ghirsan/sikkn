@@ -13,19 +13,19 @@ class StudentGrades extends Component
     public function render()
     {
         $user = Auth::user();
-        
+
         $groupsQuery = $user->dplGroups()->with(['students.grade', 'period']);
-        
+
         if ($this->selectedGroupId) {
             $groupsQuery->where('groups.id', $this->selectedGroupId);
         }
-        
+
         $groups = $groupsQuery->get();
         $allGroups = $user->dplGroups()->get();
-        
+
         // If there's no period, or if ANY group is not completed, we consider period not completed.
         // It's safer to just check if every group is completed.
-        $periodCompleted = $groups->isNotEmpty() && $groups->every(fn($g) => $g->period?->status === PeriodStatus::Completed);
+        $periodCompleted = $groups->isNotEmpty() && $groups->every(fn ($g) => $g->period?->status === PeriodStatus::Completed);
 
         $students = $groups->pluck('students')->flatten();
         $graded = $students->filter(fn ($s) => $s->grade !== null)->count();

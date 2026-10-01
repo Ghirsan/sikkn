@@ -19,7 +19,7 @@ return new class extends Migration
         Schema::table('program_participants', function (Blueprint $table) {
             $table->string('documentation_image_path')->nullable()->after('output_target');
             $table->string('documentation_caption')->nullable()->after('documentation_image_path');
-            
+
             $table->string('output_type')->nullable()->after('documentation_caption');
             $table->string('output_title')->nullable()->after('output_type');
             $table->string('output_file_path')->nullable()->after('output_title');

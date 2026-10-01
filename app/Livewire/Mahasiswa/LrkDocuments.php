@@ -4,8 +4,10 @@ namespace App\Livewire\Mahasiswa;
 
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
+use App\Models\Program;
 use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,11 +16,17 @@ class LrkDocuments extends Component
     use WithPagination;
 
     public ?string $filterType = '';
+
     public ?string $filterStatus = '';
+
     public string $search = '';
+
     public string $sortBy = 'execution_date';
+
     public string $sortDirection = 'asc';
+
     public ?int $selectedProgramId = null;
+
     public ?int $selectedParticipantId = null;
 
     public function viewProgram(int $programId, ?int $participantId = null)
@@ -29,9 +37,20 @@ class LrkDocuments extends Component
         $this->js('$flux.modal("view-program").show()');
     }
 
-    public function updatedFilterType() { $this->resetPage(); }
-    public function updatedFilterStatus() { $this->resetPage(); }
-    public function updatedSearch() { $this->resetPage(); }
+    public function updatedFilterType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
 
     public function sort($column)
     {
@@ -43,17 +62,23 @@ class LrkDocuments extends Component
         }
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function selectedProgram()
     {
-        if (!$this->selectedProgramId) return null;
-        return \App\Models\Program::find($this->selectedProgramId);
+        if (! $this->selectedProgramId) {
+            return null;
+        }
+
+        return Program::find($this->selectedProgramId);
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function selectedParticipant()
     {
-        if (!$this->selectedParticipantId) return null;
+        if (! $this->selectedParticipantId) {
+            return null;
+        }
+
         return ProgramParticipant::find($this->selectedParticipantId);
     }
 
@@ -64,7 +89,7 @@ class LrkDocuments extends Component
 
         // All participants in this group's programs
         $participants = $group ? ProgramParticipant::with(['program', 'student'])
-            ->whereHas('program', function($q) use ($group) {
+            ->whereHas('program', function ($q) use ($group) {
                 $q->where('group_id', $group->id);
             })->get() : collect();
 
@@ -80,7 +105,7 @@ class LrkDocuments extends Component
         $multidisiplinProgramsCount = $group ? $group->programs()->where('type', ProgramType::Multidisiplin)->count() : 0;
         $allStudentsMeetMinimumRequirements = true;
 
-        $memberSummary = $students->map(function ($student) use ($participants, $multidisiplinProgramsCount, &$allStudentsMeetMinimumRequirements) {
+        $memberSummary = $students->map(function ($student) use ($participants, &$allStudentsMeetMinimumRequirements) {
             $studentParticipants = $participants->where('student_id', $student->id);
             $total = $studentParticipants->count();
             $approved = $studentParticipants->where('status', ProgramStatus::Approved)->count();
@@ -88,13 +113,13 @@ class LrkDocuments extends Component
             $revision = $studentParticipants->where('status', ProgramStatus::NeedsRevision)->count();
             $draft = $studentParticipants->where('status', ProgramStatus::Draft)->count();
 
-            $hasSosmas = $studentParticipants->contains(fn($p) => $p->program->type === ProgramType::SosialKemasyarakatan);
-            $hasLainnya = $studentParticipants->contains(fn($p) => $p->program->type === ProgramType::Lainnya);
-            $multidisiplinCount = $studentParticipants->filter(fn($p) => $p->program->type === ProgramType::Multidisiplin)->count();
+            $hasSosmas = $studentParticipants->contains(fn ($p) => $p->program->type === ProgramType::SosialKemasyarakatan);
+            $hasLainnya = $studentParticipants->contains(fn ($p) => $p->program->type === ProgramType::Lainnya);
+            $multidisiplinCount = $studentParticipants->filter(fn ($p) => $p->program->type === ProgramType::Multidisiplin)->count();
 
             $meetsMinimumRequirements = $hasSosmas && $hasLainnya && ($multidisiplinCount >= 2);
 
-            if (!$meetsMinimumRequirements) {
+            if (! $meetsMinimumRequirements) {
                 $allStudentsMeetMinimumRequirements = false;
             }
 
@@ -103,7 +128,7 @@ class LrkDocuments extends Component
                 $overallStatus = 'empty';
             } elseif ($approved === $total && $meetsMinimumRequirements) {
                 $overallStatus = 'approved';
-            } elseif ($approved === $total && !$meetsMinimumRequirements) {
+            } elseif ($approved === $total && ! $meetsMinimumRequirements) {
                 $overallStatus = 'incomplete'; // Needs to add missing mandatory programs
             } elseif ($revision > 0) {
                 $overallStatus = 'revision';
@@ -113,7 +138,7 @@ class LrkDocuments extends Component
                 $overallStatus = 'draft';
             }
 
-            return (object)[
+            return (object) [
                 'student' => $student,
                 'total' => $total,
                 'approved' => $approved,
@@ -143,8 +168,8 @@ class LrkDocuments extends Component
                 $query->where('program_participants.status', $this->filterStatus);
             }
             if ($this->search) {
-                $query->where('programs.title', 'like', '%' . $this->search . '%')
-                      ->orWhere('program_participants.participant_code', 'like', '%' . $this->search . '%');
+                $query->where('programs.title', 'like', '%'.$this->search.'%')
+                    ->orWhere('program_participants.participant_code', 'like', '%'.$this->search.'%');
             }
 
             if ($this->sortBy === 'execution_date') {
@@ -152,8 +177,8 @@ class LrkDocuments extends Component
             }
 
             $query->orderBy('programs.type')
-                  ->orderBy('programs.sequence')
-                  ->orderBy('program_participants.student_id');
+                ->orderBy('programs.sequence')
+                ->orderBy('program_participants.student_id');
 
             $paginatedParticipants = $query->paginate(10);
         }
@@ -165,7 +190,7 @@ class LrkDocuments extends Component
             'background', 'program_multidisiplin_text', 'program_sosmas_text',
             'program_lainnya_text', 'survey_documentation_text', 'location_map_text',
         ];
-        $filledReportFields = $group ? collect($reportFields)->filter(fn($f) => !empty($group->$f))->count() : 0;
+        $filledReportFields = $group ? collect($reportFields)->filter(fn ($f) => ! empty($group->$f))->count() : 0;
         $totalReportFields = count($reportFields);
 
         return view('livewire.mahasiswa.lrk-documents', [

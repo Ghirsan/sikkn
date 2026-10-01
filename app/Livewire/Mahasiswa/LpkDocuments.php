@@ -3,9 +3,9 @@
 namespace App\Livewire\Mahasiswa;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,10 +14,15 @@ class LpkDocuments extends Component
     use WithPagination;
 
     public ?string $filterType = '';
+
     public ?string $filterStatus = '';
+
     public string $search = '';
+
     public string $sortBy = 'execution_date';
+
     public string $sortDirection = 'asc';
+
     public ?int $selectedParticipantId = null;
 
     public function viewProgram(?int $participantId = null)
@@ -26,9 +31,20 @@ class LpkDocuments extends Component
         $this->js('$flux.modal("view-program").show()');
     }
 
-    public function updatedFilterType() { $this->resetPage(); }
-    public function updatedFilterStatus() { $this->resetPage(); }
-    public function updatedSearch() { $this->resetPage(); }
+    public function updatedFilterType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
 
     public function sort($column)
     {
@@ -40,10 +56,13 @@ class LpkDocuments extends Component
         }
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function selectedParticipant()
     {
-        if (!$this->selectedParticipantId) return null;
+        if (! $this->selectedParticipantId) {
+            return null;
+        }
+
         return ProgramParticipant::with('program')->find($this->selectedParticipantId);
     }
 
@@ -54,13 +73,13 @@ class LpkDocuments extends Component
 
         // All participants in this group's programs
         $participants = $group ? ProgramParticipant::with(['program', 'student'])
-            ->whereHas('program', function($q) use ($group) {
+            ->whereHas('program', function ($q) use ($group) {
                 $q->where('group_id', $group->id);
             })->get() : collect();
 
         $totalParticipants = $participants->count();
         $lpkApprovedCount = $participants->where('lpk_status', ProgramStatus::Approved)->count();
-        
+
         $progressPercent = $totalParticipants > 0 ? round(($lpkApprovedCount / $totalParticipants) * 100) : 0;
 
         // Note: LPK can only be printed if ALL LRK are approved AND all LPK are approved.
@@ -91,7 +110,7 @@ class LpkDocuments extends Component
                 $overallStatus = 'draft';
             }
 
-            return (object)[
+            return (object) [
                 'student' => $student,
                 'total' => $total,
                 'approved' => $approved,
@@ -117,8 +136,8 @@ class LpkDocuments extends Component
                 $query->where('program_participants.lpk_status', $this->filterStatus);
             }
             if ($this->search) {
-                $query->where('programs.title', 'like', '%' . $this->search . '%')
-                      ->orWhere('program_participants.participant_code', 'like', '%' . $this->search . '%');
+                $query->where('programs.title', 'like', '%'.$this->search.'%')
+                    ->orWhere('program_participants.participant_code', 'like', '%'.$this->search.'%');
             }
 
             if ($this->sortBy === 'execution_date') {
@@ -126,8 +145,8 @@ class LpkDocuments extends Component
             }
 
             $query->orderBy('programs.type')
-                  ->orderBy('programs.sequence')
-                  ->orderBy('program_participants.student_id');
+                ->orderBy('programs.sequence')
+                ->orderBy('program_participants.student_id');
 
             $paginatedParticipants = $query->paginate(10);
         }

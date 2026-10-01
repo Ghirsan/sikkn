@@ -5,9 +5,10 @@ namespace App\Livewire\Mahasiswa;
 use App\Enums\LogStatus;
 use App\Models\MentoringLog;
 use App\Models\Program;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\Component;
 
 class MentoringLogForm extends Component
 {
@@ -15,11 +16,17 @@ class MentoringLogForm extends Component
     public ?int $logId = null;
 
     public $date = '';
+
     public $topic = '';
+
     public $discussion_summary = '';
+
     public $program_id = null;
+
     public $target_group = '';
+
     public $student_count = null;
+
     public $output = '';
 
     protected function rules()
@@ -37,7 +44,7 @@ class MentoringLogForm extends Component
                 'nullable',
                 'integer',
                 'min:1',
-                $maxStudentCount ? 'max:' . $maxStudentCount : null,
+                $maxStudentCount ? 'max:'.$maxStudentCount : null,
             ]),
             'output' => 'nullable|string|max:255',
         ];
@@ -54,7 +61,7 @@ class MentoringLogForm extends Component
     {
         if ($this->logId) {
             $log = MentoringLog::where('student_id', Auth::id())->findOrFail($this->logId);
-            
+
             if ($log->status === LogStatus::Approved) {
                 return redirect()->route('mentoring-logs.index');
             }
@@ -77,9 +84,10 @@ class MentoringLogForm extends Component
         $group = $user->group()->first();
 
         if ($group && $group->start_date && $group->end_date) {
-            $logDate = \Carbon\Carbon::parse($this->date);
+            $logDate = Carbon::parse($this->date);
             if ($logDate->lt($group->start_date) || $logDate->gt($group->end_date)) {
-                $this->addError('date', 'Tanggal harus berada dalam periode kelompok KKN (' . $group->start_date->format('d/m/Y') . ' - ' . $group->end_date->format('d/m/Y') . ').');
+                $this->addError('date', 'Tanggal harus berada dalam periode kelompok KKN ('.$group->start_date->format('d/m/Y').' - '.$group->end_date->format('d/m/Y').').');
+
                 return;
             }
         }
@@ -94,6 +102,7 @@ class MentoringLogForm extends Component
 
         if ($existingLogQuery->exists()) {
             $this->addError('date', 'Anda sudah memiliki catatan pembimbingan untuk tanggal ini.');
+
             return;
         }
 
@@ -128,6 +137,7 @@ class MentoringLogForm extends Component
         }
 
         session()->flash('success', 'Catatan pembimbingan berhasil disimpan sebagai draf.');
+
         return $this->redirect(route('mentoring-logs.index'), navigate: true);
     }
 
@@ -137,9 +147,9 @@ class MentoringLogForm extends Component
         $programs = Program::where('group_id', $user->group_id)
             ->where(function ($query) use ($user) {
                 $query->where('student_id', $user->id)
-                      ->orWhereHas('participants', function ($q) use ($user) {
-                          $q->where('student_id', $user->id);
-                      });
+                    ->orWhereHas('participants', function ($q) use ($user) {
+                        $q->where('student_id', $user->id);
+                    });
             })
             ->orderBy('type')
             ->orderBy('sequence')

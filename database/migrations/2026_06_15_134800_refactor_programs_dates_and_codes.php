@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('programs', function (Blueprint $table) {
             $table->date('start_date')->nullable()->after('group_id');
             $table->date('end_date')->nullable()->after('start_date');
-            
+
             // Rename multidisciplinary_number to sequence (requires doctrine/dbal if not using Laravel 10/11 schema native, but we can do it safely via renameColumn)
             $table->renameColumn('multidisciplinary_number', 'sequence');
         });

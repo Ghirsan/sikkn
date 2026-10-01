@@ -10,9 +10,13 @@ use Livewire\Component;
 class MentoringBook extends Component
 {
     public string $feedback = '';
+
     public int $feedbackLogId = 0;
+
     public string $filterStudent = '';
+
     public string $selectedGroupId = '';
+
     public string $filterStatus = '';
 
     public function startFeedback(int $logId): void
@@ -41,11 +45,11 @@ class MentoringBook extends Component
         $user = Auth::user();
 
         $groupsQuery = $user->dplGroups()->with('students');
-        
+
         if ($this->selectedGroupId) {
             $groupsQuery->where('groups.id', $this->selectedGroupId);
         }
-        
+
         $groups = $groupsQuery->get();
         $allGroups = $user->dplGroups()->get();
 
@@ -79,6 +83,7 @@ class MentoringBook extends Component
     private function getStudentIds()
     {
         $user = Auth::user();
+
         return $user->dplGroups()->with('students')->get()->pluck('students')->flatten()->pluck('id');
     }
 }

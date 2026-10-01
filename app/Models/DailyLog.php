@@ -6,6 +6,7 @@ use App\Enums\LogStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DailyLog extends Model
 {
@@ -22,7 +23,7 @@ class DailyLog extends Model
     /**
      * Get the activities for this daily log.
      */
-    public function activities(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function activities(): HasMany
     {
         return $this->hasMany(DailyLogActivity::class);
     }

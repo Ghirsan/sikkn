@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Mahasiswa;
 
-use App\Enums\ProgramType;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 

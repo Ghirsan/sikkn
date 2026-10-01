@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'prodi', 'fakultas', 'group_id'])]
+#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'prodi', 'fakultas', 'group_id', 'phone', 'emergency_phone'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -66,6 +67,32 @@ class User extends Authenticatable
     }
 
     /**
+     * Build a WhatsApp URL from a stored phone number.
+     */
+    public function whatsappUrl(?string $phone = null): ?string
+    {
+        $phone ??= $this->phone;
+
+        if (blank($phone)) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if (str_starts_with($phone, '+')) {
+            return $digits !== '' ? "https://wa.me/{$digits}" : null;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        } elseif (str_starts_with($digits, '8')) {
+            $digits = '62'.$digits;
+        }
+
+        return $digits !== '' ? "https://wa.me/{$digits}" : null;
+    }
+
+    /**
      * Check if the user is an admin (P2KKN, Prodi, or Fakultas).
      */
     public function isAdmin(): bool
@@ -90,8 +117,8 @@ class User extends Authenticatable
      */
     public function isStudentLeader(): bool
     {
-        return $this->role === UserRole::Mahasiswa 
-            && $this->group_id !== null 
+        return $this->role === UserRole::Mahasiswa
+            && $this->group_id !== null
             && $this->id === $this->group->student_leader_id;
     }
 
@@ -116,7 +143,7 @@ class User extends Authenticatable
     /**
      * Get the groups this DPL supervises.
      */
-    public function dplGroups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function dplGroups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class, 'dpl_group', 'dpl_id', 'group_id');
     }

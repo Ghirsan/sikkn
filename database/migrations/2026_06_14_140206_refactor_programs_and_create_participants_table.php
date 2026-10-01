@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,14 +16,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('program_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
-            
+
             // LRK Phase
             $table->string('role_in_program')->nullable();
             $table->text('responsibility')->nullable();
             $table->text('timeline')->nullable();
             $table->string('status')->default('draft');
             $table->text('revision_note')->nullable();
-            
+
             // LPK Phase
             $table->text('achievement')->nullable();
             $table->text('obstacle')->nullable();
@@ -36,10 +37,10 @@ return new class extends Migration
         });
 
         // Migrate existing data (safe copy)
-        $programs = \Illuminate\Support\Facades\DB::table('programs')->get();
+        $programs = DB::table('programs')->get();
         foreach ($programs as $program) {
             if ($program->student_id) {
-                \Illuminate\Support\Facades\DB::table('program_participants')->insert([
+                DB::table('program_participants')->insert([
                     'program_id' => $program->id,
                     'student_id' => $program->student_id,
                     'role_in_program' => $program->role_in_program ?? null,
@@ -68,7 +69,7 @@ return new class extends Migration
         Schema::table('programs', function (Blueprint $table) {
             $table->unsignedBigInteger('student_id')->nullable()->change();
             $table->foreign('student_id')->references('id')->on('users')->nullOnDelete();
-            
+
             // Drop columns moved to pivot table
             $table->dropColumn([
                 'role_in_program',
@@ -96,13 +97,13 @@ return new class extends Migration
         Schema::table('programs', function (Blueprint $table) {
             $table->unsignedBigInteger('student_id')->nullable(false)->change();
             $table->foreign('student_id')->references('id')->on('users')->cascadeOnDelete();
-            
+
             $table->string('role_in_program')->nullable();
             $table->text('responsibility')->nullable();
             $table->text('timeline')->nullable();
             $table->string('status')->default('draft');
             $table->text('revision_note')->nullable();
-            
+
             $table->text('achievement')->nullable();
             $table->text('obstacle')->nullable();
             $table->text('solution')->nullable();

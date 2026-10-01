@@ -4,19 +4,24 @@ namespace App\Livewire\Mahasiswa;
 
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
+use App\Models\ParticipantOutput;
+use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Url;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class ProgramForm extends Component
 {
     use WithFileUploads;
+
     #[Url]
     public string $action = 'create'; // 'create', 'edit', 'lpk'
-    
+
     #[Url]
     public ?string $type = null;
 
@@ -27,55 +32,72 @@ class ProgramForm extends Component
     public ?int $participantId = null;
 
     public string $formMode = 'edit_program';
-    
+
     // For Multidisiplin Join
     public $availableMultidisiplinPrograms = [];
 
     // Program Fields (Programs Table)
     public string $title = '';
+
     public string $problem_potential = '';
+
     public string $location = '';
+
     public string $target_audience = '';
+
     public string $output_target = '';
+
     public string $method = '';
+
     public ?string $execution_date = null;
 
     // Participant Fields (Participants Table - LRK Phase)
     public string $participant_title = '';
+
     public string $role_in_program = '';
+
     public string $responsibility = '';
+
     public ?string $sdg_category = '';
 
     // Participant Fields (Participants Table - LPK Phase)
     public string $achievement = '';
+
     public string $obstacle = '';
+
     public string $solution = '';
+
     public string $execution_description = '';
-    
+
     // Lampiran 1 (Documentation)
     public $documentation_image; // for upload
+
     public ?string $documentation_image_path = null;
+
     public ?string $documentation_caption = null;
 
     // Lampiran 2 (Outputs)
     public array $outputs = []; // Array to hold multiple outputs
-    
+
     public ?string $status = null;
+
     public ?string $revision_note = null;
-    
+
     public bool $isLpkMultidisiplin = false;
+
     public bool $isLpkVideoProfile = false;
 
     public string $min_date = '';
+
     public ?string $max_date = null;
 
     public function mount()
     {
         $user = Auth::user();
-        
-        $period = \App\Models\Period::active()->first();
+
+        $period = Period::active()->first();
         $this->min_date = now()->format('Y-m-d');
-        
+
         if ($user->group && $user->group->effective_end_date) {
             $this->max_date = $user->group->effective_end_date->format('Y-m-d');
         } elseif ($period && $period->end_date) {
@@ -84,7 +106,7 @@ class ProgramForm extends Component
 
         if ($this->action === 'create') {
             $this->type = $this->type ?? ProgramType::Lainnya->value;
-            
+
             if ($this->type === ProgramType::Multidisiplin->value) {
                 $this->formMode = 'create_multidisiplin';
                 $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
@@ -98,7 +120,7 @@ class ProgramForm extends Component
         } elseif ($this->action === 'edit' && $this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
             $this->type = $program->type->value;
-            
+
             $isVideoProfile = $program ? $program->isVideoProfile() : false;
 
             if ($program->type === ProgramType::SosialKemasyarakatan || $program->type === ProgramType::Lainnya) {
@@ -157,7 +179,7 @@ class ProgramForm extends Component
         } elseif ($this->action === 'lpk' && $this->participantId) {
             $this->formMode = 'lpk';
             $participant = ProgramParticipant::with('program')->where('student_id', $user->id)->findOrFail($this->participantId);
-            
+
             if ($participant->status !== ProgramStatus::Approved) {
                 return redirect()->route('lpk.index');
             }
@@ -166,13 +188,13 @@ class ProgramForm extends Component
             $this->status = $participant->lpk_status->value;
             $this->revision_note = $participant->revision_note;
             $this->isLpkVideoProfile = $participant->program ? $participant->program->isVideoProfile() : false;
-            $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$this->isLpkVideoProfile;
-            
+            $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && ! $this->isLpkVideoProfile;
+
             $this->achievement = $participant->achievement ?? '';
             $this->obstacle = $participant->obstacle ?? '';
             $this->solution = $participant->solution ?? '';
             $this->execution_description = $participant->execution_description ?? '';
-            
+
             $this->documentation_image_path = $participant->documentation_image_path;
             $this->documentation_caption = $participant->documentation_caption;
 
@@ -211,13 +233,11 @@ class ProgramForm extends Component
         // If it has an ID, we might want to mark it for deletion or delete it immediately.
         // For simplicity, we'll just remove it from the array and handle deletion on save.
         if (isset($this->outputs[$index]['id']) && $this->outputs[$index]['id']) {
-            \App\Models\ParticipantOutput::find($this->outputs[$index]['id'])?->delete();
+            ParticipantOutput::find($this->outputs[$index]['id'])?->delete();
         }
         unset($this->outputs[$index]);
         $this->outputs = array_values($this->outputs);
     }
-
-
 
     public function updatedProgramId($value)
     {
@@ -244,7 +264,9 @@ class ProgramForm extends Component
         }
 
         $user = Auth::user();
-        if (!$user->group_id) return;
+        if (! $user->group_id) {
+            return;
+        }
 
         // Validation based on mode
         if ($this->formMode === 'create_multidisiplin') {
@@ -253,6 +275,7 @@ class ProgramForm extends Component
             ], [
                 'programId.required' => 'Pilih tema program multidisiplin terlebih dahulu.',
             ]);
+
             return;
         } elseif ($this->formMode === 'edit_peran') {
             $this->validate([
@@ -281,7 +304,7 @@ class ProgramForm extends Component
             ]);
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+        DB::transaction(function () use ($user) {
             // 1. Handle Program Creation/Update
             if ($this->programId) {
                 $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
@@ -318,7 +341,7 @@ class ProgramForm extends Component
             // or update them if provided in create_individual/edit_peran
             $participantData['role_in_program'] = $this->role_in_program ?: null;
             $participantData['responsibility'] = $this->responsibility ?: null;
-            
+
             if ($this->formMode === 'edit_peran' || $this->formMode === 'create_individual') {
                 $participantData['execution_date'] = $this->execution_date ?: null;
                 $participantData['participant_title'] = null;
@@ -348,6 +371,7 @@ class ProgramForm extends Component
         });
 
         session()->flash('success', 'Data program berhasil disimpan.');
+
         return $this->redirect(route('programs.index'), navigate: true);
     }
 
@@ -355,7 +379,7 @@ class ProgramForm extends Component
     {
         $participant = ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantId);
         $isVideo = $participant->program ? $participant->program->isVideoProfile() : false;
-        $isMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && !$isVideo;
+        $isMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && ! $isVideo;
 
         if ($isMultidisiplin) {
             $this->validate([
@@ -370,7 +394,7 @@ class ProgramForm extends Component
                 'achievement' => 'required|string', // Digunakan untuk menampung "Hasil"
             ]);
         }
-        
+
         $this->validate([
             'documentation_image' => $this->documentation_image_path ? 'nullable|image|max:5120' : 'required|image|max:5120',
             'documentation_caption' => 'required|string|max:255',
@@ -397,11 +421,11 @@ class ProgramForm extends Component
                 }
             } elseif ($output['type'] === 'link') {
                 $url = trim($output['url']);
-                if (!empty($url) && !preg_match('#^https?://#i', $url)) {
-                    $url = 'https://' . $url;
+                if (! empty($url) && ! preg_match('#^https?://#i', $url)) {
+                    $url = 'https://'.$url;
                     $this->outputs[$index]['url'] = $url;
                 }
-                
+
                 $this->validate([
                     "outputs.{$index}.url" => 'required|url',
                 ], ["outputs.{$index}.url.required" => 'URL tautan luaran harus diisi.']);
@@ -410,13 +434,13 @@ class ProgramForm extends Component
 
         if ($this->documentation_image) {
             if ($participant->documentation_image_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($participant->documentation_image_path);
+                Storage::disk('public')->delete($participant->documentation_image_path);
             }
             $participant->documentation_image_path = $this->documentation_image->store('lpk_documentations', 'public');
         }
-        
+
         $participant->update([
-            'lpk_status' => \App\Enums\ProgramStatus::Draft,
+            'lpk_status' => ProgramStatus::Draft,
             'revision_note' => null,
             'execution_description' => $this->execution_description,
             'achievement' => $this->achievement,
@@ -430,12 +454,12 @@ class ProgramForm extends Component
 
         foreach ($this->outputs as $outputData) {
             $outputModel = null;
-            if (!empty($outputData['id'])) {
-                $outputModel = \App\Models\ParticipantOutput::find($outputData['id']);
+            if (! empty($outputData['id'])) {
+                $outputModel = ParticipantOutput::find($outputData['id']);
             }
 
-            if (!$outputModel) {
-                $outputModel = new \App\Models\ParticipantOutput([
+            if (! $outputModel) {
+                $outputModel = new ParticipantOutput([
                     'program_participant_id' => $participant->id,
                     'output_code' => 'temp', // will be recalculated
                 ]);
@@ -446,45 +470,46 @@ class ProgramForm extends Component
 
             if ($outputData['type'] === 'file') {
                 $outputModel->url = null;
-                if (!empty($outputData['file'])) {
+                if (! empty($outputData['file'])) {
                     if ($outputModel->file_path) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($outputModel->file_path);
+                        Storage::disk('public')->delete($outputModel->file_path);
                     }
                     $outputModel->file_path = $outputData['file']->store('lpk_outputs', 'public');
                 }
             } else {
                 if ($outputModel->file_path) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($outputModel->file_path);
+                    Storage::disk('public')->delete($outputModel->file_path);
                     $outputModel->file_path = null;
                 }
                 $outputModel->url = $outputData['url'];
             }
-            
+
             $outputModel->save();
             $savedOutputIds[] = $outputModel->id;
         }
 
         $outputsToDelete = array_diff($existingOutputs, $savedOutputIds);
-        if (!empty($outputsToDelete)) {
-            $toDelete = \App\Models\ParticipantOutput::whereIn('id', $outputsToDelete)->get();
+        if (! empty($outputsToDelete)) {
+            $toDelete = ParticipantOutput::whereIn('id', $outputsToDelete)->get();
             foreach ($toDelete as $model) {
                 if ($model->file_path) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($model->file_path);
+                    Storage::disk('public')->delete($model->file_path);
                 }
                 $model->delete();
             }
         }
-        
+
         $allOutputs = $participant->outputs()->orderBy('id')->get();
         $totalCount = $allOutputs->count();
         foreach ($allOutputs as $i => $model) {
-            $code = \App\Models\ParticipantOutput::generateOutputCode($participant, $i, $totalCount);
+            $code = ParticipantOutput::generateOutputCode($participant, $i, $totalCount);
             if ($model->output_code !== $code) {
                 $model->update(['output_code' => $code]);
             }
         }
 
         session()->flash('success', 'Laporan LPK Anda berhasil disimpan.');
+
         return $this->redirect(route('programs.index'), navigate: true);
     }
 

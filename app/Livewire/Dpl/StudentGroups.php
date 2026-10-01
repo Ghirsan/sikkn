@@ -2,16 +2,18 @@
 
 namespace App\Livewire\Dpl;
 
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Flux\Flux;
 
 class StudentGroups extends Component
 {
     public $selectedGroupId = '';
+
     public $search = '';
 
     public string $sortBy = 'name';
+
     public string $sortDirection = 'asc';
 
     public function sort(string $column): void
@@ -26,9 +28,13 @@ class StudentGroups extends Component
 
     // Pending leader assignment
     public ?int $pendingGroupId = null;
+
     public ?int $pendingStudentId = null;
+
     public string $pendingStudentName = '';
+
     public string $pendingCurrentLeaderName = '';
+
     public bool $isReplacing = false;
 
     public function confirmLeader(int $groupId, int $studentId, string $studentName, string $currentLeaderName = ''): void
@@ -37,7 +43,7 @@ class StudentGroups extends Component
         $this->pendingStudentId = $studentId;
         $this->pendingStudentName = $studentName;
         $this->pendingCurrentLeaderName = $currentLeaderName;
-        $this->isReplacing = !empty($currentLeaderName);
+        $this->isReplacing = ! empty($currentLeaderName);
         $this->modal('confirm-leader')->show();
     }
 
@@ -65,7 +71,6 @@ class StudentGroups extends Component
         $this->modal('confirm-leader')->close();
         $this->resetLeaderState();
 
-        
         Flux::toast(
             variant: 'success',
             heading: __('Ketua Ditetapkan'),
@@ -85,29 +90,29 @@ class StudentGroups extends Component
     public function render()
     {
         $user = Auth::user();
-        
+
         $dplGroupsQuery = $user->dplGroups()->with([
             'students' => function ($query) {
                 if ($this->search) {
                     $query->where(function ($q) {
-                        $q->where('name', 'like', '%' . $this->search . '%')
-                          ->orWhere('nim', 'like', '%' . $this->search . '%')
-                          ->orWhere('prodi', 'like', '%' . $this->search . '%');
+                        $q->where('name', 'like', '%'.$this->search.'%')
+                            ->orWhere('nim', 'like', '%'.$this->search.'%')
+                            ->orWhere('prodi', 'like', '%'.$this->search.'%');
                     });
                 }
             },
-            'period', 'dpls', 'leadDpl', 'studentLeader'
+            'period', 'dpls', 'leadDpl', 'studentLeader',
         ]);
-        
+
         if ($this->selectedGroupId) {
             $dplGroupsQuery->where('groups.id', $this->selectedGroupId);
         }
 
         if ($this->search && empty($this->selectedGroupId)) {
             $dplGroupsQuery->whereHas('students', function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('nim', 'like', '%' . $this->search . '%')
-                      ->orWhere('prodi', 'like', '%' . $this->search . '%');
+                $query->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('nim', 'like', '%'.$this->search.'%')
+                    ->orWhere('prodi', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -117,14 +122,19 @@ class StudentGroups extends Component
             $group->setRelation('students', $group->students->sort(function ($a, $b) use ($group) {
                 $aIsLeader = $a->id === $group->student_leader_id;
                 $bIsLeader = $b->id === $group->student_leader_id;
-            
-                if ($aIsLeader && !$bIsLeader) return -1;
-                if (!$aIsLeader && $bIsLeader) return 1;
-            
+
+                if ($aIsLeader && ! $bIsLeader) {
+                    return -1;
+                }
+                if (! $aIsLeader && $bIsLeader) {
+                    return 1;
+                }
+
                 $valA = $a->{$this->sortBy};
                 $valB = $b->{$this->sortBy};
-                
+
                 $cmp = strcasecmp($valA, $valB);
+
                 return $this->sortDirection === 'asc' ? $cmp : -$cmp;
             })->values());
         }

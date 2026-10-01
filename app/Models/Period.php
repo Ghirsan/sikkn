@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PeriodStatus;
+use App\Enums\Semester;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,7 +24,7 @@ class Period extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
-            'semester' => \App\Enums\Semester::class,
+            'semester' => Semester::class,
         ];
     }
 
@@ -41,7 +42,7 @@ class Period extends Model
     public function scopeActive($query)
     {
         return $query->where('start_date', '<=', now())
-                     ->where('end_date', '>=', now());
+            ->where('end_date', '>=', now());
     }
 
     /**

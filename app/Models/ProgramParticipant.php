@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\ProgramStatus;
+use App\Enums\ProgramType;
+use App\Enums\SdgCategory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProgramParticipant extends Model
@@ -34,10 +37,10 @@ class ProgramParticipant extends Model
     protected function casts(): array
     {
         return [
-            'status' => \App\Enums\ProgramStatus::class,
-            'lpk_status' => \App\Enums\ProgramStatus::class,
+            'status' => ProgramStatus::class,
+            'lpk_status' => ProgramStatus::class,
             'execution_date' => 'date',
-            'sdg_category' => \App\Enums\SdgCategory::class,
+            'sdg_category' => SdgCategory::class,
         ];
     }
 
@@ -53,24 +56,24 @@ class ProgramParticipant extends Model
     public static function generateParticipantCode($participant)
     {
         $program = $participant->program ?? Program::find($participant->program_id);
-        if (!$program || !$participant->student_id) {
+        if (! $program || ! $participant->student_id) {
             return null;
         }
 
         $typePrefix = match ($program->type) {
-            \App\Enums\ProgramType::Multidisiplin => 'M',
-            \App\Enums\ProgramType::SosialKemasyarakatan => 'SK',
-            \App\Enums\ProgramType::Lainnya => 'L',
+            ProgramType::Multidisiplin => 'M',
+            ProgramType::SosialKemasyarakatan => 'SK',
+            ProgramType::Lainnya => 'L',
             default => 'X',
         };
 
         // Count existing participants for this student + type to determine sequence
         $existingCount = static::whereHas('program', function ($q) use ($program) {
-                $q->where('type', $program->type);
-                if ($program->type === \App\Enums\ProgramType::Multidisiplin) {
-                    $q->where('group_id', $program->group_id);
-                }
-            })
+            $q->where('type', $program->type);
+            if ($program->type === ProgramType::Multidisiplin) {
+                $q->where('group_id', $program->group_id);
+            }
+        })
             ->where('student_id', $participant->student_id)
             ->count();
 
@@ -85,8 +88,6 @@ class ProgramParticipant extends Model
 
         return $baseCode;
     }
-
-
 
     public function program()
     {
@@ -105,11 +106,11 @@ class ProgramParticipant extends Model
 
     public function isEditable(): bool
     {
-        return in_array($this->status, [\App\Enums\ProgramStatus::Draft, \App\Enums\ProgramStatus::NeedsRevision]);
+        return in_array($this->status, [ProgramStatus::Draft, ProgramStatus::NeedsRevision]);
     }
 
     public function hasFilledLpk(): bool
     {
-        return !empty($this->achievement) && !empty($this->documentation_image_path);
+        return ! empty($this->achievement) && ! empty($this->documentation_image_path);
     }
 }

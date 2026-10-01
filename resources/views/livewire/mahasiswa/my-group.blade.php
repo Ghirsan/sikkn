@@ -116,6 +116,11 @@
                                     <flux:text class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">NIP. {{ $dpl->nip }}</flux:text>
                                 @endif
                                 <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">{{ $dpl->prodi }} · {{ $dpl->fakultas }}</flux:text>
+                                @if($dpl->phone)
+                                    <a href="{{ $dpl->whatsappUrl() }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-xs text-accent underline underline-offset-2" aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $dpl->name]) }}">
+                                        {{ $dpl->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach

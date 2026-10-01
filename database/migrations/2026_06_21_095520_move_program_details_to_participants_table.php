@@ -27,7 +27,7 @@ return new class extends Migration
                 'location',
                 'method',
                 'target_audience',
-                'output_target'
+                'output_target',
             ]);
         });
     }
@@ -53,7 +53,7 @@ return new class extends Migration
                 'location',
                 'method',
                 'target_audience',
-                'output_target'
+                'output_target',
             ]);
         });
     }

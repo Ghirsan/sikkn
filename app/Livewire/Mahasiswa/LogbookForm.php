@@ -4,10 +4,11 @@ namespace App\Livewire\Mahasiswa;
 
 use App\Enums\LogStatus;
 use App\Models\DailyLog;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class LogbookForm extends Component
@@ -19,9 +20,13 @@ class LogbookForm extends Component
 
     #[Url]
     public ?string $date = null;
+
     public $importantNotes = '';
+
     public $activities = [];
+
     public $notesImage = null;
+
     public $existingImagePath = null;
 
     protected $rules = [
@@ -38,7 +43,7 @@ class LogbookForm extends Component
     {
         if ($this->logId) {
             $log = DailyLog::with('activities')->where('student_id', Auth::id())->findOrFail($this->logId);
-            
+
             if ($log->status === LogStatus::Approved) {
                 return redirect()->route('logbook.index');
             }
@@ -46,11 +51,11 @@ class LogbookForm extends Component
             $this->date = $log->date->format('Y-m-d');
             $this->importantNotes = $log->important_notes;
             $this->existingImagePath = $log->image_path;
-            
+
             foreach ($log->activities as $activity) {
                 $this->activities[] = [
-                    'start_time' => \Carbon\Carbon::parse($activity->start_time)->format('H:i'),
-                    'end_time' => \Carbon\Carbon::parse($activity->end_time)->format('H:i'),
+                    'start_time' => Carbon::parse($activity->start_time)->format('H:i'),
+                    'end_time' => Carbon::parse($activity->end_time)->format('H:i'),
                     'activity_description' => $activity->activity_description,
                 ];
             }
@@ -66,7 +71,7 @@ class LogbookForm extends Component
         $this->activities[] = [
             'start_time' => '',
             'end_time' => '',
-            'activity_description' => ''
+            'activity_description' => '',
         ];
     }
 
@@ -96,13 +101,15 @@ class LogbookForm extends Component
         $group = $user->group()->first();
 
         if ($group && $group->start_date && $group->end_date) {
-            $logDate = \Carbon\Carbon::parse($this->date);
+            $logDate = Carbon::parse($this->date);
             if ($logDate->lt($group->start_date) || $logDate->gt($group->end_date)) {
-                $this->addError('date', 'Tanggal harus berada dalam periode kelompok KKN (' . $group->start_date->format('d/m/Y') . ' - ' . $group->end_date->format('d/m/Y') . ').');
+                $this->addError('date', 'Tanggal harus berada dalam periode kelompok KKN ('.$group->start_date->format('d/m/Y').' - '.$group->end_date->format('d/m/Y').').');
+
                 return;
             }
-            if ($logDate->gt(\Carbon\Carbon::today())) {
+            if ($logDate->gt(Carbon::today())) {
                 $this->addError('date', 'Tanggal kegiatan tidak boleh melebihi hari ini.');
+
                 return;
             }
         }
@@ -122,14 +129,14 @@ class LogbookForm extends Component
             if ($log->status === LogStatus::Approved) {
                 return redirect()->route('logbook.index');
             }
-            
+
             $log->update([
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
                 'image_path' => $imagePath,
                 'status' => $status,
             ]);
-            
+
             // Recreate activities
             $log->activities()->delete();
         } else {
@@ -137,9 +144,10 @@ class LogbookForm extends Component
             $existingLog = DailyLog::where('student_id', Auth::id())
                 ->where('date', $this->date)
                 ->first();
-                
+
             if ($existingLog) {
                 $this->addError('date', 'Anda sudah membuat logbook untuk tanggal ini.');
+
                 return;
             }
 
@@ -162,6 +170,7 @@ class LogbookForm extends Component
         }
 
         session()->flash('success', $status === LogStatus::Pending ? 'Catatan harian berhasil diajukan.' : 'Catatan harian berhasil disimpan sebagai draf.');
+
         return $this->redirect(route('logbook.index'), navigate: true);
     }
 

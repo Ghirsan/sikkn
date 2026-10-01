@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Admin;
 
+use App\Enums\Role;
 use App\Models\Group;
+use App\Models\User;
+use Carbon\Carbon;
 use Livewire\Component;
 
 class Groups extends Component
@@ -10,14 +13,17 @@ class Groups extends Component
     public string $search = '';
 
     public bool $showAssignModal = false;
+
     public ?Group $assigningGroup = null;
+
     public array $selectedDpls = [];
+
     public ?int $leadDplId = null;
 
     public function openAssignModal(Group $group)
     {
         $this->assigningGroup = $group;
-        $this->selectedDpls = $group->dpls()->pluck('users.id')->map(fn($id) => (string) $id)->toArray();
+        $this->selectedDpls = $group->dpls()->pluck('users.id')->map(fn ($id) => (string) $id)->toArray();
         $this->leadDplId = $group->lead_dpl_id;
         $this->showAssignModal = true;
     }
@@ -32,7 +38,7 @@ class Groups extends Component
 
     public function saveAssignments()
     {
-        if (!$this->assigningGroup) {
+        if (! $this->assigningGroup) {
             return;
         }
 
@@ -45,7 +51,7 @@ class Groups extends Component
         $this->assigningGroup->dpls()->sync($this->selectedDpls);
 
         // Ensure lead DPL is one of the assigned DPLs
-        if ($this->leadDplId && !in_array((string)$this->leadDplId, $this->selectedDpls)) {
+        if ($this->leadDplId && ! in_array((string) $this->leadDplId, $this->selectedDpls)) {
             $this->leadDplId = null; // Unset if they are not in the assigned list
         }
 
@@ -57,8 +63,11 @@ class Groups extends Component
     }
 
     public bool $showDatesModal = false;
+
     public ?Group $editingGroup = null;
+
     public $startDate = null;
+
     public $endDate = null;
 
     public function openDatesModal(Group $group)
@@ -79,7 +88,7 @@ class Groups extends Component
 
     public function saveDates()
     {
-        if (!$this->editingGroup) {
+        if (! $this->editingGroup) {
             return;
         }
 
@@ -90,8 +99,8 @@ class Groups extends Component
                 'nullable',
                 'date',
                 function ($attribute, $value, $fail) use ($period) {
-                    if ($value && $period && \Carbon\Carbon::parse($value)->lt($period->start_date)) {
-                        $fail('Tanggal mulai tidak boleh sebelum tanggal mulai periode (' . $period->start_date->format('d/m/Y') . ').');
+                    if ($value && $period && Carbon::parse($value)->lt($period->start_date)) {
+                        $fail('Tanggal mulai tidak boleh sebelum tanggal mulai periode ('.$period->start_date->format('d/m/Y').').');
                     }
                 },
             ],
@@ -100,8 +109,8 @@ class Groups extends Component
                 'date',
                 'after_or_equal:startDate',
                 function ($attribute, $value, $fail) use ($period) {
-                    if ($value && $period && \Carbon\Carbon::parse($value)->gt($period->end_date)) {
-                        $fail('Tanggal selesai tidak boleh setelah tanggal selesai periode (' . $period->end_date->format('d/m/Y') . ').');
+                    if ($value && $period && Carbon::parse($value)->gt($period->end_date)) {
+                        $fail('Tanggal selesai tidak boleh setelah tanggal selesai periode ('.$period->end_date->format('d/m/Y').').');
                     }
                 },
             ],
@@ -126,7 +135,7 @@ class Groups extends Component
         }
 
         $groups = $query->latest()->get();
-        $availableDpls = \App\Models\User::where('role', \App\Enums\Role::Dpl)->get();
+        $availableDpls = User::where('role', Role::Dpl)->get();
 
         return view('livewire.admin.groups', [
             'groups' => $groups,

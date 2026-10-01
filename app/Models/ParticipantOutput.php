@@ -25,13 +25,13 @@ class ParticipantOutput extends Model
 
     /**
      * Generate output code based on participant code and existing outputs.
-     * e.g., if participant_code = 'M1M1', outputs will be 'LM1M1' for 1st, 
+     * e.g., if participant_code = 'M1M1', outputs will be 'LM1M1' for 1st,
      * 'LM1M1A', 'LM1M1B' for subsequent (but if multiple, first becomes A).
      */
     public static function generateOutputCode(ProgramParticipant $participant, int $index, int $totalCount)
     {
-        $baseCode = 'L' . $participant->participant_code;
-        
+        $baseCode = 'L'.$participant->participant_code;
+
         if ($totalCount <= 1) {
             return $baseCode;
         }
@@ -42,9 +42,9 @@ class ParticipantOutput extends Model
             $suffix = $alphabet[$index];
         } else {
             // In case there are more than 26 outputs, fall back to AA, AB, etc.
-            $suffix = $alphabet[floor($index / 26) - 1] . $alphabet[$index % 26];
+            $suffix = $alphabet[floor($index / 26) - 1].$alphabet[$index % 26];
         }
 
-        return $baseCode . $suffix;
+        return $baseCode.$suffix;
     }
 }

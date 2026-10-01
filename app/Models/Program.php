@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Program extends Model
 {
@@ -36,11 +36,13 @@ class Program extends Model
 
     public static function resequencePrograms($groupId, $type, $studentId = null)
     {
-        if (!$groupId || !$type) return;
+        if (! $groupId || ! $type) {
+            return;
+        }
 
         // Ambil sisa program di kelompok dan tipe yang sama, urutkan dari yang pertama dibuat
         $query = static::where('group_id', $groupId)->where('type', $type);
-        
+
         if ($studentId) {
             $query->where('student_id', $studentId);
         } else {
@@ -111,8 +113,10 @@ class Program extends Model
     public function isVideoProfile(): bool
     {
         $title = $this->title;
-        if (!$title) return false;
-        
+        if (! $title) {
+            return false;
+        }
+
         return $this->type === ProgramType::Multidisiplin && (
             str_contains(strtolower($title), 'video')
         );
@@ -138,13 +142,8 @@ class Program extends Model
     /**
      * Get the participants of this program.
      */
-    public function participants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function participants(): HasMany
     {
         return $this->hasMany(ProgramParticipant::class);
     }
-
-
-
-
-
 }

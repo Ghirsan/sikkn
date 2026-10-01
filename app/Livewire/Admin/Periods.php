@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Admin;
 
-use App\Enums\PeriodStatus;
+use App\Enums\Semester;
 use App\Models\Period;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Periods extends Component
 {
-    public \App\Enums\Semester $semester = \App\Enums\Semester::Ganjil;
+    public Semester $semester = Semester::Ganjil;
 
     public string $year = '';
 
@@ -26,7 +27,7 @@ class Periods extends Component
     public function createPeriod()
     {
         $this->validate([
-            'semester' => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\Semester::class)],
+            'semester' => ['required', Rule::enum(Semester::class)],
             'year' => 'required|digits:4',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
@@ -41,8 +42,6 @@ class Periods extends Component
 
         $this->reset(['semester', 'year', 'start_date', 'end_date', 'isCreating']);
     }
-
-
 
     public function render()
     {

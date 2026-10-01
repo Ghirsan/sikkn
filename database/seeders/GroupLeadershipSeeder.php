@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserRole;
 use App\Models\Group;
 use Illuminate\Database\Seeder;
 
@@ -18,7 +17,7 @@ class GroupLeadershipSeeder extends Seeder
         foreach ($groups as $group) {
             // Assign the first DPL as the Lead DPL if there is any
             $leadDpl = $group->dpls->first();
-            
+
             // Assign the first student as the Student Leader if there is any
             $studentLeader = $group->students->first();
 

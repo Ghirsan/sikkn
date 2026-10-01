@@ -5,8 +5,10 @@ namespace App\Livewire\Mahasiswa;
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
 use App\Models\Program;
+use App\Models\ProgramParticipant;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Programs extends Component
@@ -14,6 +16,7 @@ class Programs extends Component
     public ?int $participantToDelete = null;
 
     public ?int $selectedProgramId = null;
+
     public ?int $selectedParticipantId = null;
 
     public function viewProgram(int $programId, ?int $participantId = null)
@@ -23,18 +26,24 @@ class Programs extends Component
         $this->js('$flux.modal("view-program").show()');
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function selectedProgram()
     {
-        if (!$this->selectedProgramId) return null;
+        if (! $this->selectedProgramId) {
+            return null;
+        }
+
         return Program::with('participants')->find($this->selectedProgramId);
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function selectedParticipant()
     {
-        if (!$this->selectedParticipantId) return null;
-        return \App\Models\ProgramParticipant::with('outputs')->find($this->selectedParticipantId);
+        if (! $this->selectedParticipantId) {
+            return null;
+        }
+
+        return ProgramParticipant::with('outputs')->find($this->selectedParticipantId);
     }
 
     public function confirmDelete(int $participantId)
@@ -45,13 +54,15 @@ class Programs extends Component
 
     public function deleteParticipant()
     {
-        if (!$this->participantToDelete) return;
+        if (! $this->participantToDelete) {
+            return;
+        }
 
-        $participant = \App\Models\ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantToDelete);
+        $participant = ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantToDelete);
         if ($participant->status === ProgramStatus::Draft) {
             $program = $participant->program;
             $participant->delete();
-            
+
             // If it's an individual program, delete the program entirely
             if ($program->student_id === Auth::id()) {
                 $program->delete();
@@ -76,9 +87,11 @@ class Programs extends Component
 
     public function submitLrk()
     {
-        if (!$this->participantToSubmit) return;
+        if (! $this->participantToSubmit) {
+            return;
+        }
 
-        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
+        $participant = ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
         if ($participant->status === ProgramStatus::Draft || $participant->status === ProgramStatus::NeedsRevision) {
             $participant->update(['status' => ProgramStatus::Submitted]);
             Flux::toast(variant: 'success', heading: 'LRK Diajukan', text: 'Rencana program berhasil diajukan ke Dosen KKN.');
@@ -96,14 +109,16 @@ class Programs extends Component
 
     public function submitLpk()
     {
-        if (!$this->participantToSubmit) return;
+        if (! $this->participantToSubmit) {
+            return;
+        }
 
-        $participant = \App\Models\ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
+        $participant = ProgramParticipant::where('student_id', Auth::id())->findOrFail($this->participantToSubmit);
         if ($participant->lpk_status === ProgramStatus::Draft || $participant->lpk_status === ProgramStatus::NeedsRevision) {
             $participant->update([
                 'lpk_status' => ProgramStatus::Submitted,
             ]);
-            \Flux\Flux::toast(variant: 'success', heading: 'LPK Diajukan', text: 'Laporan program berhasil diajukan ke Dosen KKN.');
+            Flux::toast(variant: 'success', heading: 'LPK Diajukan', text: 'Laporan program berhasil diajukan ke Dosen KKN.');
         }
 
         $this->participantToSubmit = null;
@@ -116,15 +131,15 @@ class Programs extends Component
 
         // All Group Programs
         $allPrograms = Program::where('group_id', $user->group_id)
-            ->with(['participants' => function($q) use ($user) {
+            ->with(['participants' => function ($q) use ($user) {
                 $q->where('student_id', $user->id);
             }])
             ->get();
 
-        $multidisiplinPrograms = $allPrograms->where('type', ProgramType::Multidisiplin)->filter(function($prog) {
+        $multidisiplinPrograms = $allPrograms->where('type', ProgramType::Multidisiplin)->filter(function ($prog) {
             return $prog->participants->isNotEmpty();
         });
-        
+
         $sosmasPrograms = $allPrograms->where('type', ProgramType::SosialKemasyarakatan)->where('student_id', $user->id);
         $lainnyaPrograms = $allPrograms->where('type', ProgramType::Lainnya)->where('student_id', $user->id);
 
@@ -132,7 +147,7 @@ class Programs extends Component
         if ($isMultidisiplinFilled) {
             foreach ($multidisiplinPrograms as $prog) {
                 $part = $prog->participants->first();
-                if (!$part || empty($part->role_in_program) || empty($part->responsibility) || empty($part->execution_date)) {
+                if (! $part || empty($part->role_in_program) || empty($part->responsibility) || empty($part->execution_date)) {
                     $isMultidisiplinFilled = false;
                     break;
                 }
@@ -141,7 +156,7 @@ class Programs extends Component
 
         $hasSosmas = $sosmasPrograms->count() > 0;
 
-        $joinedIds = \App\Models\ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
+        $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
         $hasAvailableMultidisiplin = Program::where('group_id', $user->group_id)
             ->where('type', ProgramType::Multidisiplin)
             ->whereNotIn('id', $joinedIds)

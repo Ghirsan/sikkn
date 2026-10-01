@@ -20,6 +20,7 @@
                     <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
                     <flux:table.column>{{ __('NIM') }}</flux:table.column>
                     <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
+                    <flux:table.column>{{ __('Kontak') }}</flux:table.column>
                     <flux:table.column>{{ __('Kelompok / Status') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
@@ -33,6 +34,23 @@
                             <flux:table.cell>
                                 {{ $student->prodi }}
                                 <div class="text-xs text-neutral-500">{{ $student->fakultas }}</div>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <div class="space-y-1 text-xs">
+                                    @if($student->phone)
+                                        <a href="{{ $student->whatsappUrl() }}" target="_blank" rel="noopener noreferrer" class="text-accent underline underline-offset-2" aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}">
+                                            {{ $student->phone }}
+                                        </a>
+                                    @endif
+                                    @if($student->emergency_phone)
+                                        <a href="{{ $student->whatsappUrl($student->emergency_phone) }}" target="_blank" rel="noopener noreferrer" class="block text-amber-600 underline underline-offset-2" aria-label="{{ __('Hubungi kontak darurat :name melalui WhatsApp', ['name' => $student->name]) }}">
+                                            {{ __('Darurat') }}: {{ $student->emergency_phone }}
+                                        </a>
+                                    @endif
+                                    @if(! $student->phone && ! $student->emergency_phone)
+                                        <span class="text-neutral-400">-</span>
+                                    @endif
+                                </div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if($student->group)

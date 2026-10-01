@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mahasiswa;
 
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -11,17 +12,27 @@ class LrkForm extends Component
     use WithFileUploads;
 
     public string $background = '';
+
     public string $program_multidisiplin_text = '';
+
     public string $program_sosmas_text = '';
+
     public string $program_lainnya_text = '';
+
     public string $storyboard_text = '';
+
     public string $video_script_text = '';
+
     public string $survey_documentation_text = '';
+
     public string $location_map_text = '';
+
     public $location_map_image; // For file upload
+
     public ?string $existing_map_path = null;
 
     public $survey_document_image; // For file upload
+
     public ?string $existing_survey_path = null;
 
     public function mount()
@@ -29,7 +40,7 @@ class LrkForm extends Component
         $user = Auth::user();
         $group = $user->group;
 
-        if (!$group || $group->student_leader_id !== $user->id) {
+        if (! $group || $group->student_leader_id !== $user->id) {
             abort(403);
         }
 
@@ -87,7 +98,7 @@ class LrkForm extends Component
 
         $group->update($data);
 
-        \Flux\Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data laporan LRK berhasil disimpan.');
+        Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data laporan LRK berhasil disimpan.');
     }
 
     public function render()

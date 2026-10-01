@@ -23,6 +23,7 @@ yarn-error.log
 /.vscode
 /.zed
 /.agents
+/.github
 /anti-slop
 AGENTS.md
 CLAUDE.md

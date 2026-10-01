@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProgramStatus;
+use App\Enums\ProgramType;
 use App\Models\Group;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class LrkPdfController extends Controller
 {
@@ -23,19 +25,19 @@ class LrkPdfController extends Controller
         // Build calendar
         $calendar = [];
         if ($period && $period->start_date && $period->end_date) {
-            $startDate = $period->start_date->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
-            $endDate = $period->end_date->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+            $startDate = $period->start_date->copy()->startOfWeek(Carbon::MONDAY);
+            $endDate = $period->end_date->copy()->endOfWeek(Carbon::SUNDAY);
 
-            $eventsByDate = $group->scheduleEvents->groupBy(function($e) {
+            $eventsByDate = $group->scheduleEvents->groupBy(function ($e) {
                 return $e->date->format('Y-m-d');
             });
 
             $programsByDate = [];
             foreach ($group->programs as $program) {
                 foreach ($program->participants as $participant) {
-                    if ($participant->status === \App\Enums\ProgramStatus::Approved && $participant->execution_date) {
+                    if ($participant->status === ProgramStatus::Approved && $participant->execution_date) {
                         $dateStr = $participant->execution_date->format('Y-m-d');
-                        if (!isset($programsByDate[$dateStr])) {
+                        if (! isset($programsByDate[$dateStr])) {
                             $programsByDate[$dateStr] = [];
                         }
                         $participant->setRelation('program', $program);
@@ -64,7 +66,7 @@ class LrkPdfController extends Controller
         $approvedParticipants = collect();
         foreach ($group->programs as $program) {
             foreach ($program->participants as $participant) {
-                if ($participant->status === \App\Enums\ProgramStatus::Approved) {
+                if ($participant->status === ProgramStatus::Approved) {
                     $participant->setRelation('program', $program);
                     $approvedParticipants->push($participant);
                 }
@@ -76,9 +78,9 @@ class LrkPdfController extends Controller
             'period' => $period,
             'dpls' => $group->dpls,
             'students' => $group->students,
-            'multidisiplin' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::Multidisiplin),
-            'sosialKemasyarakatan' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::SosialKemasyarakatan),
-            'lainnya' => $approvedParticipants->filter(fn($p) => $p->program->type === \App\Enums\ProgramType::Lainnya),
+            'multidisiplin' => $approvedParticipants->filter(fn ($p) => $p->program->type === ProgramType::Multidisiplin),
+            'sosialKemasyarakatan' => $approvedParticipants->filter(fn ($p) => $p->program->type === ProgramType::SosialKemasyarakatan),
+            'lainnya' => $approvedParticipants->filter(fn ($p) => $p->program->type === ProgramType::Lainnya),
             'scheduleEvents' => $group->scheduleEvents->sortBy('date'),
             'calendar' => $calendar,
         ]);

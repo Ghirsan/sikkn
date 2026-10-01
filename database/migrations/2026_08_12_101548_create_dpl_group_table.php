@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('dpl_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('group_id')->constrained('groups')->cascadeOnDelete();
             $table->timestamps();
-            
+
             $table->unique(['dpl_id', 'group_id']);
         });
     }
