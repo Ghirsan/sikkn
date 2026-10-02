@@ -38,13 +38,26 @@
                             <flux:table.cell>
                                 <div class="space-y-1 text-xs">
                                     @if($student->phone)
-                                        <a href="{{ $student->whatsappUrl() }}" target="_blank" rel="noopener noreferrer" class="text-accent underline underline-offset-2" aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}">
-                                            {{ $student->phone }}
+                                        <a
+                                            href="{{ $student->whatsappUrl() ?? $student->phone }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}"
+                                        >
+                                            <img src="{{ asset('whatsapp.svg') }}" alt="" class="block size-5 object-contain">
                                         </a>
                                     @endif
                                     @if($student->emergency_phone)
-                                        <a href="{{ $student->whatsappUrl($student->emergency_phone) }}" target="_blank" rel="noopener noreferrer" class="block text-amber-600 underline underline-offset-2" aria-label="{{ __('Hubungi kontak darurat :name melalui WhatsApp', ['name' => $student->name]) }}">
+                                        <a  target="_blank" rel="noopener noreferrer" class="block text-amber-600 underline underline-offset-2" aria-label="{{ __('Hubungi kontak darurat :name melalui WhatsApp', ['name' => $student->name]) }}">
                                             {{ __('Darurat') }}: {{ $student->emergency_phone }}
+                                        </a>
+                                        <a
+                                            href="{{ $student->whatsappUrl($student->emergency_phone) ?? $student->emergency_phone }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}"
+                                        >
+                                            <img src="{{ asset('whatsapp.svg') }}" alt="" class="block size-5 object-contain">
                                         </a>
                                     @endif
                                     @if(! $student->phone && ! $student->emergency_phone)

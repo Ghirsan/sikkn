@@ -120,8 +120,13 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if($student->phone)
-                                    <a href="{{ $student->whatsappUrl() }}" target="_blank" rel="noopener noreferrer" class="text-accent underline underline-offset-2" aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}">
-                                        {{ $student->phone }}
+                                    <a
+                                        href="{{ $student->whatsappUrl() ?? $student->phone }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}"
+                                    >
+                                        <img src="{{ asset('whatsapp.svg') }}" alt="" class="block size-5 object-contain">
                                     </a>
                                 @else
                                     <flux:text class="text-zinc-400">-</flux:text>

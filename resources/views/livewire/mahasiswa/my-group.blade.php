@@ -17,34 +17,34 @@
                     <flux:heading size="lg">{{ __('Profil Kelompok') }}</flux:heading>
                 </div>
 
-                <div class="space-y-3 text-sm">
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Nama Kelompok') }}</flux:text>
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Nama Kelompok') }}</flux:text>
                         <flux:text variant="strong">{{ $group->name }}</flux:text>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Tipe') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Tipe') }}</flux:text>
                         <flux:badge size="sm" :color="$group->type === \App\Enums\GroupType::Tematik ? 'purple' : 'blue'">{{ $group->type->value }}</flux:badge>
                     </div>
                     @if($period)
-                        <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                            <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Periode') }}</flux:text>
+                        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                            <flux:text variant="subtle">{{ __('Periode') }}</flux:text>
                             <flux:text variant="strong">{{ $period->semester }} {{ $period->year }}</flux:text>
                         </div>
-                        <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                            <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Pelaksanaan') }}</flux:text>
+                        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                            <flux:text variant="subtle">{{ __('Pelaksanaan') }}</flux:text>
                             <flux:text variant="strong">{{ \Carbon\Carbon::parse($period->start_date)->translatedFormat('d M Y') }} – {{ \Carbon\Carbon::parse($period->end_date)->translatedFormat('d M Y') }}</flux:text>
                         </div>
                     @endif
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Status LRK') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Status LRK') }}</flux:text>
                         <flux:badge size="sm" :color="$group->is_lrk_locked ? 'green' : 'amber'">
                             <flux:icon :name="$group->is_lrk_locked ? 'lock-closed' : 'lock-open'" variant="micro" class="mr-1" />
                             {{ $stats['lrkStatus'] }}
                         </flux:badge>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Status LPK') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Status LPK') }}</flux:text>
                         <flux:badge size="sm" :color="$group->is_lpk_locked ? 'green' : 'amber'">
                             <flux:icon :name="$group->is_lpk_locked ? 'lock-closed' : 'lock-open'" variant="micro" class="mr-1" />
                             {{ $stats['lpkStatus'] }}
@@ -60,30 +60,30 @@
                     <flux:heading size="lg">{{ __('Lokasi Penugasan') }}</flux:heading>
                 </div>
 
-                <div class="space-y-3 text-sm">
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Desa / Kelurahan') }}</flux:text>
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Desa / Kelurahan') }}</flux:text>
                         <flux:text variant="strong">{{ $group->village ?? '-' }}</flux:text>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Kecamatan') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Kecamatan') }}</flux:text>
                         <flux:text variant="strong">{{ $group->district ?? '-' }}</flux:text>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Kabupaten / Kota') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Kabupaten / Kota') }}</flux:text>
                         <flux:text variant="strong">{{ $group->regency ?? '-' }}</flux:text>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Provinsi') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Provinsi') }}</flux:text>
                         <flux:text variant="strong">{{ $group->province ?? '-' }}</flux:text>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Kepala Desa') }}</flux:text>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                        <flux:text variant="subtle">{{ __('Kepala Desa') }}</flux:text>
                         <flux:text variant="strong">{{ $group->village_head ?? '-' }}</flux:text>
                     </div>
                     @if($group->partner_name)
-                        <div class="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
-                            <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('Mitra Kerja') }}</flux:text>
+                        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                            <flux:text variant="subtle">{{ __('Mitra Kerja') }}</flux:text>
                             <flux:text variant="strong">{{ $group->partner_name }}</flux:text>
                         </div>
                     @endif
@@ -101,10 +101,8 @@
             @if($dpls->isNotEmpty())
                 <div class="grid gap-3 sm:grid-cols-2">
                     @foreach($dpls as $dpl)
-                        <div class="flex items-start gap-4 rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-4">
-                            <div class="flex size-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30 shrink-0">
-                                <flux:icon.user variant="mini" class="text-purple-600 dark:text-purple-400" />
-                            </div>
+                        <div class="flex items-start gap-4 py-3">
+                            <flux:avatar icon="user" color="purple" class="shrink-0" />
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <flux:text variant="strong" class="truncate">{{ $dpl->name }}</flux:text>
@@ -113,12 +111,17 @@
                                     @endif
                                 </div>
                                 @if($dpl->nip)
-                                    <flux:text class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">NIP. {{ $dpl->nip }}</flux:text>
+                                    <flux:text variant="subtle" class="mt-0.5 text-xs">NIP. {{ $dpl->nip }}</flux:text>
                                 @endif
-                                <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">{{ $dpl->prodi }} · {{ $dpl->fakultas }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs">{{ $dpl->prodi }} · {{ $dpl->fakultas }}</flux:text>
                                 @if($dpl->phone)
-                                    <a href="{{ $dpl->whatsappUrl() }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-xs text-accent underline underline-offset-2" aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $dpl->name]) }}">
-                                        {{ $dpl->phone }}
+                                    <a
+                                        href="{{ $dpl->whatsappUrl() ?? $dpl->phone }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $dpl->name]) }}"
+                                    >
+                                        <img src="{{ asset('whatsapp.svg') }}" alt="" class="block size-5 object-contain">
                                     </a>
                                 @endif
                             </div>
@@ -150,10 +153,10 @@
                     <flux:table.rows>
                         @foreach($members as $index => $member)
                             <flux:table.row :key="$member->id" :class="$member->id === $currentUser->id ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''">
-                                <flux:table.cell class="text-zinc-500 dark:text-zinc-400">{{ $index + 1 }}</flux:table.cell>
+                                <flux:table.cell><flux:text variant="subtle">{{ $index + 1 }}</flux:text></flux:table.cell>
                                 <flux:table.cell>
                                     <div class="flex items-center gap-2">
-                                        <flux:text variant="strong" class="text-zinc-800 dark:text-zinc-200">{{ $member->name }}</flux:text>
+                                        <flux:text variant="strong">{{ $member->name }}</flux:text>
                                         @if($group->student_leader_id === $member->id)
                                             <flux:badge size="sm" color="amber">{{ __('Ketua') }}</flux:badge>
                                         @endif
@@ -162,9 +165,9 @@
                                         @endif
                                     </div>
                                 </flux:table.cell>
-                                <flux:table.cell class="font-mono text-xs text-zinc-600 dark:text-zinc-400">{{ $member->nim ?? '-' }}</flux:table.cell>
-                                <flux:table.cell class="text-zinc-600 dark:text-zinc-400">{{ $member->prodi ?? '-' }}</flux:table.cell>
-                                <flux:table.cell class="text-zinc-600 dark:text-zinc-400">{{ $member->fakultas ?? '-' }}</flux:table.cell>
+                                <flux:table.cell><flux:text variant="subtle" class="font-mono text-xs">{{ $member->nim ?? '-' }}</flux:text></flux:table.cell>
+                                <flux:table.cell><flux:text variant="subtle">{{ $member->prodi ?? '-' }}</flux:text></flux:table.cell>
+                                <flux:table.cell><flux:text variant="subtle">{{ $member->fakultas ?? '-' }}</flux:text></flux:table.cell>
                             </flux:table.row>
                         @endforeach
                     </flux:table.rows>
@@ -211,7 +214,7 @@
                         >
                             <div class="flex flex-col gap-2">
                                 @foreach($typePrograms as $seqIndex => $program)
-                                    <div class="flex items-start gap-3 rounded-lg bg-zinc-50 dark:bg-white/5 px-4 py-3">
+                                    <div class="flex items-start gap-3 py-3">
                                         <flux:badge size="sm" :color="$typeColor" class="shrink-0 mt-0.5">
                                             {{ $program->sequence ?? ($seqIndex + 1) }}
                                         </flux:badge>
