@@ -89,13 +89,14 @@
             
             <flux:heading size="lg" class="mb-2">{{ __('Lampiran 1: Dokumentasi Pelaksanaan Program') }}</flux:heading>
             <div class="grid grid-cols-1 gap-4">
-                <x-image-upload 
-                    modelName="documentation_image" 
-                    :file="$documentation_image" 
-                    :existingPath="$documentation_image_path" 
-                    label="{{ __('Foto Dokumentasi') }}" 
-                    description="{{ __('Klik untuk memilih atau seret foto dokumentasi ke sini') }}"
-                    modalName="documentation-preview"
+                <x-image-url-input
+                    model-name="documentation_image_url"
+                    :preview-url="$documentation_image_preview_url"
+                    check-action="validateDocumentationImage"
+                    verified-name="documentation_image_verified"
+                    label="{{ __('Tautan Foto Dokumentasi') }}"
+                    placeholder="{{ __('Google Drive atau imgbb') }}"
+                    description="{{ __('Gunakan tautan berbagi Google Drive atau tautan gambar imgbb.') }}"
                 />
                 <flux:textarea wire:model="documentation_caption" label="{{ __('Caption / Keterangan') }}" placeholder="{{ __('Berikan keterangan singkat untuk foto dokumentasi ini...') }}" rows="2" />
             </div>

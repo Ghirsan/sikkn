@@ -470,7 +470,7 @@
                         <div>
                             @if($this->selectedParticipant?->documentation_image_path)
                                 <flux:card variant="soft" class="overflow-hidden p-0">
-                                    <img src="{{ asset('storage/' . $this->selectedParticipant->documentation_image_path) }}" alt="{{ $this->selectedParticipant->documentation_caption ?? 'Dokumentasi Program' }}" class="mx-auto block max-h-96 max-w-full object-contain">
+                                    <img src="{{ $this->selectedParticipant->documentationImageUrl() }}" alt="{{ $this->selectedParticipant->documentation_caption ?? 'Dokumentasi Program' }}" class="mx-auto block max-h-96 max-w-full object-contain">
                                     <flux:separator variant="subtle" />
                                     <div class="p-3">
                                         <flux:text variant="subtle" class="text-center text-sm italic">{{ $this->selectedParticipant->documentation_caption ?: __('Belum diisi') }}</flux:text>

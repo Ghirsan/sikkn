@@ -382,13 +382,13 @@
                             <div>
                                 <flux:card variant="soft" class="overflow-hidden p-0">
                                 <img
-                                    src="{{ asset('storage/' . $this->inspectingParticipant->documentation_image_path) }}"
+                                    src="{{ $this->inspectingParticipant->documentationImageUrl() }}"
                                     alt="{{ $this->inspectingParticipant->documentation_caption ?? 'Dokumentasi Program' }}"
                                     class="mx-auto block max-h-96 max-w-full object-contain"
                                     x-on:click="$flux.modal('image-preview-view').show()"
                                     />
                                     
-                                <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $this->inspectingParticipant->documentation_image_path) }}" />
+                                <x-image-preview-modal name="image-preview-view" url="{{ $this->inspectingParticipant->documentationImageUrl() }}" />
                                 <flux:separator variant="subtle" />
                                 <div class="p-3">
                                     <flux:text variant="subtle" class="text-center text-sm italic">{{ $this->inspectingParticipant->documentation_caption ?: __('Belum diisi') }}</flux:text>

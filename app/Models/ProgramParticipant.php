@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ProgramStatus;
 use App\Enums\ProgramType;
 use App\Enums\SdgCategory;
+use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Model;
 
 class ProgramParticipant extends Model
@@ -112,5 +113,22 @@ class ProgramParticipant extends Model
     public function hasFilledLpk(): bool
     {
         return ! empty($this->achievement) && ! empty($this->documentation_image_path);
+    }
+
+    public function documentationImageUrl(): ?string
+    {
+        if (! $this->documentation_image_path) {
+            return null;
+        }
+
+        if (! filter_var($this->documentation_image_path, FILTER_VALIDATE_URL)) {
+            return asset('storage/'.$this->documentation_image_path);
+        }
+
+        try {
+            return app(ExternalImagePreviewUrl::class)->resolve($this->documentation_image_path);
+        } catch (\InvalidArgumentException) {
+            return $this->documentation_image_path;
+        }
     }
 }

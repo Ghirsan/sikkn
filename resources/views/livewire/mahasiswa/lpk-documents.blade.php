@@ -263,7 +263,7 @@
                         @if($this->selectedParticipant->documentation_image_path)
                             <div class="sm:col-span-2 mt-2">
                                 <flux:text variant="strong" class="mb-2">{{ __('Foto Dokumentasi') }}</flux:text>
-                                <img src="{{ asset('storage/' . $this->selectedParticipant->documentation_image_path) }}" alt="Dokumentasi" class="w-full sm:w-2/3 md:w-1/2 h-auto rounded-lg border border-zinc-200 dark:border-zinc-700" />
+                                <img src="{{ $this->selectedParticipant->documentationImageUrl() }}" alt="Dokumentasi" class="w-full sm:w-2/3 md:w-1/2 h-auto rounded-lg border border-zinc-200 dark:border-zinc-700" />
                                 @if($this->selectedParticipant->documentation_caption)
                                     <flux:text class="text-sm mt-2 italic">{{ $this->selectedParticipant->documentation_caption }}</flux:text>
                                 @endif

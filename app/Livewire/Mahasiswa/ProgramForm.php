@@ -8,9 +8,11 @@ use App\Models\ParticipantOutput;
 use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -70,7 +72,13 @@ class ProgramForm extends Component
     public string $execution_description = '';
 
     // Lampiran 1 (Documentation)
-    public $documentation_image; // for upload
+    public string $documentation_image_url = '';
+
+    public ?string $documentation_image_preview_url = null;
+
+    public ?string $documentation_image_error = null;
+
+    public bool $documentation_image_verified = false;
 
     public ?string $documentation_image_path = null;
 
@@ -196,6 +204,11 @@ class ProgramForm extends Component
             $this->execution_description = $participant->execution_description ?? '';
 
             $this->documentation_image_path = $participant->documentation_image_path;
+            $this->documentation_image_url = filter_var($participant->documentation_image_path, FILTER_VALIDATE_URL)
+                ? $participant->documentation_image_path
+                : '';
+            $this->documentation_image_preview_url = $participant->documentationImageUrl();
+            $this->documentation_image_verified = $this->documentation_image_url !== '';
             $this->documentation_caption = $participant->documentation_caption;
 
             $this->outputs = $participant->outputs->map(function ($output) {
@@ -396,7 +409,7 @@ class ProgramForm extends Component
         }
 
         $this->validate([
-            'documentation_image' => $this->documentation_image_path ? 'nullable|image|max:5120' : 'required|image|max:5120',
+            'documentation_image_url' => 'nullable|string|max:2048',
             'documentation_caption' => 'required|string|max:255',
             'outputs' => 'required|array|min:1',
             'outputs.*.name' => 'required|string|max:255',
@@ -407,6 +420,29 @@ class ProgramForm extends Component
             'outputs.*.name.required' => 'Judul/Nama luaran harus diisi.',
             'outputs.*.type.required' => 'Jenis luaran harus dipilih.',
         ]);
+
+        $documentationImageInput = trim($this->documentation_image_url);
+        $documentationImagePath = $this->documentation_image_path;
+        if ($documentationImageInput !== '') {
+            if (! $this->documentation_image_verified) {
+                throw ValidationException::withMessages([
+                    'documentation_image_url' => 'Periksa pratinjau gambar sebelum menyimpan.',
+                ]);
+            }
+
+            try {
+                $this->resolveDocumentationImagePreviewUrl($documentationImageInput);
+                $documentationImagePath = $documentationImageInput;
+            } catch (\InvalidArgumentException $exception) {
+                throw ValidationException::withMessages([
+                    'documentation_image_url' => $exception->getMessage(),
+                ]);
+            }
+        } elseif (! $documentationImagePath) {
+            throw ValidationException::withMessages([
+                'documentation_image_url' => 'Tautan gambar dokumentasi wajib diisi.',
+            ]);
+        }
 
         foreach ($this->outputs as $index => $output) {
             if ($output['type'] === 'file') {
@@ -432,13 +468,6 @@ class ProgramForm extends Component
             }
         }
 
-        if ($this->documentation_image) {
-            if ($participant->documentation_image_path) {
-                Storage::disk('public')->delete($participant->documentation_image_path);
-            }
-            $participant->documentation_image_path = $this->documentation_image->store('lpk_documentations', 'public');
-        }
-
         $participant->update([
             'lpk_status' => ProgramStatus::Draft,
             'revision_note' => null,
@@ -446,6 +475,7 @@ class ProgramForm extends Component
             'achievement' => $this->achievement,
             'obstacle' => $this->obstacle,
             'solution' => $this->solution,
+            'documentation_image_path' => $documentationImagePath,
             'documentation_caption' => $this->documentation_caption,
         ]);
 
@@ -511,6 +541,34 @@ class ProgramForm extends Component
         session()->flash('success', 'Laporan LPK Anda berhasil disimpan.');
 
         return $this->redirect(route('programs.index'), navigate: true);
+    }
+
+    public function validateDocumentationImage(): void
+    {
+        $this->documentation_image_verified = false;
+
+        try {
+            $this->documentation_image_preview_url = $this->resolveDocumentationImagePreviewUrl($this->documentation_image_url);
+            $this->documentation_image_error = null;
+            $this->resetValidation('documentation_image_url');
+        } catch (\InvalidArgumentException $exception) {
+            $this->documentation_image_preview_url = null;
+            $this->documentation_image_error = $exception->getMessage();
+            $this->addError('documentation_image_url', $exception->getMessage());
+        }
+    }
+
+    public function updatedDocumentationImageUrl(): void
+    {
+        $this->documentation_image_preview_url = null;
+        $this->documentation_image_verified = false;
+        $this->documentation_image_error = null;
+        $this->resetValidation('documentation_image_url');
+    }
+
+    private function resolveDocumentationImagePreviewUrl(string $value): string
+    {
+        return app(ExternalImagePreviewUrl::class)->resolve($value);
     }
 
     public function render()
