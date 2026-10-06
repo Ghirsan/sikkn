@@ -10,6 +10,7 @@
     $title = $metadata['title'] ?? $name ?? $url;
     $description = $metadata['description'] ?? null;
     $siteName = $metadata['site_name'] ?? $host;
+
     $typeLabel = match ($type) {
         'pdf' => __('PDF'),
         'video' => __('Video'),
@@ -17,24 +18,60 @@
         'lainnya' => __('Lainnya'),
         default => null,
     };
+
+    $icon = match ($type) {
+        'pdf' => 'document-text',
+        'video' => 'play-circle',
+        'image' => 'photo',
+        default => 'link',
+    };
 @endphp
 
-<div class="space-y-2 rounded-lg border border-zinc-200 p-3 dark:border-white/10">
-    <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-            <flux:text class="font-medium">{{ $title }}</flux:text>
-            <flux:text variant="subtle" class="text-xs">
-                {{ $siteName }}{{ $typeLabel ? ' · '.$typeLabel : '' }}
-            </flux:text>
-        </div>
-        <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-sm font-medium text-accent hover:underline">
-            {{ __('Buka tautan') }}
-        </a>
+<flux:card class="overflow-hidden flex items-center min-h-10 w-full p-2">
+
+    {{-- Icon --}}
+    <div class="p-2.5 shrink-0 flex items-center">
+        <flux:icon :name="$icon" class="size-5 text-zinc-500" />
     </div>
 
-    @if($description)
-        <flux:text variant="subtle" class="text-sm">{{ $description }}</flux:text>
-    @endif
+    {{-- Content --}}
+    <div class="flex-1 min-w-0 overflow-hidden py-2 me-3 flex flex-col justify-center gap-0.5">
+        <flux:text
+            class="text-sm font-medium truncate"
+            title="{{ $title }}"
+        >
+            {{ $title }}
+        </flux:text>
 
-    <flux:text class="truncate text-xs text-zinc-500" title="{{ $url }}">{{ $url }}</flux:text>
-</div>
+        <flux:text
+            variant="subtle"
+            class="text-xs truncate"
+        >
+            {{ $siteName }}{{ $typeLabel ? ' · '.$typeLabel : '' }}
+        </flux:text>
+
+        @if($description)
+            <flux:text
+                variant="subtle"
+                class="text-xs truncate"
+                title="{{ $description }}"
+            >
+                {{ $description }}
+            </flux:text>
+        @endif
+    </div>
+
+    {{-- Action --}}
+    <div class="p-1.5 shrink-0 flex items-center">
+        <flux:button
+            href="{{ $url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="subtle"
+            size="sm"
+            icon="arrow-top-right-on-square"
+            :aria-label="__('Buka tautan')"
+            :title="__('Buka tautan')"
+        />
+    </div>
+</flux:card>
