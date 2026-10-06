@@ -38,6 +38,9 @@
             <div class="flex items-center gap-2">
                 <flux:heading size="lg">{{ $group->name }}</flux:heading>
                 <flux:badge color="purple" size="sm">{{ $group->type->value }}</flux:badge>
+                <flux:button size="sm" variant="subtle" icon="pencil-square" wire:click="editGroupDetails({{ $group->id }})">
+                    {{ __('Ubah Detail') }}
+                </flux:button>
             </div>
             <flux:text>{{ $group->location }}</flux:text>
         </div>
@@ -181,5 +184,39 @@
                 <flux:button wire:click="setLeader" variant="primary">{{ $isReplacing ? __('Ganti Ketua') : __('Tetapkan') }}</flux:button>
             </div>
         </div>
+    </flux:modal>
+
+    {{-- Edit Group Modal --}}
+    <flux:modal name="edit-group-modal" class="max-w-2xl w-full">
+        <form wire:submit="updateGroupDetails" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Ubah Detail Kelompok') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Perbarui informasi lokasi, mitra, dan periode kelompok.') }}</flux:text>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input wire:model="editVillage" label="{{ __('Desa/Kelurahan') }}" placeholder="{{ __('Masukkan Desa/Kelurahan') }}" />
+                <flux:input wire:model="editDistrict" label="{{ __('Kecamatan') }}" placeholder="{{ __('Masukkan Kecamatan') }}" />
+                <flux:input wire:model="editRegency" label="{{ __('Kabupaten/Kota') }}" placeholder="{{ __('Masukkan Kabupaten/Kota') }}" />
+                <flux:input wire:model="editProvince" label="{{ __('Provinsi') }}" placeholder="{{ __('Masukkan Provinsi') }}" />
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input wire:model="editPartnerName" label="{{ __('Nama Mitra') }}" placeholder="{{ __('Contoh: BUMDes Makmur') }}" />
+                <flux:input wire:model="editVillageHead" label="{{ __('Kepala Desa/Lurah') }}" placeholder="{{ __('Nama Kepala Desa') }}" />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input type="date" wire:model="editStartDate" label="{{ __('Tanggal Mulai') }}" />
+                <flux:input type="date" wire:model="editEndDate" label="{{ __('Tanggal Selesai') }}" />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Simpan Perubahan') }}</flux:button>
+            </div>
+        </form>
     </flux:modal>
 </div>

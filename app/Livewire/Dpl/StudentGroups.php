@@ -16,6 +16,84 @@ class StudentGroups extends Component
 
     public string $sortDirection = 'asc';
 
+    // Edit Form State
+    public ?int $editGroupId = null;
+
+    public string $editVillage = '';
+
+    public string $editDistrict = '';
+
+    public string $editRegency = '';
+
+    public string $editProvince = '';
+
+    public string $editPartnerName = '';
+
+    public string $editVillageHead = '';
+
+    public ?string $editStartDate = null;
+
+    public ?string $editEndDate = null;
+
+    protected function rules()
+    {
+        return [
+            'editVillage' => 'nullable|string|max:255',
+            'editDistrict' => 'nullable|string|max:255',
+            'editRegency' => 'nullable|string|max:255',
+            'editProvince' => 'nullable|string|max:255',
+            'editPartnerName' => 'nullable|string|max:255',
+            'editVillageHead' => 'nullable|string|max:255',
+            'editStartDate' => 'nullable|date',
+            'editEndDate' => 'nullable|date|after_or_equal:editStartDate',
+        ];
+    }
+
+    // Method to trigger the modal and load data
+    public function editGroupDetails(int $groupId): void
+    {
+        $group = Auth::user()->dplGroups()->where('groups.id', $groupId)->firstOrFail();
+
+        $this->editGroupId = $group->id;
+        $this->editVillage = $group->village ?? '';
+        $this->editDistrict = $group->district ?? '';
+        $this->editRegency = $group->regency ?? '';
+        $this->editProvince = $group->province ?? '';
+        $this->editPartnerName = $group->partner_name ?? '';
+        $this->editVillageHead = $group->village_head ?? '';
+        $this->editStartDate = $group->start_date ? $group->start_date->format('Y-m-d') : null;
+        $this->editEndDate = $group->end_date ? $group->end_date->format('Y-m-d') : null;
+
+        $this->modal('edit-group-modal')->show();
+    }
+
+    // Method to save changes
+    public function updateGroupDetails(): void
+    {
+        $this->validate();
+
+        $group = Auth::user()->dplGroups()->where('groups.id', $this->editGroupId)->firstOrFail();
+
+        $group->update([
+            'village' => $this->editVillage,
+            'district' => $this->editDistrict,
+            'regency' => $this->editRegency,
+            'province' => $this->editProvince,
+            'partner_name' => $this->editPartnerName,
+            'village_head' => $this->editVillageHead,
+            'start_date' => $this->editStartDate,
+            'end_date' => $this->editEndDate,
+        ]);
+
+        $this->modal('edit-group-modal')->close();
+
+        Flux::toast(
+            variant: 'success',
+            heading: __('Detail Kelompok Diperbarui'),
+            text: __('Detail kelompok berhasil disimpan.'),
+        );
+    }
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
