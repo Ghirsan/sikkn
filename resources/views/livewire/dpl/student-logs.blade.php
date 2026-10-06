@@ -222,15 +222,15 @@
                     @endif
                     <div>
                         <flux:card variant="soft" class="overflow-hidden p-0">
-                            @if($viewLogData->image_path)
+                            @if($viewLogData->image_path && $viewLogData->image_url)
                                 <img
-                                    src="{{ asset('storage/' . $viewLogData->image_path) }}"
+                                    src="{{ $viewLogData->image_url }}"
                                     alt="Catatan gambar"
                                     class="mx-auto block max-h-96 max-w-full object-contain"
                                     x-on:click="$flux.modal('image-preview-view').show()"
                                     />
                                 
-                                <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $viewLogData->image_path) }}" />
+                                <x-image-preview-modal name="image-preview-view" url="{{ $viewLogData->image_url }}" />
                             @endif
                         </flux:card>
                     </div>

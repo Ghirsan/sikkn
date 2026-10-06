@@ -18,14 +18,14 @@
                 <div class="flex flex-col gap-4">
                     <flux:textarea wire:model="importantNotes" label="Catatan Teks" placeholder="Opsional: Tuliskan catatan penting hari ini..." rows="4" />
 
-                    <x-image-upload
-                        modelName="notesImage"
-                        :file="$notesImage"
-                        :existingPath="$existingImagePath"
-                        label="Gambar Pendukung"
-                        description="Klik untuk mengunggah gambar catatan harian"
-                        formatText="Format: JPG, PNG. Maksimal 2MB."
-                        modalName="logbook-notes-image-preview"
+                    <x-image-url-input
+                        model-name="imageUrl"
+                        :preview-url="$imagePreviewUrl"
+                        check-action="verifyImageUrl"
+                        verified-name="imageVerified"
+                        label="Tautan Gambar Pendukung"
+                        placeholder="Google Drive atau imgbb"
+                        description="Opsional: Gunakan tautan berbagi Google Drive atau tautan gambar imgbb."
                     />
                 </div>
             </div>

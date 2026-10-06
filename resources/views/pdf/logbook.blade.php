@@ -226,17 +226,25 @@
                     {!! nl2br(e($log->important_notes)) !!}
                 @endif
 
-                @if($log->image_path)
-                    @php
-                        $imgPath = storage_path('app/public/' . $log->image_path);
-                    @endphp
-                    @if(file_exists($imgPath))
+                @if($log->image_path && $log->image_url)
+                    @if(str_starts_with($log->image_path, 'http'))
+                        <div style="margin-top: 10px;">
+                            <a href="{{ $log->image_url }}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Lihat Gambar Lampiran</a>
+                        </div>
+                    @else
                         @php
-                            $imgData = base64_encode(file_get_contents($imgPath));
-                            $mime = mime_content_type($imgPath);
-                            $src = 'data:' . $mime . ';base64,' . $imgData;
+                            $imgPath = storage_path('app/public/' . $log->image_path);
                         @endphp
-                        <img src="{{ $src }}" class="notes-image" alt="Catatan Penting">
+                        @if(file_exists($imgPath))
+                            @php
+                                $imgData = base64_encode(file_get_contents($imgPath));
+                                $mime = mime_content_type($imgPath);
+                                $src = 'data:' . $mime . ';base64,' . $imgData;
+                            @endphp
+                            <div style="margin-top: 10px;">
+                                <img src="{{ $src }}" class="notes-image" alt="Catatan Penting">
+                            </div>
+                        @endif
                     @endif
                 @endif
             </div>

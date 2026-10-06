@@ -4,17 +4,14 @@ namespace App\Livewire\Mahasiswa;
 
 use App\Enums\LogStatus;
 use App\Models\DailyLog;
+use App\Services\ExternalImagePreviewUrl;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class LogbookForm extends Component
 {
-    use WithFileUploads;
-
     #[Url]
     public ?int $logId = null;
 
@@ -25,14 +22,18 @@ class LogbookForm extends Component
 
     public $activities = [];
 
-    public $notesImage = null;
+    public $imageUrl = null;
 
-    public $existingImagePath = null;
+    public $imagePreviewUrl = null;
+
+    public $imageError = null;
+
+    public $imageVerified = false;
 
     protected $rules = [
         'date' => 'required|date',
         'importantNotes' => 'nullable|string',
-        'notesImage' => 'nullable|image|max:2048',
+        'imageUrl' => 'nullable|url',
         'activities' => 'required|array|min:1',
         'activities.*.start_time' => 'required|date_format:H:i',
         'activities.*.end_time' => 'required|date_format:H:i|after:activities.*.start_time',
@@ -50,7 +51,11 @@ class LogbookForm extends Component
 
             $this->date = $log->date->format('Y-m-d');
             $this->importantNotes = $log->important_notes;
-            $this->existingImagePath = $log->image_path;
+            $this->imageUrl = $log->image_path;
+
+            if ($this->imageUrl && str_starts_with($this->imageUrl, 'http')) {
+                $this->verifyImageUrl();
+            }
 
             foreach ($log->activities as $activity) {
                 $this->activities[] = [
@@ -83,6 +88,38 @@ class LogbookForm extends Component
         }
     }
 
+    public function verifyImageUrl(): void
+    {
+        if (empty($this->imageUrl)) {
+            $this->imagePreviewUrl = null;
+            $this->imageVerified = false;
+            $this->imageError = null;
+
+            return;
+        }
+
+        $this->validateOnly('imageUrl');
+        $this->imageVerified = true;
+
+        try {
+            $this->imagePreviewUrl = app(ExternalImagePreviewUrl::class)->resolve($this->imageUrl);
+            $this->imageError = null;
+            $this->resetValidation('imageUrl');
+        } catch (\InvalidArgumentException $exception) {
+            $this->imagePreviewUrl = null;
+            $this->imageError = $exception->getMessage();
+            $this->addError('imageUrl', $exception->getMessage());
+        }
+    }
+
+    public function updatedImageUrl(): void
+    {
+        $this->imagePreviewUrl = null;
+        $this->imageVerified = false;
+        $this->imageError = null;
+        $this->resetValidation('imageUrl');
+    }
+
     public function saveDraft()
     {
         $this->processSave(LogStatus::Draft);
@@ -96,6 +133,13 @@ class LogbookForm extends Component
     private function processSave(LogStatus $status)
     {
         $this->validate();
+
+        if ($this->imageUrl) {
+            $this->verifyImageUrl();
+            if ($this->imageError) {
+                return;
+            }
+        }
 
         $user = Auth::user();
         $group = $user->group()->first();
@@ -114,16 +158,6 @@ class LogbookForm extends Component
             }
         }
 
-        // Handle image upload
-        $imagePath = $this->existingImagePath;
-        if ($this->notesImage) {
-            // Delete old image if replacing
-            if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
-            }
-            $imagePath = $this->notesImage->store('logbook-images', 'public');
-        }
-
         if ($this->logId) {
             $log = DailyLog::where('student_id', Auth::id())->findOrFail($this->logId);
             if ($log->status === LogStatus::Approved) {
@@ -133,7 +167,7 @@ class LogbookForm extends Component
             $log->update([
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
-                'image_path' => $imagePath,
+                'image_path' => $this->imageUrl ?: null,
                 'status' => $status,
             ]);
 
@@ -155,7 +189,7 @@ class LogbookForm extends Component
                 'student_id' => Auth::id(),
                 'date' => $this->date,
                 'important_notes' => $this->importantNotes,
-                'image_path' => $imagePath,
+                'image_path' => $this->imageUrl ?: null,
                 'status' => $status,
             ]);
         }

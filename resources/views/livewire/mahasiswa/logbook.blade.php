@@ -110,11 +110,11 @@
                                                     "{{ $log->important_notes }}"
                                                 </flux:text>
                                             @endif
-                                            @if($log->image_path)
+                                            @if($log->image_path && $log->image_url)
                                                 <div class="mt-3">
-                                                    <img src="{{ asset('storage/' . $log->image_path) }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-{{ $log->id }}').show()" />
+                                                    <img src="{{ $log->image_url }}" alt="Catatan gambar" class="max-h-48 rounded-lg border border-zinc-200 dark:border-white/10 object-cover cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-{{ $log->id }}').show()" />
                                                     
-                                                    <x-image-preview-modal name="image-preview-{{ $log->id }}" url="{{ asset('storage/' . $log->image_path) }}" />
+                                                    <x-image-preview-modal name="image-preview-{{ $log->id }}" url="{{ $log->image_url }}" />
                                                 </div>
                                             @endif
                                         </div>
@@ -198,10 +198,10 @@
                             @if($viewLogData->important_notes && $viewLogData->image_path)
                                 <div class="my-3 border-t border-zinc-200 dark:border-white/10"></div>
                             @endif
-                            @if($viewLogData->image_path)
-                                <img src="{{ asset('storage/' . $viewLogData->image_path) }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-view').show()" />
+                            @if($viewLogData->image_path && $viewLogData->image_url)
+                                <img src="{{ $viewLogData->image_url }}" alt="Catatan gambar" class="max-h-64 rounded-lg object-contain cursor-pointer hover:opacity-80 transition" x-on:click="$flux.modal('image-preview-view').show()" />
                                 
-                                <x-image-preview-modal name="image-preview-view" url="{{ asset('storage/' . $viewLogData->image_path) }}" />
+                                <x-image-preview-modal name="image-preview-view" url="{{ $viewLogData->image_url }}" />
                             @endif
                         </div>
                     </div>

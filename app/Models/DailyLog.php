@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LogStatus;
+use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,5 +43,25 @@ class DailyLog extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    /**
+     * Get the resolved image URL.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->image_path, 'http')) {
+            try {
+                return app(ExternalImagePreviewUrl::class)->resolve($this->image_path);
+            } catch (\Exception $e) {
+                return null; // fallback if resolving fails
+            }
+        }
+
+        return asset('storage/'.$this->image_path);
     }
 }
