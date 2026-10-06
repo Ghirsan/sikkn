@@ -141,8 +141,8 @@ class ProgramsTest extends TestCase
             'program_participant_id' => $participant->id,
             'output_code' => 'LM1M1',
             'name' => 'Panduan Digital',
-            'type' => 'link',
-            'url' => 'https://example.com/panduan',
+            'type' => 'pdf',
+            'url' => 'https://example.com/panduan.pdf',
         ]);
 
         Livewire::actingAs($student)
@@ -150,7 +150,7 @@ class ProgramsTest extends TestCase
             ->set('selectedProgramId', $program->id)
             ->set('selectedParticipantId', $participant->id)
             ->assertSee('Panduan Digital')
-            ->assertSee('https://example.com/panduan')
+            ->assertSee('https://example.com/panduan.pdf')
             ->assertSee('storage/programs/dokumentasi.jpg')
             ->assertSee('Dokumentasi kegiatan uji');
     }

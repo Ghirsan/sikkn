@@ -59,8 +59,8 @@ class ReviewProgramsTest extends TestCase
             'program_participant_id' => $multidisiplinParticipant->id,
             'output_code' => 'LM1M1',
             'name' => 'Panduan Literasi Digital',
-            'type' => 'link',
-            'url' => 'https://example.com/panduan',
+            'type' => 'pdf',
+            'url' => 'https://example.com/panduan.pdf',
         ]);
 
         $component = Livewire::actingAs($dpl)

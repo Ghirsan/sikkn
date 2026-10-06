@@ -356,21 +356,12 @@
                         @if($this->inspectingParticipant->outputs->isNotEmpty())
                             <div class="space-y-2">
                                 @foreach($this->inspectingParticipant->outputs as $output)
-                                    <x-file-preview
-                                        :title="$output->name"
-                                        :subtitle="$output->type === 'link' ? __('Tautan (URL)') : __('File dokumen')"
-                                    >
-                                        <x-slot:icon>
-                                            <div class="size-9 rounded-md bg-accent/5 dark:bg-accent/10 flex items-center justify-center">
-                                                <flux:icon icon="{{ $output->type === 'link' ? 'link' : 'document-check' }}" variant="mini" class="text-accent" />
-                                            </div>
-                                        </x-slot:icon>
-                                        <x-slot:action>
-                                            <a href="{{ $output->file_path ? asset('storage/' . $output->file_path) : $output->url }}" target="_blank" rel="noopener noreferrer" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap h-8 text-sm rounded-md w-8 inline-flex bg-transparent hover:bg-zinc-800/5 dark:hover:bg-white/15 text-zinc-400 hover:text-accent dark:text-zinc-500 dark:hover:text-accent cursor-pointer" aria-label="{{ __('Buka luaran') }}">
-                                                <flux:icon icon="arrow-top-right-on-square" variant="mini" class="size-4" />
-                                            </a>
-                                        </x-slot:action>
-                                    </x-file-preview>
+                                    <x-program-output-metadata-card
+                                        :name="$output->name"
+                                        :type="$output->type->value"
+                                        :url="$output->url"
+                                        :metadata="[]"
+                                    />
                                 @endforeach
                             </div>
                         @else

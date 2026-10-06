@@ -577,7 +577,16 @@
     <p>Masukkan luaran setiap program pada lampiran ini, sesuaikan dengan urutan Kode Luaran yang disampaikan pada tabel 1, 2, 3, 4, dan 5 yang telah dilaksanakan baik multidisiplin, sosial kemasyarakatan, maupun lainnya.</p>
 
     @php
-        $outputs = $allPrograms->filter(fn($p) => $p->output_type || $p->output_url || $p->output_file_path);
+        $outputs = collect([$multidisiplin, $sosialKemasyarakatan, $lainnya])
+            ->flatten()
+            ->flatMap(function ($participant) {
+                return $participant->outputs->map(fn($output) => (object) [
+                    'participant_code' => $participant->participant_code,
+                    'output_type' => $output->type->label(),
+                    'output_title' => $output->name,
+                    'output_url' => $output->url,
+                ]);
+            });
     @endphp
 
     @if($outputs->isNotEmpty())
@@ -597,12 +606,7 @@
                         <td>{{ $program->output_type ?? '-' }}</td>
                         <td>{{ $program->output_title ?? '-' }}@if($program->output_description)<br><em>{{ $program->output_description }}</em>@endif</td>
                         <td>
-                            @if($program->output_url)
-                                {{ $program->output_url }}
-                            @endif
-                            @if($program->output_file_path)
-                                <em>Terlampir di sistem</em>
-                            @endif
+                            {{ $program->output_url ?: '-' }}
                         </td>
                     </tr>
                 @endforeach

@@ -9,18 +9,17 @@ use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use App\Services\ExternalImagePreviewUrl;
+use App\Services\ExternalUrlMetadata;
+use App\Services\ProgramOutputUrlResolver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class ProgramForm extends Component
 {
-    use WithFileUploads;
-
     #[Url]
     public string $action = 'create'; // 'create', 'edit', 'lpk'
 
@@ -215,10 +214,10 @@ class ProgramForm extends Component
                 return [
                     'id' => $output->id,
                     'name' => $output->name,
-                    'type' => $output->type,
-                    'file' => null,
-                    'file_path' => $output->file_path,
-                    'url' => $output->url ? preg_replace('#^https?://#i', '', $output->url) : '',
+                    'type' => $output->type->value,
+                    'url' => $output->url ?? '',
+                    'metadata' => null,
+                    'url_valid' => true,
                 ];
             })->toArray();
 
@@ -234,11 +233,77 @@ class ProgramForm extends Component
         $this->outputs[] = [
             'id' => null,
             'name' => '',
-            'type' => 'file',
-            'file' => null,
-            'file_path' => null,
+            'type' => 'pdf',
             'url' => '',
+            'metadata' => null,
+            'url_valid' => null,
         ];
+    }
+
+    public function inferOutputType(int $index): void
+    {
+        $url = trim($this->outputs[$index]['url'] ?? '');
+        if ($url === '') {
+            $this->outputs[$index]['metadata'] = null;
+            $this->outputs[$index]['url_valid'] = false;
+            $this->resetValidation("outputs.{$index}.url");
+
+            return;
+        }
+
+        $validator = Validator::make(
+            ['url' => $url],
+            ['url' => 'required|url'],
+            ['url.url' => 'Tautan luaran harus berupa URL yang valid, termasuk https://.'],
+        );
+
+        if ($validator->fails()) {
+            $this->outputs[$index]['metadata'] = null;
+            $this->outputs[$index]['url_valid'] = false;
+            $this->addError("outputs.{$index}.url", $validator->errors()->first('url'));
+
+            return;
+        }
+
+        $this->resetValidation("outputs.{$index}.url");
+        $this->outputs[$index]['url_valid'] = true;
+
+        $metadata = app(ExternalUrlMetadata::class)->fetch($url);
+        $inferredType = app(ProgramOutputUrlResolver::class)->infer($url, $metadata['title'] ?? null);
+        if ($inferredType) {
+            $this->outputs[$index]['type'] = $inferredType->value;
+        }
+
+        $suggestedTitle = app(ExternalUrlMetadata::class)->suggestedTitle($metadata['title'] ?? null);
+        if (empty(trim($this->outputs[$index]['name'] ?? '')) && $suggestedTitle) {
+            $this->outputs[$index]['name'] = $suggestedTitle;
+        }
+
+        $this->outputs[$index]['metadata'] = $metadata;
+    }
+
+    public function updatedOutputs($value, $key): void
+    {
+        [$index, $field] = array_pad(explode('.', $key, 2), 2, null);
+        if (! isset($this->outputs[$index])) {
+            return;
+        }
+
+        if ($field === 'url') {
+            $this->outputs[$index]['metadata'] = null;
+            $this->outputs[$index]['url_valid'] = null;
+
+            return;
+        }
+
+        if ($field !== 'type') {
+            return;
+        }
+
+        $url = trim($this->outputs[$index]['url'] ?? '');
+        if ($url === '') {
+            $this->outputs[$index]['metadata'] = null;
+        }
     }
 
     public function removeOutput($index)
@@ -413,7 +478,8 @@ class ProgramForm extends Component
             'documentation_caption' => 'required|string|max:255',
             'outputs' => 'required|array|min:1',
             'outputs.*.name' => 'required|string|max:255',
-            'outputs.*.type' => 'required|in:file,link',
+            'outputs.*.type' => 'required|in:pdf,video,image,lainnya',
+            'outputs.*.url' => 'required|url',
         ], [
             'outputs.required' => 'Minimal harus menambahkan 1 luaran program.',
             'outputs.min' => 'Minimal harus menambahkan 1 luaran program.',
@@ -442,30 +508,6 @@ class ProgramForm extends Component
             throw ValidationException::withMessages([
                 'documentation_image_url' => 'Tautan gambar dokumentasi wajib diisi.',
             ]);
-        }
-
-        foreach ($this->outputs as $index => $output) {
-            if ($output['type'] === 'file') {
-                if (empty($output['file_path'])) {
-                    $this->validate([
-                        "outputs.{$index}.file" => 'required|file|max:10240',
-                    ], ["outputs.{$index}.file.required" => 'File luaran harus diunggah.']);
-                } else {
-                    $this->validate([
-                        "outputs.{$index}.file" => 'nullable|file|max:10240',
-                    ]);
-                }
-            } elseif ($output['type'] === 'link') {
-                $url = trim($output['url']);
-                if (! empty($url) && ! preg_match('#^https?://#i', $url)) {
-                    $url = 'https://'.$url;
-                    $this->outputs[$index]['url'] = $url;
-                }
-
-                $this->validate([
-                    "outputs.{$index}.url" => 'required|url',
-                ], ["outputs.{$index}.url.required" => 'URL tautan luaran harus diisi.']);
-            }
         }
 
         $participant->update([
@@ -497,22 +539,7 @@ class ProgramForm extends Component
 
             $outputModel->name = $outputData['name'];
             $outputModel->type = $outputData['type'];
-
-            if ($outputData['type'] === 'file') {
-                $outputModel->url = null;
-                if (! empty($outputData['file'])) {
-                    if ($outputModel->file_path) {
-                        Storage::disk('public')->delete($outputModel->file_path);
-                    }
-                    $outputModel->file_path = $outputData['file']->store('lpk_outputs', 'public');
-                }
-            } else {
-                if ($outputModel->file_path) {
-                    Storage::disk('public')->delete($outputModel->file_path);
-                    $outputModel->file_path = null;
-                }
-                $outputModel->url = $outputData['url'];
-            }
+            $outputModel->url = $outputData['url'];
 
             $outputModel->save();
             $savedOutputIds[] = $outputModel->id;
@@ -520,13 +547,7 @@ class ProgramForm extends Component
 
         $outputsToDelete = array_diff($existingOutputs, $savedOutputIds);
         if (! empty($outputsToDelete)) {
-            $toDelete = ParticipantOutput::whereIn('id', $outputsToDelete)->get();
-            foreach ($toDelete as $model) {
-                if ($model->file_path) {
-                    Storage::disk('public')->delete($model->file_path);
-                }
-                $model->delete();
-            }
+            ParticipantOutput::whereIn('id', $outputsToDelete)->delete();
         }
 
         $allOutputs = $participant->outputs()->orderBy('id')->get();

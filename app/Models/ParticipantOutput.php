@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProgramOutputType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,9 +15,15 @@ class ParticipantOutput extends Model
         'output_code',
         'name',
         'type',
-        'file_path',
         'url',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'type' => ProgramOutputType::class,
+        ];
+    }
 
     public function participant()
     {

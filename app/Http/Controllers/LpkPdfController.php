@@ -17,6 +17,7 @@ class LpkPdfController extends Controller
             'dpls',
             'students',
             'programs.participants.student',
+            'programs.participants.outputs',
             'scheduleEvents',
         ]);
 

@@ -32,6 +32,41 @@ class ProgramFormTest extends TestCase
             ->assertHasNoErrors('documentation_image_url');
     }
 
+    public function test_output_url_is_not_auto_completed(): void
+    {
+        [$student, $participant] = $this->createApprovedParticipant();
+
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'lpk', 'participantId' => $participant->id])
+            ->set('outputs', [[
+                'id' => null,
+                'name' => '',
+                'type' => 'pdf',
+                'url' => 'example.com/report.pdf',
+                'metadata' => null,
+            ]])
+            ->call('inferOutputType', 0)
+            ->assertSet('outputs.0.url', 'example.com/report.pdf');
+    }
+
+    public function test_output_url_validation_rejects_invalid_url(): void
+    {
+        [$student, $participant] = $this->createApprovedParticipant();
+
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'lpk', 'participantId' => $participant->id])
+            ->set('outputs', [[
+                'id' => null,
+                'name' => 'Laporan kegiatan',
+                'type' => 'pdf',
+                'url' => 'not-a-url',
+                'metadata' => null,
+            ]])
+            ->call('inferOutputType', 0)
+            ->assertHasErrors('outputs.0.url')
+            ->assertSet('outputs.0.url_valid', false);
+    }
+
     public function test_lpk_form_persists_external_documentation_url(): void
     {
         Http::fake([
@@ -51,9 +86,7 @@ class ProgramFormTest extends TestCase
             ->set('outputs', [[
                 'id' => null,
                 'name' => 'Laporan kegiatan',
-                'type' => 'link',
-                'file' => null,
-                'file_path' => null,
+                'type' => 'pdf',
                 'url' => 'https://example.com/laporan',
             ]])
             ->call('save')
@@ -82,9 +115,7 @@ class ProgramFormTest extends TestCase
             ->set('outputs', [[
                 'id' => null,
                 'name' => 'Laporan kegiatan',
-                'type' => 'link',
-                'file' => null,
-                'file_path' => null,
+                'type' => 'pdf',
                 'url' => 'https://example.com/laporan',
             ]])
             ->call('save')

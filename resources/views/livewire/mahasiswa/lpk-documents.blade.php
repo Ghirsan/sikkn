@@ -222,10 +222,16 @@
                         
                         <div>
                             <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
-                            @if($this->selectedParticipant->output_file_path || $this->selectedParticipant->output_url)
-                                <div class="mt-1 flex items-center gap-2">
-                                    <flux:badge size="sm" color="blue">{{ $this->selectedParticipant->output_type ?: __('Tautan/File') }}</flux:badge>
-                                    <flux:text class="text-sm truncate">{{ $this->selectedParticipant->output_title ?: __('Lampiran Luaran') }}</flux:text>
+                            @if($this->selectedParticipant->outputs->isNotEmpty())
+                                <div class="mt-2 space-y-3">
+                                    @foreach($this->selectedParticipant->outputs as $output)
+                                        <x-program-output-metadata-card
+                                            :name="$output->name"
+                                            :type="$output->type->value"
+                                            :url="$output->url"
+                                            :metadata="[]"
+                                        />
+                                    @endforeach
                                 </div>
                             @else
                                 <flux:text class="text-sm text-zinc-500 italic">{{ __('Belum dilampirkan') }}</flux:text>

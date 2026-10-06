@@ -63,7 +63,7 @@ class LpkDocuments extends Component
             return null;
         }
 
-        return ProgramParticipant::with('program')->find($this->selectedParticipantId);
+        return ProgramParticipant::with(['program', 'outputs'])->find($this->selectedParticipantId);
     }
 
     public function render()
@@ -72,7 +72,7 @@ class LpkDocuments extends Component
         $group = $user->group;
 
         // All participants in this group's programs
-        $participants = $group ? ProgramParticipant::with(['program', 'student'])
+        $participants = $group ? ProgramParticipant::with(['program', 'student', 'outputs'])
             ->whereHas('program', function ($q) use ($group) {
                 $q->where('group_id', $group->id);
             })->get() : collect();
