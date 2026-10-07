@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('logbook', 'dpl.logbook.index')->name('dpl.logbook.index');
         Route::view('mentoring', 'dpl.mentoring.index')->name('dpl.mentoring.index');
         Route::view('grades', 'dpl.grades.index')->name('dpl.grades.index');
+        Route::view('grades/{student}/form', 'dpl.grades.form')->name('dpl.grades.form');
     });
 
     // Mahasiswa Routes

@@ -12,9 +12,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('dpl_id')->constrained('users')->cascadeOnDelete();
-            $table->decimal('aspect_a', 5, 2)->default(0);
-            $table->decimal('aspect_b', 5, 2)->default(0);
-            $table->decimal('aspect_c', 5, 2)->default(0);
+            $table->decimal('pembekalan', 5, 2)->default(0);
+            $table->decimal('gelar_karya', 5, 2)->default(0);
+            $table->decimal('kehadiran', 5, 2)->default(0);
+            $table->decimal('lrk', 5, 2)->default(0);
+            $table->decimal('integritas', 5, 2)->default(0);
+            $table->decimal('sosial_kemasyarakatan', 5, 2)->default(0);
+            $table->decimal('lpk', 5, 2)->default(0);
+            $table->decimal('ujian_akhir', 5, 2)->default(0);
             $table->decimal('final_grade', 5, 2)->default(0);
             $table->char('grade_letter', 2)->nullable();
             $table->timestamps();

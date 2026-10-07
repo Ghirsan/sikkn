@@ -24,6 +24,9 @@
 
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
+        <flux:button wire:click="exportCsv" icon="document-arrow-down" variant="primary" size="sm">
+            {{ __('Export Nilai') }}
+        </flux:button>
     </div>
 
     <flux:card>
@@ -37,22 +40,36 @@
                     <flux:table.column>{{ __('NIM') }}</flux:table.column>
                     <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
                     <flux:table.column>{{ __('Nilai Akhir') }}</flux:table.column>
+                    <flux:table.column>{{ __('Nilai Huruf') }}</flux:table.column>
+                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($students as $student)
                         <flux:table.row :key="$student->id">
                             <flux:table.cell class="flex items-center gap-3">
                                 <flux:avatar :name="$student->name" :initials="$student->initials()" size="sm" />
-                                <span class="font-medium">{{ $student->name }}</span>
+                                <flux:text class="font-medium">{{ $student->name }}</flux:text>
                             </flux:table.cell>
                             <flux:table.cell>{{ $student->nim }}</flux:table.cell>
                             <flux:table.cell>{{ $student->prodi }}</flux:table.cell>
                             <flux:table.cell>
                                 @if($student->grade)
-                                    <flux:badge size="sm" color="green" inset="top bottom">{{ $student->grade->grade_letter }} ({{ $student->grade->final_grade }})</flux:badge>
+                                    <flux:text variant="strong">{{ $student->grade->final_grade }}</flux:text>
                                 @else
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Dinilai') }}</flux:badge>
+                                    <flux:text variant="subtle">-</flux:text>
                                 @endif
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if($student->grade)
+                                    <flux:text variant="strong">{{ $student->grade->grade_letter }}</flux:text>
+                                @else
+                                    <flux:text variant="subtle">-</flux:text>
+                                @endif
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button size="sm" variant="ghost" icon="pencil-square" href="{{ route('dpl.grades.form', $student->id) }}" wire:navigate :disabled="!$periodCompleted">
+                                    {{ __('Nilai Mahasiswa') }}
+                                </flux:button>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
