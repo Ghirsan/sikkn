@@ -43,7 +43,7 @@ class StudentGradeForm extends Component
     public function mount()
     {
         $studentId = request()->route('student');
-        $this->student = User::with('grade')->findOrFail($studentId);
+        $this->student = User::with(['grade', 'group'])->findOrFail($studentId);
 
         // Populate existing grade if any
         if ($this->student->grade) {

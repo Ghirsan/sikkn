@@ -30,6 +30,35 @@
 
     <div class="lg:col-span-1 space-y-6">
         <flux:card>
+            <flux:heading size="lg" class="mb-4">{{ __('Mahasiswa') }}</flux:heading>
+            
+            <div class="flex items-center gap-3 mb-4">
+                <flux:avatar :name="$student->name" :initials="$student->initials()" />
+                <div>
+                    <flux:text variant="strong" class="leading-tight">{{ $student->name }}</flux:text>
+                    <flux:text variant="subtle" size="sm">{{ $student->nim }}</flux:text>
+                </div>
+            </div>
+
+            <flux:separator class="my-4" />
+
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <flux:text variant="subtle">{{ __('Program Studi') }}</flux:text>
+                    <flux:text variant="strong" class="text-right">{{ $student->prodi ?? '-' }}</flux:text>
+                </div>
+                <div class="flex justify-between">
+                    <flux:text variant="subtle">{{ __('Fakultas') }}</flux:text>
+                    <flux:text variant="strong" class="text-right">{{ $student->fakultas ?? '-' }}</flux:text>
+                </div>
+                <div class="flex justify-between">
+                    <flux:text variant="subtle">{{ __('Desa') }}</flux:text>
+                    <flux:text variant="strong" class="text-right">{{ $student->group->village ?? '-' }}</flux:text>
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
             <flux:heading size="lg" class="mb-4">{{ __('Preview Konversi SIAP') }}</flux:heading>
             
             <div class="space-y-3">
