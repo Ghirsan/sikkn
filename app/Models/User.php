@@ -17,12 +17,35 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'prodi', 'fakultas', 'group_id', 'phone', 'emergency_phone'])]
+#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            // Auto-resolve from NIM for students
+            if ($user->isDirty('nim') && $user->nim) {
+                $code = substr($user->nim, 0, 6);
+                $studyProgram = StudyProgram::where('code', $code)->first();
+                if ($studyProgram) {
+                    $user->study_program_id = $studyProgram->id;
+                    $user->faculty_id = $studyProgram->faculty_id;
+                }
+            }
+            
+            // Auto-fill faculty_id if study_program_id was manually assigned (e.g., DPL, Prodi admin)
+            if ($user->isDirty('study_program_id') && $user->study_program_id && ! $user->isDirty('faculty_id')) {
+                $facultyId = StudyProgram::where('id', $user->study_program_id)->value('faculty_id');
+                if ($facultyId) {
+                    $user->faculty_id = $facultyId;
+                }
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -123,6 +146,46 @@ class User extends Authenticatable
     }
 
     // ── Relationships ────────────────────────────────────────────
+    
+    /**
+     * Get the study program this user belongs to.
+     */
+    public function studyProgram(): BelongsTo
+    {
+        return $this->belongsTo(StudyProgram::class);
+    }
+
+    /**
+     * Get the faculty this user belongs to.
+     */
+    public function faculty(): BelongsTo
+    {
+        return $this->belongsTo(Faculty::class);
+    }
+
+    /**
+     * Get the user's prodi name gracefully.
+     */
+    public function getProdiAttribute(): ?string
+    {
+        return $this->studyProgram?->name;
+    }
+
+    /**
+     * Get the user's fakultas name gracefully.
+     */
+    public function getFakultasAttribute(): ?string
+    {
+        return $this->faculty?->name ?? $this->studyProgram?->faculty?->name;
+    }
+
+    /**
+     * Get the user's fakultas short name (initials) gracefully.
+     */
+    public function getFakultasShortAttribute(): ?string
+    {
+        return $this->faculty?->short_name ?? $this->studyProgram?->faculty?->short_name;
+    }
 
     /**
      * Get the group this student belongs to.

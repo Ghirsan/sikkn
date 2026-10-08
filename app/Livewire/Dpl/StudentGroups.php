@@ -175,7 +175,9 @@ class StudentGroups extends Component
                     $query->where(function ($q) {
                         $q->where('name', 'like', '%'.$this->search.'%')
                             ->orWhere('nim', 'like', '%'.$this->search.'%')
-                            ->orWhere('prodi', 'like', '%'.$this->search.'%');
+                            ->orWhereHas('studyProgram', function ($sq) {
+                                $sq->where('name', 'like', '%'.$this->search.'%');
+                            });
                     });
                 }
             },
@@ -190,7 +192,9 @@ class StudentGroups extends Component
             $dplGroupsQuery->whereHas('students', function ($query) {
                 $query->where('name', 'like', '%'.$this->search.'%')
                     ->orWhere('nim', 'like', '%'.$this->search.'%')
-                    ->orWhere('prodi', 'like', '%'.$this->search.'%');
+                    ->orWhereHas('studyProgram', function ($sq) {
+                        $sq->where('name', 'like', '%'.$this->search.'%');
+                    });
             });
         }
 

@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(StudyProgramSeeder::class);
+        
         // Demo users for each role
         User::factory()->p2kkn()->create([
             'name' => 'Admin P2KKN',
@@ -22,21 +24,25 @@ class DatabaseSeeder extends Seeder
         User::factory()->dpl()->create([
             'name' => 'Dr. Budi Santoso',
             'email' => 'dpl@sikkn.test',
+            'study_program_id' => \App\Models\StudyProgram::where('code', '240601')->first()->id, // Informatika
         ]);
 
         User::factory()->mahasiswa()->create([
             'name' => 'Andi Mahasiswa',
             'email' => 'mahasiswa@sikkn.test',
+            'nim' => '24060122100001',
         ]);
 
         User::factory()->prodi()->create([
             'name' => 'Kaprodi Informatika',
             'email' => 'prodi@sikkn.test',
+            'study_program_id' => \App\Models\StudyProgram::where('code', '240601')->first()->id,
         ]);
 
         User::factory()->fakultas()->create([
             'name' => 'Dekan Fakultas Teknik',
             'email' => 'fakultas@sikkn.test',
+            'faculty_id' => \App\Models\Faculty::where('code', '21')->first()->id,
         ]);
 
         // Seed KKN data (periods, groups, students, programs, logs)

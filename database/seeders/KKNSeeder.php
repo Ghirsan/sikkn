@@ -31,23 +31,25 @@ class KKNSeeder extends Seeder
         // ── 2. DPL Users ──────────────────────────────────────────
         $dpl1 = User::where('email', 'dpl@sikkn.test')->first();
         if ($dpl1) {
-            $dpl1->update(['nip' => '197805152005011002', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'name' => 'Dr. Budi Santoso, M.Kom.']);
+            $dpl1->update([
+                'nip' => '197805152005011002',
+                'name' => 'Dr. Budi Santoso, M.Kom.',
+                'study_program_id' => \App\Models\StudyProgram::where('code', '240601')->first()->id, // Informatika
+            ]);
         }
 
         $dpl2 = User::factory()->dpl()->create([
             'name' => 'Dr. Siti Aminah, M.Pd.',
             'email' => 'dpl2@sikkn.test',
             'nip' => '198201102008012001',
-            'prodi' => 'Pendidikan Matematika',
-            'fakultas' => 'Fakultas Keguruan dan Ilmu Pendidikan',
+            'study_program_id' => \App\Models\StudyProgram::where('code', '240101')->first()->id, // Matematika
         ]);
 
         $dpl3 = User::factory()->dpl()->create([
             'name' => 'Ir. Hendra Pratama, M.T.',
             'email' => 'dpl3@sikkn.test',
             'nip' => '196909201998021003',
-            'prodi' => 'Teknik Sipil',
-            'fakultas' => 'Fakultas Teknik',
+            'study_program_id' => \App\Models\StudyProgram::where('code', '210101')->first()->id, // Teknik Sipil
         ]);
 
         // ── 3. Groups ─────────────────────────────────────────────
@@ -122,20 +124,20 @@ class KKNSeeder extends Seeder
         // ── 4. Students ───────────────────────────────────────────
         $studentsData = [
             // Group 1 students
-            ['name' => 'Andi Mahasiswa', 'email' => 'mahasiswa@sikkn.test', 'nim' => '21100122100001', 'prodi' => 'Teknik Informatika', 'fakultas' => 'Fakultas Teknik', 'group' => $group1], // 2 = Saintek
-            ['name' => 'Rina Permata', 'email' => 'rina@sikkn.test', 'nim' => '14000122100002', 'prodi' => 'Ilmu Komunikasi', 'fakultas' => 'Fakultas Ilmu Sosial dan Politik', 'group' => $group1], // 1 = Soshum
-            ['name' => 'Budi Hartono', 'email' => 'budi.h@sikkn.test', 'nim' => '23000122100003', 'prodi' => 'Agroteknologi', 'fakultas' => 'Fakultas Pertanian', 'group' => $group1], // 2 = Saintek
-            ['name' => 'Dewi Sartika', 'email' => 'dewi@sikkn.test', 'nim' => '25000122100004', 'prodi' => 'Kesehatan Masyarakat', 'fakultas' => 'Fakultas Kedokteran', 'group' => $group1], // 2 = Saintek
+            ['name' => 'Andi Mahasiswa', 'email' => 'mahasiswa@sikkn.test', 'nim' => '21100122100001',  'group' => $group1], // Teknik Geologi (211001)
+            ['name' => 'Rina Permata', 'email' => 'rina@sikkn.test', 'nim' => '14040122100002',  'group' => $group1], // Ilmu Komunikasi (140401)
+            ['name' => 'Budi Hartono', 'email' => 'budi.h@sikkn.test', 'nim' => '23020122100003',  'group' => $group1], // Teknologi Pangan (230201)
+            ['name' => 'Dewi Sartika', 'email' => 'dewi@sikkn.test', 'nim' => '25000122100004',  'group' => $group1], // Kesehatan Masyarakat (250001)
 
             // Group 2 students
-            ['name' => 'Fajar Nugroho', 'email' => 'fajar@sikkn.test', 'nim' => '40030022100005', 'prodi' => 'Teknologi Rekayasa', 'fakultas' => 'Sekolah Vokasi', 'group' => $group2], // 4003 = Vokasi Saintek
-            ['name' => 'Lestari Wulandari', 'email' => 'lestari@sikkn.test', 'nim' => '16000122100006', 'prodi' => 'Pendidikan Bahasa Inggris', 'fakultas' => 'Fakultas Keguruan dan Ilmu Pendidikan', 'group' => $group2], // 1 = Soshum
-            ['name' => 'Agus Riyanto', 'email' => 'agus@sikkn.test', 'nim' => '40010022100007', 'prodi' => 'Manajemen Perusahaan', 'fakultas' => 'Sekolah Vokasi', 'group' => $group2], // 4001 = Vokasi Soshum
+            ['name' => 'Fajar Nugroho', 'email' => 'fajar@sikkn.test', 'nim' => '40030522100005',  'group' => $group2], // Teknik Infrastruktur Sipil (400305)
+            ['name' => 'Lestari Wulandari', 'email' => 'lestari@sikkn.test', 'nim' => '13020122100006',  'group' => $group2], // Sastra Inggris (130201)
+            ['name' => 'Agus Riyanto', 'email' => 'agus@sikkn.test', 'nim' => '40011322100007',  'group' => $group2], // Manajemen dan Administrasi Logistik (400113)
 
             // Group 3 students
-            ['name' => 'Putri Handayani', 'email' => 'putri@sikkn.test', 'nim' => '12000122100008', 'prodi' => 'Manajemen', 'fakultas' => 'Fakultas Ekonomika dan Bisnis', 'group' => $group3], // 1 = Soshum
-            ['name' => 'Rizky Pratama', 'email' => 'rizky@sikkn.test', 'nim' => '11000122100009', 'prodi' => 'Pariwisata', 'fakultas' => 'Fakultas Ilmu Budaya', 'group' => $group3], // 1 = Soshum
-            ['name' => 'Sinta Dewi', 'email' => 'sinta@sikkn.test', 'nim' => '40040022100010', 'prodi' => 'Teknik Infrastruktur', 'fakultas' => 'Sekolah Vokasi', 'group' => $group3], // 4004 = Vokasi Saintek
+            ['name' => 'Putri Handayani', 'email' => 'putri@sikkn.test', 'nim' => '12010122100008',  'group' => $group3], // Manajemen (120101)
+            ['name' => 'Rizky Pratama', 'email' => 'rizky@sikkn.test', 'nim' => '11000122100009',  'group' => $group3], // Hukum (110001)
+            ['name' => 'Sinta Dewi', 'email' => 'sinta@sikkn.test', 'nim' => '40040122100010',  'group' => $group3], // Teknologi Rekayasa Kimia Industri (400401)
         ];
 
         $students = [];
@@ -147,8 +149,6 @@ class KKNSeeder extends Seeder
             if ($existing) {
                 $existing->update([
                     'nim' => $data['nim'],
-                    'prodi' => $data['prodi'],
-                    'fakultas' => $data['fakultas'],
                     'group_id' => $group->id,
                 ]);
                 $students[] = $existing;
