@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Enums\GroupType;
 use App\Enums\LogStatus;
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Enums\Semester;
 use App\Models\DailyLog;
 use App\Models\DailyLogActivity;
 use App\Models\Group;
+use App\Models\GroupType;
 use App\Models\MentoringLog;
 use App\Models\Period;
 use App\Models\Program;
+use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -55,7 +55,7 @@ class KKNSeeder extends Seeder
         $group1 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 01',
-            'type' => GroupType::Reguler,
+            'group_type_id' => GroupType::where('code', 'Reguler')->first()->id,
             'village' => 'Desa Sukamakmur',
             'district' => 'Kec. Karanganyar',
             'regency' => 'Kab. Karanganyar',
@@ -72,7 +72,7 @@ class KKNSeeder extends Seeder
         $group2 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 02',
-            'type' => GroupType::Tematik,
+            'group_type_id' => GroupType::where('code', 'Tematik')->first()->id,
             'village' => 'Desa Sidoharjo',
             'district' => 'Kec. Polanharjo',
             'regency' => 'Kab. Klaten',
@@ -90,7 +90,7 @@ class KKNSeeder extends Seeder
         $group3 = Group::create([
             'period_id' => $period->id,
             'name' => 'Kelompok 03',
-            'type' => GroupType::Reguler,
+            'group_type_id' => GroupType::where('code', 'Reguler')->first()->id,
             'village' => 'Desa Sendangtirto',
             'district' => 'Kec. Berbah',
             'regency' => 'Kab. Sleman',
@@ -162,9 +162,9 @@ class KKNSeeder extends Seeder
         // ── 5. Programs & Participants ─────────────────────────
 
         // --- GROUP 1: Siap Cetak LRK & LPK (Semua LPK Approved) ---
-        $md1_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Digitalisasi dan Pemetaan Potensi UMKM Desa', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
-        $md2_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Edukasi Pola Hidup Sehat & Pembuatan Apotek Hidup', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
-        $md3_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Video Profil Desa Sukamakmur', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
+        $md1_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Digitalisasi dan Pemetaan Potensi UMKM Desa', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 1]);
+        $md2_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Edukasi Pola Hidup Sehat & Pembuatan Apotek Hidup', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 2]);
+        $md3_g1 = Program::create(['group_id' => $group1->id, 'student_id' => null, 'title' => 'Video Profil Desa Sukamakmur', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 3]);
 
         $g1_students = [$students[0], $students[1], $students[2], $students[3]];
 
@@ -203,7 +203,7 @@ class KKNSeeder extends Seeder
                 ]);
             }
             // Sosmas
-            $sos = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g1[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
+            $sos = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g1[$idx], 'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->first()->id]);
             $sos->participants()->create([
                 'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved,
                 'execution_date' => '2026-07-15', 'role_in_program' => 'Ketua Pelaksana',
@@ -211,7 +211,7 @@ class KKNSeeder extends Seeder
                 'achievement' => 'Dihadiri 30 orang warga desa, target tercapai.', 'obstacle' => 'Cuaca hujan di awal acara.', 'solution' => 'Memindahkan lokasi ke dalam balai desa.',
             ]);
             // Lainnya
-            $lain = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g1[$idx], 'type' => ProgramType::Lainnya]);
+            $lain = Program::create(['group_id' => $group1->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g1[$idx], 'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id]);
             $lain->participants()->create([
                 'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Approved,
                 'execution_date' => '2026-07-20', 'role_in_program' => 'Koordinator',
@@ -221,9 +221,9 @@ class KKNSeeder extends Seeder
         }
 
         // --- GROUP 2: Siap Cetak LRK Saja (LRK Approved, LPK belum) ---
-        $md1_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Peningkatan Kualitas Pendidikan Dasar', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
-        $md2_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Pembuatan Media Pembelajaran Interaktif', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
-        $md3_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Video Profil Potensi Edukasi Desa Sidoharjo', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
+        $md1_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Peningkatan Kualitas Pendidikan Dasar', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 1]);
+        $md2_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Pembuatan Media Pembelajaran Interaktif', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 2]);
+        $md3_g2 = Program::create(['group_id' => $group2->id, 'student_id' => null, 'title' => 'Video Profil Potensi Edukasi Desa Sidoharjo', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 3]);
 
         $g2_students = [$students[4], $students[5], $students[6]];
 
@@ -254,13 +254,13 @@ class KKNSeeder extends Seeder
                     'output_target' => 'Peningkatan Minat Belajar Anak',
                 ]);
             }
-            $sos = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g2[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
+            $sos = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g2[$idx], 'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->first()->id]);
             $sos->participants()->create([
                 'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft,
                 'execution_date' => '2026-07-18', 'role_in_program' => 'Instruktur',
                 'responsibility' => 'Menyiapkan modul dan lembar kerja.',
             ]);
-            $lain = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g2[$idx], 'type' => ProgramType::Lainnya]);
+            $lain = Program::create(['group_id' => $group2->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g2[$idx], 'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id]);
             $lain->participants()->create([
                 'student_id' => $student->id, 'status' => ProgramStatus::Approved, 'lpk_status' => ProgramStatus::Draft,
                 'execution_date' => '2026-07-22', 'role_in_program' => 'Penanggung Jawab',
@@ -269,9 +269,9 @@ class KKNSeeder extends Seeder
         }
 
         // --- GROUP 3: Belum Siap Cetak Keduanya (LRK Masih Draft/Revisi) ---
-        $md1_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pengembangan Pariwisata Berbasis Masyarakat (CBT)', 'type' => ProgramType::Multidisiplin, 'sequence' => 1]);
-        $md2_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pemetaan Potensi Alam dan Konservasi', 'type' => ProgramType::Multidisiplin, 'sequence' => 2]);
-        $md3_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Video Promosi Wisata Desa Sendangtirto', 'type' => ProgramType::Multidisiplin, 'sequence' => 3]);
+        $md1_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pengembangan Pariwisata Berbasis Masyarakat (CBT)', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 1]);
+        $md2_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Pemetaan Potensi Alam dan Konservasi', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 2]);
+        $md3_g3 = Program::create(['group_id' => $group3->id, 'student_id' => null, 'title' => 'Video Promosi Wisata Desa Sendangtirto', 'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id, 'sequence' => 3]);
 
         $g3_students = [$students[7], $students[8], $students[9]];
 
@@ -299,13 +299,13 @@ class KKNSeeder extends Seeder
                     'target_audience' => 'Kelompok Sadar Wisata',
                 ]);
             }
-            $sos = Program::create(['group_id' => $group3->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g3[$idx], 'type' => ProgramType::SosialKemasyarakatan]);
+            $sos = Program::create(['group_id' => $group3->id, 'student_id' => $student->id, 'title' => $sosmas_titles_g3[$idx], 'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->first()->id]);
             $sos->participants()->create([
                 'student_id' => $student->id, 'status' => ProgramStatus::NeedsRevision, // <--- LRK REVISI
                 'revision_note' => 'Mohon jelaskan secara lebih spesifik target pesertanya.',
                 'execution_date' => '2026-07-25', 'role_in_program' => 'Pemateri',
             ]);
-            $lain = Program::create(['group_id' => $group3->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g3[$idx], 'type' => ProgramType::Lainnya]);
+            $lain = Program::create(['group_id' => $group3->id, 'student_id' => $student->id, 'title' => $lainnya_titles_g3[$idx], 'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id]);
             $lain->participants()->create([
                 'student_id' => $student->id, 'status' => ProgramStatus::Submitted, // <--- LRK SUBMITTED (menunggu acc)
                 'execution_date' => '2026-07-28', 'role_in_program' => 'Eksekutor',

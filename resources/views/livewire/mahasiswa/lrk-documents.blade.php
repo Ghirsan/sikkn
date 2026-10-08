@@ -147,7 +147,7 @@
                                     <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $participant->participant_code }}</span>
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    @if($participant->program->type === \App\Enums\ProgramType::Multidisiplin)
+                                    @if($participant->program->programType?->code === 'multidisiplin')
                                         @if($participant->program->isVideoProfile())
                                             <span class="font-medium text-zinc-900 dark:text-white">{{ $participant->program->title ?: __('(Tema Belum Diisi)') }}</span>
                                         @else
@@ -159,7 +159,7 @@
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ $participant->program->type->label() }}</flux:badge>
+                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ $participant->program->programType?->name }}</flux:badge>
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <span class="text-sm">{{ $participant->student->name }}</span>
@@ -199,7 +199,7 @@
             @if($this->selectedProgram)
                 <div>
                     <flux:heading size="lg">{{ $this->selectedProgram->title ?: __('(Belum ada judul)') }}</flux:heading>
-                    <flux:text class="mt-1">{{ $this->selectedProgram->type->label() }}</flux:text>
+                    <flux:text class="mt-1">{{ $this->selectedProgram->programType?->name }}</flux:text>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

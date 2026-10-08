@@ -123,6 +123,7 @@ class StudentGradeForm extends Component
     public function nilaiHuruf()
     {
         $na = $this->nilaiAkhir;
+
         return match (true) {
             $na >= 80 => 'A',
             $na >= 70 => 'B',

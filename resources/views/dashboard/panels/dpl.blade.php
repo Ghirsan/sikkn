@@ -88,7 +88,7 @@
                             <flux:text variant="strong">{{ $participant->program->title }}</flux:text>
                             <div class="flex items-center gap-2 mt-1">
                                 <flux:text class="text-xs">{{ $participant->student?->name ?? __('Kelompok') }}</flux:text>
-                                <flux:badge size="sm" color="zinc">{{ $participant->program->type->label() }}</flux:badge>
+                                <flux:badge size="sm" color="zinc">{{ $participant->program->programType?->name }}</flux:badge>
                             </div>
                         </div>
                         <flux:badge size="sm" color="amber">{{ __('Diajukan') }}</flux:badge>

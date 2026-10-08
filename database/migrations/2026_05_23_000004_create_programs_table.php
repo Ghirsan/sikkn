@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +14,7 @@ return new class extends Migration
             $table->foreignId('group_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->string('title');
-            $table->string('type')->default(ProgramType::SosialKemasyarakatan->value);
+            $table->string('type')->default('sosial_kemasyarakatan');
             $table->text('target')->nullable();
             $table->text('target_audience')->nullable();
             $table->decimal('budget', 12, 2)->default(0);

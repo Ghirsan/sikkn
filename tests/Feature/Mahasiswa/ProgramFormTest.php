@@ -3,13 +3,13 @@
 namespace Tests\Feature\Mahasiswa;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Enums\Semester;
 use App\Livewire\Mahasiswa\ProgramForm;
 use App\Models\Group;
 use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -141,7 +141,7 @@ class ProgramFormTest extends TestCase
             'group_id' => $group->id,
             'student_id' => $student->id,
             'title' => 'Program Dokumentasi',
-            'type' => ProgramType::Lainnya,
+            'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id,
         ]);
         $participant = ProgramParticipant::create([
             'program_id' => $program->id,

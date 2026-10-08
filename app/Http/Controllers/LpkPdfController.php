@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Models\Group;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -79,9 +78,9 @@ class LpkPdfController extends Controller
             'period' => $period,
             'dpls' => $group->dpls,
             'students' => $group->students,
-            'multidisiplin' => $approvedParticipants->filter(fn ($p) => $p->program->type === ProgramType::Multidisiplin),
-            'sosialKemasyarakatan' => $approvedParticipants->filter(fn ($p) => $p->program->type === ProgramType::SosialKemasyarakatan),
-            'lainnya' => $approvedParticipants->filter(fn ($p) => $p->program->type === ProgramType::Lainnya),
+            'multidisiplin' => $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'multidisiplin'),
+            'sosialKemasyarakatan' => $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'sosial_kemasyarakatan'),
+            'lainnya' => $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'lainnya'),
             'scheduleEvents' => $group->scheduleEvents->sortBy('date'),
             'calendar' => $calendar,
         ]);

@@ -7,7 +7,7 @@
             </div>
         @endif
         
-        @if($action === 'create' && $type === \App\Enums\ProgramType::Multidisiplin->value)
+        @if($action === 'create' && $type === 'multidisiplin')
             <flux:select wire:model.live="programId" label="{{ __('Pilih Tema Multidisiplin') }}" placeholder="{{ __('Pilih tema yang tersedia...') }}">
                 @foreach($availableMultidisiplinPrograms as $prog)
                     <flux:select.option value="{{ $prog->id }}">{{ $prog->title ?: '(Tema Belum Diisi)' }}</flux:select.option>
@@ -17,7 +17,7 @@
 
         @if($formMode === 'edit_program')
             
-            @if(!($action === 'create' && $type === \App\Enums\ProgramType::Multidisiplin->value))
+            @if(!($action === 'create' && $type === 'multidisiplin'))
                 <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-4">
                     <flux:text class="text-xs text-zinc-500 mb-1">{{ __('Tema Multidisiplin') }}</flux:text>
                     <flux:text variant="strong">{{ $title }}</flux:text>
@@ -38,12 +38,12 @@
             <flux:textarea wire:model="output_target" label="{{ __('Luaran') }}" placeholder="{{ __('Luaran / Output yang diharapkan') }}" rows="2" />
             <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
-                @foreach(\App\Enums\SdgCategory::cases() as $sdg)
-                    <flux:select.option value="{{ $sdg->value }}">{{ $sdg->label() }}</flux:select.option>
+                @foreach(\App\Models\SdgCategory::all() as $sdg)
+                    <flux:select.option value="{{ $sdg->code }}">{{ $sdg->name }}</flux:select.option>
                 @endforeach
             </flux:select>
         @elseif($formMode === 'create_individual')
-            @if($type === \App\Enums\ProgramType::SosialKemasyarakatan->value)
+            @if($type === 'sosial_kemasyarakatan')
                 <flux:input wire:model="title" label="{{ __('Nama Program Sosial Kemasyarakatan') }}" placeholder="{{ __('Contoh: Bakti Sosial Soshum') }}" />
             @else
                 <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Lomba 17 Agustus') }}" />
@@ -53,13 +53,13 @@
             <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" class="mt-2" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
-                @foreach(\App\Enums\SdgCategory::cases() as $sdg)
-                    <flux:select.option value="{{ $sdg->value }}">{{ $sdg->label() }}</flux:select.option>
+                @foreach(\App\Models\SdgCategory::all() as $sdg)
+                    <flux:select.option value="{{ $sdg->code }}">{{ $sdg->name }}</flux:select.option>
                 @endforeach
             </flux:select>
 
         @elseif($formMode === 'edit_peran')
-            @if(!($action === 'create' && $type === \App\Enums\ProgramType::Multidisiplin->value))
+            @if(!($action === 'create' && $type === 'multidisiplin'))
                 <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg mb-2">
                     <flux:text variant="strong">{{ $title }}</flux:text>
                 </div>

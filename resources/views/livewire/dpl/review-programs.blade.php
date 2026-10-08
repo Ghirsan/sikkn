@@ -143,8 +143,8 @@
 
             <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Jenis') }}</option>
-                @foreach(\App\Enums\ProgramType::cases() as $type)
-                    <option value="{{ $type->value }}">{{ $type->label() }}</option>
+                @foreach(\App\Models\ProgramType::all() as $type)
+                    <option value="{{ $type->code }}">{{ $type->name }}</option>
                 @endforeach
             </flux:select>
 
@@ -180,7 +180,7 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:text variant="strong">{{ $participant->program->title }}</flux:text>
-                                <flux:badge size="sm" color="zinc" class="mt-1">{{ $participant->program->type->label() }}</flux:badge>
+                                <flux:badge size="sm" color="zinc" class="mt-1">{{ $participant->program->programType?->name }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$participant->status->color()" inset="top bottom">{{ $participant->status->label() }}</flux:badge>
@@ -247,7 +247,7 @@
                             </div>
                             <div>
                                 <flux:text variant="strong" class="mb-1">{{ __('Jenis Program') }}</flux:text>
-                                <flux:text>{{ $this->inspectingParticipant->program->type->label() }}</flux:text>
+                                <flux:text>{{ $this->inspectingParticipant->program->programType?->name }}</flux:text>
                             </div>
                             <div>
                                 <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
@@ -269,13 +269,13 @@
                     <section class="space-y-3">
                         <flux:heading size="sm">{{ __('Rancangan Program') }}</flux:heading>
                         <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                            @if($this->inspectingParticipant->program->type === \App\Enums\ProgramType::Multidisiplin)
+                            @if($this->inspectingParticipant->program->programType?->code === 'multidisiplin')
                                 <div class="sm:col-span-2">
                                     <flux:text variant="strong" class="mb-1">{{ __('Usulan Program (Spesifik)') }}</flux:text>
                                     <flux:text>{{ $this->inspectingParticipant->participant_title ?: __('Belum diisi') }}</flux:text>
                                 </div>
                             @endif
-                            @if($this->inspectingParticipant->program->type === \App\Enums\ProgramType::Multidisiplin && !$this->inspectingParticipant->program->isVideoProfile())
+                            @if($this->inspectingParticipant->program->programType?->code === 'multidisiplin' && !$this->inspectingParticipant->program->isVideoProfile())
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
                                     <flux:text>{{ $this->inspectingParticipant->problem_potential ?: __('Belum diisi') }}</flux:text>
@@ -297,7 +297,7 @@
                                     <flux:text>{{ $this->inspectingParticipant->output_target ?: __('Belum diisi') }}</flux:text>
                                 </div>
                             @endif
-                            @if($this->inspectingParticipant->program->type !== \App\Enums\ProgramType::Multidisiplin)
+                            @if($this->inspectingParticipant->program->programType?->code !== 'multidisiplin')
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Peran Anda') }}</flux:text>
                                     <flux:text>{{ $this->inspectingParticipant->role_in_program ?: __('Belum diisi') }}</flux:text>
@@ -310,7 +310,7 @@
                             <div class="sm:col-span-2">
                                 <flux:text variant="strong" class="mb-1">{{ __('Kategori SDGs') }}</flux:text>
                                 @if($this->inspectingParticipant->sdg_category)
-                                    <flux:badge size="sm" color="lime" inset="top bottom">{{ $this->inspectingParticipant->sdg_category->label() }}</flux:badge>
+                                    <flux:badge size="sm" color="lime" inset="top bottom">{{ $this->inspectingParticipant->sdgCategory?->name }}</flux:badge>
                                 @else
                                     <flux:text>{{ __('Belum diisi') }}</flux:text>
                                 @endif
@@ -323,7 +323,7 @@
                     <section class="space-y-3">
                         <flux:heading size="sm">{{ __('Pelaksanaan Program') }}</flux:heading>
                         <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                            @if($this->inspectingParticipant->program->type === \App\Enums\ProgramType::Multidisiplin && !$this->inspectingParticipant->program->isVideoProfile())
+                            @if($this->inspectingParticipant->program->programType?->code === 'multidisiplin' && !$this->inspectingParticipant->program->isVideoProfile())
                                 <div class="sm:col-span-2">
                                     <flux:text variant="strong" class="mb-1">{{ __('Pelaksanaan Kegiatan') }}</flux:text>
                                     <flux:text>{{ $this->inspectingParticipant->execution_description ?: __('Belum diisi') }}</flux:text>

@@ -35,7 +35,7 @@
                         <flux:table.row :key="$group->id">
                             <flux:table.cell variant="strong">{{ $group->name }}</flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" color="blue">{{ $group->type->value }}</flux:badge>
+                                <flux:badge size="sm" color="blue">{{ $group->groupType?->name }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" color="zinc">Semester {{ $group->period->semester->value }} {{ $group->period->year }}</flux:badge>

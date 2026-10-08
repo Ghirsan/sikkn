@@ -5,7 +5,7 @@
             <x-stat-card icon="user-group" color="blue" :label="__('Anggota')" :value="$stats['memberCount']" />
             <x-stat-card icon="academic-cap" color="purple" :label="__('Dosen KKN')" :value="$stats['dplCount']" />
             <x-stat-card icon="light-bulb" color="amber" :label="__('Program Kerja')" :value="$stats['programCount']" />
-            <x-stat-card icon="document-text" color="green" :label="__('Tipe KKN')" :value="$group->type->value" />
+            <x-stat-card icon="document-text" color="green" :label="__('Tipe KKN')" :value="$group->groupType?->name" />
         </div>
 
         {{-- Profil Kelompok & Lokasi --}}
@@ -24,7 +24,7 @@
                     </div>
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
                         <flux:text variant="subtle">{{ __('Tipe') }}</flux:text>
-                        <flux:badge size="sm" :color="$group->type === \App\Enums\GroupType::Tematik ? 'purple' : 'blue'">{{ $group->type->value }}</flux:badge>
+                        <flux:badge size="sm" :color="$group->groupType?->code === 'Tematik' ? 'purple' : 'blue'">{{ $group->groupType?->name }}</flux:badge>
                     </div>
                     @if($period)
                         <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
@@ -194,7 +194,7 @@
                 <div class="space-y-0">
                     @foreach($programsByType as $type => $typePrograms)
                         @php
-                            $programType = \App\Enums\ProgramType::tryFrom($type);
+                            $programType = \App\Models\ProgramType::where('code', $type)->first();
                             $typeColor = match($type) {
                                 'multidisiplin' => 'purple',
                                 'sosial_kemasyarakatan' => 'blue',

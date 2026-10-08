@@ -37,7 +37,7 @@
         <div>
             <div class="flex items-center gap-2">
                 <flux:heading size="lg">{{ $group->name }}</flux:heading>
-                <flux:badge color="purple" size="sm">{{ $group->type->value }}</flux:badge>
+                <flux:badge color="purple" size="sm">{{ $group->groupType?->name }}</flux:badge>
                 <flux:button size="sm" variant="subtle" icon="pencil-square" wire:click="editGroupDetails({{ $group->id }})">
                     {{ __('Ubah Detail') }}
                 </flux:button>

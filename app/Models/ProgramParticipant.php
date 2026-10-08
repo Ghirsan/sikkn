@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
-use App\Enums\SdgCategory;
 use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,7 +30,7 @@ class ProgramParticipant extends Model
         'execution_description',
         'documentation_image_path',
         'documentation_caption',
-        'sdg_category',
+        'sdg_category_id',
     ];
 
     protected function casts(): array
@@ -41,7 +39,6 @@ class ProgramParticipant extends Model
             'status' => ProgramStatus::class,
             'lpk_status' => ProgramStatus::class,
             'execution_date' => 'date',
-            'sdg_category' => SdgCategory::class,
         ];
     }
 
@@ -56,22 +53,22 @@ class ProgramParticipant extends Model
 
     public static function generateParticipantCode($participant)
     {
-        $program = $participant->program ?? Program::find($participant->program_id);
+        $program = $participant->program ?? Program::with('programType')->find($participant->program_id);
         if (! $program || ! $participant->student_id) {
             return null;
         }
 
-        $typePrefix = match ($program->type) {
-            ProgramType::Multidisiplin => 'M',
-            ProgramType::SosialKemasyarakatan => 'SK',
-            ProgramType::Lainnya => 'L',
+        $typePrefix = match ($program->programType?->code) {
+            'multidisiplin' => 'M',
+            'sosial_kemasyarakatan' => 'SK',
+            'lainnya' => 'L',
             default => 'X',
         };
 
         // Count existing participants for this student + type to determine sequence
         $existingCount = static::whereHas('program', function ($q) use ($program) {
-            $q->where('type', $program->type);
-            if ($program->type === ProgramType::Multidisiplin) {
+            $q->whereType($program->programType?->code);
+            if ($program->programType?->code === 'multidisiplin') {
                 $q->where('group_id', $program->group_id);
             }
         })
@@ -130,5 +127,10 @@ class ProgramParticipant extends Model
         } catch (\InvalidArgumentException) {
             return $this->documentation_image_path;
         }
+    }
+
+    public function sdgCategory()
+    {
+        return $this->belongsTo(SdgCategory::class);
     }
 }

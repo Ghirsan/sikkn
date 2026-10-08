@@ -11,7 +11,7 @@
             >
                 @if($hasAvailableMultidisiplin)
                 <div class="flex justify-end items-center gap-4">
-                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::Multidisiplin->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'multidisiplin']) }}" wire:navigate variant="filled" size="sm" icon="plus">
                         {{ __('Tambah Program') }}
                     </flux:button>
                 </div>
@@ -95,7 +95,7 @@
                 contentClass="pt-4 flex flex-col gap-4"
             >
                 <div class="flex justify-end items-center gap-4">
-                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::SosialKemasyarakatan->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'sosial_kemasyarakatan']) }}" wire:navigate variant="filled" size="sm" icon="plus">
                         {{ __('Tambah Program') }}
                     </flux:button>
                 </div>
@@ -171,7 +171,7 @@
                 contentClass="pt-4 flex flex-col gap-4"
             >
                 <div class="flex justify-end items-center gap-4">
-                            <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => \App\Enums\ProgramType::Lainnya->value]) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                            <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'lainnya']) }}" wire:navigate variant="filled" size="sm" icon="plus">
                                 {{ __('Tambah Program') }}
                             </flux:button>
                         </div>
@@ -316,7 +316,7 @@
             @if($this->selectedProgram)
                 <div>
                     <flux:heading size="lg">{{ $this->selectedProgram->title ?: __('(Belum ada judul)') }}</flux:heading>
-                    <flux:text class="mt-1">{{ $this->selectedProgram->type->label() }}</flux:text>
+                    <flux:text class="mt-1">{{ $this->selectedProgram->programType?->name }}</flux:text>
                 </div>
 
                 <div class="space-y-6">
@@ -355,13 +355,13 @@
                     <section class="space-y-3">
                         <flux:heading size="sm">{{ __('Rancangan Program') }}</flux:heading>
                         <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                            @if($this->selectedProgram->type === \App\Enums\ProgramType::Multidisiplin)
+                            @if($this->selectedProgram->programType?->code === 'multidisiplin')
                                 <div class="sm:col-span-2">
                                     <flux:text variant="strong" class="mb-1">{{ __('Usulan Program (Spesifik)') }}</flux:text>
                                     <flux:text>{{ $this->selectedParticipant?->participant_title ?: __('Belum diisi') }}</flux:text>
                                 </div>
                             @endif
-                            @if($this->selectedProgram->type === \App\Enums\ProgramType::Multidisiplin && !$this->selectedProgram->isVideoProfile())
+                            @if($this->selectedProgram->programType?->code === 'multidisiplin' && !$this->selectedProgram->isVideoProfile())
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
                                     <flux:text>{{ $this->selectedParticipant?->problem_potential ?: __('Belum diisi') }}</flux:text>
@@ -383,7 +383,7 @@
                                     <flux:text>{{ $this->selectedParticipant?->output_target ?: __('Belum diisi') }}</flux:text>
                                 </div>
                             @endif
-                            @if($this->selectedProgram->type !== \App\Enums\ProgramType::Multidisiplin)
+                            @if($this->selectedProgram->programType?->code !== 'multidisiplin')
                                 <div>
                                     <flux:text variant="strong" class="mb-1">{{ __('Peran Anda') }}</flux:text>
                                     <flux:text>{{ $this->selectedParticipant?->role_in_program ?: __('Belum diisi') }}</flux:text>
@@ -396,7 +396,7 @@
                             <div class="sm:col-span-2">
                                 <flux:text variant="strong" class="mb-1">{{ __('Kategori SDGs') }}</flux:text>
                                 @if($this->selectedParticipant?->sdg_category)
-                                    <flux:badge size="sm" color="lime" inset="top bottom">{{ $this->selectedParticipant->sdg_category->label() }}</flux:badge>
+                                    <flux:badge size="sm" color="lime" inset="top bottom">{{ $this->selectedParticipant->sdgCategory?->name }}</flux:badge>
                                 @else
                                     <flux:text>{{ __('Belum diisi') }}</flux:text>
                                 @endif
@@ -409,7 +409,7 @@
                     <section class="space-y-3">
                         <flux:heading size="sm">{{ __('Pelaksanaan Program') }}</flux:heading>
                         <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                            @if($this->selectedProgram->type === \App\Enums\ProgramType::Multidisiplin && !$this->selectedProgram->isVideoProfile())
+                            @if($this->selectedProgram->programType?->code === 'multidisiplin' && !$this->selectedProgram->isVideoProfile())
                                 <div class="sm:col-span-2">
                                     <flux:text variant="strong" class="mb-1">{{ __('Pelaksanaan Kegiatan') }}</flux:text>
                                     <flux:text>{{ $this->selectedParticipant?->execution_description ?: __('Belum diisi') }}</flux:text>

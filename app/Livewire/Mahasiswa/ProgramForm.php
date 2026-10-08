@@ -3,11 +3,11 @@
 namespace App\Livewire\Mahasiswa;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Models\ParticipantOutput;
 use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use App\Services\ExternalImagePreviewUrl;
 use App\Services\ExternalUrlMetadata;
 use App\Services\ProgramOutputUrlResolver;
@@ -112,13 +112,13 @@ class ProgramForm extends Component
         }
 
         if ($this->action === 'create') {
-            $this->type = $this->type ?? ProgramType::Lainnya->value;
+            $this->type = $this->type ?? 'lainnya';
 
-            if ($this->type === ProgramType::Multidisiplin->value) {
+            if ($this->programType?->code === 'multidisiplin') {
                 $this->formMode = 'create_multidisiplin';
                 $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
                 $this->availableMultidisiplinPrograms = Program::where('group_id', $user->group_id)
-                    ->where('type', ProgramType::Multidisiplin)
+                    ->whereType('multidisiplin')
                     ->whereNotIn('id', $joinedIds)
                     ->get();
             } else {
@@ -126,11 +126,11 @@ class ProgramForm extends Component
             }
         } elseif ($this->action === 'edit' && $this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
-            $this->type = $program->type->value;
+            $this->type = $program->programType?->code;
 
             $isVideoProfile = $program ? $program->isVideoProfile() : false;
 
-            if ($program->type === ProgramType::SosialKemasyarakatan || $program->type === ProgramType::Lainnya) {
+            if ($program->programType?->code === 'sosial_kemasyarakatan' || $program->programType?->code === 'lainnya') {
                 $this->formMode = 'create_individual';
                 $this->title = $program->title;
             } elseif ($isVideoProfile) {
@@ -195,7 +195,7 @@ class ProgramForm extends Component
             $this->status = $participant->lpk_status->value;
             $this->revision_note = $participant->revision_note;
             $this->isLpkVideoProfile = $participant->program ? $participant->program->isVideoProfile() : false;
-            $this->isLpkMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && ! $this->isLpkVideoProfile;
+            $this->isLpkMultidisiplin = $participant->program->programType?->code === 'multidisiplin' && ! $this->isLpkVideoProfile;
 
             $this->achievement = $participant->achievement ?? '';
             $this->obstacle = $participant->obstacle ?? '';
@@ -319,7 +319,7 @@ class ProgramForm extends Component
 
     public function updatedProgramId($value)
     {
-        if ($this->action === 'create' && $this->type === ProgramType::Multidisiplin->value) {
+        if ($this->action === 'create' && $this->programType?->code === 'multidisiplin') {
             if ($value) {
                 $program = Program::find($value);
                 $this->title = $program->title;
@@ -395,14 +395,14 @@ class ProgramForm extends Component
                 if ($this->formMode === 'create_individual') {
 
                     $nextSequence = Program::where('student_id', $user->id)
-                        ->where('type', $this->type)
+                        ->whereType($this->type)
                         ->max('sequence') + 1;
 
                     $program = Program::create([
                         'student_id' => $user->id,
                         'group_id' => $user->group_id,
                         'title' => $this->title,
-                        'type' => $this->type,
+                        'program_type_id' => ProgramType::where('code', $this->type)->first()?->id,
                         'sequence' => $nextSequence,
                     ]);
                     $this->programId = $program->id;
@@ -457,7 +457,7 @@ class ProgramForm extends Component
     {
         $participant = ProgramParticipant::with('program')->where('student_id', Auth::id())->findOrFail($this->participantId);
         $isVideo = $participant->program ? $participant->program->isVideoProfile() : false;
-        $isMultidisiplin = $participant->program->type === ProgramType::Multidisiplin && ! $isVideo;
+        $isMultidisiplin = $participant->program->programType?->code === 'multidisiplin' && ! $isVideo;
 
         if ($isMultidisiplin) {
             $this->validate([

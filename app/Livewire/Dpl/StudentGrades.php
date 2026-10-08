@@ -23,24 +23,24 @@ class StudentGrades extends Component
         $groups = $groupsQuery->get();
         $students = $groups->pluck('students')->flatten();
 
-        $filename = 'Export_Nilai_KKN_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'Export_Nilai_KKN_'.now()->format('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($students) {
             $file = fopen('php://output', 'w');
-            
-            fputs($file, "\xEF\xBB\xBF");
-            
+
+            fwrite($file, "\xEF\xBB\xBF");
+
             fputcsv($file, [
                 'Nama', 'NIM', 'Prodi', 'Fakultas', 'Desa',
                 'Pembekalan', 'Gelar Karya', 'Kehadiran', 'LRK', 'Integritas', 'Sosial Kemasyarakatan', 'LPK', 'Ujian Akhir',
                 'Aktivitas Partisipatif', 'Hasil Proyek', 'Tugas', 'Quiz', 'UTS', 'UAS', 'Nilai Akhir', 'Nilai Huruf',
-                'Keterangan'
+                'Keterangan',
             ], ';');
 
             foreach ($students as $student) {
                 $grade = $student->grade;
                 $village = $student->group ? $student->group->village : '-';
-                
+
                 if ($grade) {
                     fputcsv($file, [
                         $student->name,
@@ -64,7 +64,7 @@ class StudentGrades extends Component
                         $grade->uas,
                         $grade->final_grade,
                         $grade->grade_letter,
-                        $grade->keterangan
+                        $grade->keterangan,
                     ], ';');
                 } else {
                     fputcsv($file, [
@@ -75,7 +75,7 @@ class StudentGrades extends Component
                         $village,
                         '-', '-', '-', '-', '-', '-', '-', '-',
                         '-', '-', '-', '-', '-', '-', '-', '-',
-                        '-'
+                        '-',
                     ], ';');
                 }
             }

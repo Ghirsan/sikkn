@@ -3,7 +3,6 @@
 namespace Tests\Feature\Mahasiswa;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Enums\Semester;
 use App\Livewire\Mahasiswa\Programs;
 use App\Models\Group;
@@ -11,6 +10,7 @@ use App\Models\ParticipantOutput;
 use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -26,7 +26,7 @@ class ProgramsTest extends TestCase
         $program = Program::create([
             'group_id' => $student->group_id,
             'title' => 'Program Literasi Digital',
-            'type' => ProgramType::Multidisiplin,
+            'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id,
         ]);
         $participant = ProgramParticipant::create([
             'program_id' => $program->id,
@@ -57,15 +57,15 @@ class ProgramsTest extends TestCase
         $component = Livewire::actingAs($student)->test(Programs::class);
 
         foreach ([
-            [ProgramType::Multidisiplin, 'Video Profile KKN'],
-            [ProgramType::SosialKemasyarakatan, 'Program Sosial'],
-            [ProgramType::Lainnya, 'Program Lainnya'],
+            ['multidisiplin', 'Video Profile KKN'],
+            ['sosial_kemasyarakatan', 'Program Sosial'],
+            ['lainnya', 'Program Lainnya'],
         ] as [$type, $title]) {
             $program = Program::create([
                 'group_id' => $student->group_id,
                 'student_id' => $student->id,
                 'title' => $title,
-                'type' => $type,
+                'program_type_id' => ProgramType::where('code', $type)->first()->id,
             ]);
             $participant = ProgramParticipant::create([
                 'program_id' => $program->id,
@@ -81,7 +81,7 @@ class ProgramsTest extends TestCase
                 ->set('selectedProgramId', $program->id)
                 ->set('selectedParticipantId', $participant->id);
 
-            if ($type === ProgramType::Multidisiplin) {
+            if ($type === 'multidisiplin') {
                 $component
                     ->assertDontSee('Peran Anda')
                     ->assertDontSee('Deskripsi Tugas dan Tanggung Jawab')
@@ -108,15 +108,15 @@ class ProgramsTest extends TestCase
             'group_id' => $student->group_id,
             'student_id' => $student->id,
             'title' => 'Program Tanpa Partisipan',
-            'type' => ProgramType::Lainnya,
+            'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id,
         ]);
 
         Livewire::actingAs($student)
             ->test(Programs::class)
             ->set('selectedProgramId', $program->id)
             ->assertSee('Identitas Program')
-            ->assertSee('Status Rencana (LRK)')
-            ->assertSee('Status Pelaksanaan (LPK)')
+            ->assertSee('Status Rencana')
+            ->assertSee('Status Pelaksanaan')
             ->assertSee('Belum diisi');
     }
 
@@ -127,7 +127,7 @@ class ProgramsTest extends TestCase
             'group_id' => $student->group_id,
             'student_id' => $student->id,
             'title' => 'Program Dokumentasi',
-            'type' => ProgramType::Lainnya,
+            'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id,
         ]);
         $participant = ProgramParticipant::create([
             'program_id' => $program->id,

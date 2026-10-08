@@ -582,7 +582,7 @@
             ->flatMap(function ($participant) {
                 return $participant->outputs->map(fn($output) => (object) [
                     'participant_code' => $participant->participant_code,
-                    'output_type' => $output->type->label(),
+                    'output_type' => $output->programType?->name,
                     'output_title' => $output->name,
                     'output_url' => $output->url,
                 ]);

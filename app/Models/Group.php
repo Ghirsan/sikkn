@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\GroupType;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +16,7 @@ class Group extends Model
     protected $fillable = [
         'period_id',
         'name',
-        'type',
+        'group_type_id',
         'village',
         'district',
         'regency',
@@ -45,7 +44,6 @@ class Group extends Model
     protected function casts(): array
     {
         return [
-            'type' => GroupType::class,
             'is_lrk_locked' => 'boolean',
             'is_lpk_locked' => 'boolean',
             'start_date' => 'date',
@@ -59,6 +57,14 @@ class Group extends Model
     public function period(): BelongsTo
     {
         return $this->belongsTo(Period::class);
+    }
+
+    /**
+     * Get the type of this group.
+     */
+    public function groupType(): BelongsTo
+    {
+        return $this->belongsTo(GroupType::class);
     }
 
     /**

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Dpl;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Enums\Semester;
 use App\Livewire\Dpl\ReviewPrograms as ReviewProgramsComponent;
 use App\Models\Group;
@@ -11,6 +10,7 @@ use App\Models\ParticipantOutput;
 use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -43,7 +43,7 @@ class ReviewProgramsTest extends TestCase
         $multidisiplinProgram = Program::create([
             'group_id' => $group->id,
             'title' => 'Pemberdayaan Literasi Digital',
-            'type' => ProgramType::Multidisiplin,
+            'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id,
         ]);
         $multidisiplinParticipant = ProgramParticipant::create([
             'program_id' => $multidisiplinProgram->id,
@@ -87,7 +87,7 @@ class ReviewProgramsTest extends TestCase
             'group_id' => $group->id,
             'student_id' => $student->id,
             'title' => 'Program Sosial',
-            'type' => ProgramType::SosialKemasyarakatan,
+            'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->first()->id,
         ]);
         $sosmasParticipant = ProgramParticipant::create([
             'program_id' => $sosmasProgram->id,
@@ -129,7 +129,7 @@ class ReviewProgramsTest extends TestCase
         $emptyTheme = Program::create([
             'group_id' => $group->id,
             'title' => 'Tema untuk Dihapus',
-            'type' => ProgramType::Multidisiplin,
+            'program_type_id' => ProgramType::where('code', 'multidisiplin')->first()->id,
         ]);
 
         Livewire::actingAs($dpl)

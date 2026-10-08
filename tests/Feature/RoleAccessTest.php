@@ -42,7 +42,7 @@ class RoleAccessTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('Dosen Pembimbing Lapangan');
+        $response->assertSee('Dosen KKN');
     }
 
     public function test_p2kkn_can_access_dashboard(): void

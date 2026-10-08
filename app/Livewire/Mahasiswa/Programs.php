@@ -3,7 +3,6 @@
 namespace App\Livewire\Mahasiswa;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use Flux\Flux;
@@ -131,17 +130,17 @@ class Programs extends Component
 
         // All Group Programs
         $allPrograms = Program::where('group_id', $user->group_id)
-            ->with(['participants' => function ($q) use ($user) {
+            ->with(['programType', 'participants' => function ($q) use ($user) {
                 $q->where('student_id', $user->id);
             }])
             ->get();
 
-        $multidisiplinPrograms = $allPrograms->where('type', ProgramType::Multidisiplin)->filter(function ($prog) {
+        $multidisiplinPrograms = $allPrograms->where('programType.code', 'multidisiplin')->filter(function ($prog) {
             return $prog->participants->isNotEmpty();
         });
 
-        $sosmasPrograms = $allPrograms->where('type', ProgramType::SosialKemasyarakatan)->where('student_id', $user->id);
-        $lainnyaPrograms = $allPrograms->where('type', ProgramType::Lainnya)->where('student_id', $user->id);
+        $sosmasPrograms = $allPrograms->where('programType.code', 'sosial_kemasyarakatan')->where('student_id', $user->id);
+        $lainnyaPrograms = $allPrograms->where('programType.code', 'lainnya')->where('student_id', $user->id);
 
         $isMultidisiplinFilled = $multidisiplinPrograms->count() >= 2;
         if ($isMultidisiplinFilled) {
@@ -158,7 +157,7 @@ class Programs extends Component
 
         $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
         $hasAvailableMultidisiplin = Program::where('group_id', $user->group_id)
-            ->where('type', ProgramType::Multidisiplin)
+            ->whereType('multidisiplin')
             ->whereNotIn('id', $joinedIds)
             ->exists();
 

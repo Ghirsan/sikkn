@@ -3,7 +3,6 @@
 namespace App\Livewire\Dpl;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use Flux\Flux;
@@ -133,7 +132,7 @@ class ReviewPrograms extends Component
         $this->authorizeGroup($groupId);
 
         $nextSequence = Program::where('group_id', $groupId)
-            ->where('type', ProgramType::Multidisiplin)
+            ->whereType('multidisiplin')
             ->whereNull('student_id')
             ->max('sequence') + 1;
 
@@ -141,7 +140,7 @@ class ReviewPrograms extends Component
             'group_id' => $groupId,
             'student_id' => null,
             'title' => $this->newThemeTitle,
-            'type' => ProgramType::Multidisiplin,
+            'type' => 'multidisiplin',
             'sequence' => $nextSequence,
         ]);
 
@@ -256,7 +255,7 @@ class ReviewPrograms extends Component
     {
         $groupIds = Auth::user()->dplGroups()->pluck('groups.id');
 
-        return Program::where('type', ProgramType::Multidisiplin)
+        return Program::whereType('multidisiplin')
             ->whereNull('student_id')
             ->whereIn('group_id', $groupIds)
             ->findOrFail($programId);
@@ -284,7 +283,7 @@ class ReviewPrograms extends Component
 
         if ($this->filterType) {
             $query->whereHas('program', function ($q) {
-                $q->where('type', $this->filterType);
+                $q->whereType($this->filterType);
             });
         }
 
@@ -303,7 +302,7 @@ class ReviewPrograms extends Component
         $themeGroupId = $this->getSelectedGroupIdForThemes();
         $multidisiplinThemes = $themeGroupId
             ? Program::where('group_id', $themeGroupId)
-                ->where('type', ProgramType::Multidisiplin)
+                ->whereType('multidisiplin')
                 ->whereNull('student_id')
                 ->withCount('participants')
                 ->orderBy('sequence')

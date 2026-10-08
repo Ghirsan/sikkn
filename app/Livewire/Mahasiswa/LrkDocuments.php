@@ -3,7 +3,6 @@
 namespace App\Livewire\Mahasiswa;
 
 use App\Enums\ProgramStatus;
-use App\Enums\ProgramType;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use Illuminate\Support\Facades\Auth;
@@ -102,7 +101,7 @@ class LrkDocuments extends Component
 
         // Per-student summary for peer monitoring
         $students = $group ? $group->students()->get() : collect();
-        $multidisiplinProgramsCount = $group ? $group->programs()->where('type', ProgramType::Multidisiplin)->count() : 0;
+        $multidisiplinProgramsCount = $group ? $group->programs()->whereType('multidisiplin')->count() : 0;
         $allStudentsMeetMinimumRequirements = true;
 
         $memberSummary = $students->map(function ($student) use ($participants, &$allStudentsMeetMinimumRequirements) {
@@ -113,9 +112,9 @@ class LrkDocuments extends Component
             $revision = $studentParticipants->where('status', ProgramStatus::NeedsRevision)->count();
             $draft = $studentParticipants->where('status', ProgramStatus::Draft)->count();
 
-            $hasSosmas = $studentParticipants->contains(fn ($p) => $p->program->type === ProgramType::SosialKemasyarakatan);
-            $hasLainnya = $studentParticipants->contains(fn ($p) => $p->program->type === ProgramType::Lainnya);
-            $multidisiplinCount = $studentParticipants->filter(fn ($p) => $p->program->type === ProgramType::Multidisiplin)->count();
+            $hasSosmas = $studentParticipants->contains(fn ($p) => $p->program->programType?->code === 'sosial_kemasyarakatan');
+            $hasLainnya = $studentParticipants->contains(fn ($p) => $p->program->programType?->code === 'lainnya');
+            $multidisiplinCount = $studentParticipants->filter(fn ($p) => $p->program->programType?->code === 'multidisiplin')->count();
 
             $meetsMinimumRequirements = $hasSosmas && $hasLainnya && ($multidisiplinCount >= 2);
 

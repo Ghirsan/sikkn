@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ProgramType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,21 +15,14 @@ class Program extends Model
         'group_id',
         'student_id',
         'title',
-        'type',
+        'program_type_id',
         'sequence',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'type' => ProgramType::class,
-        ];
-    }
 
     protected static function booted()
     {
         static::deleted(function ($program) {
-            static::resequencePrograms($program->group_id, $program->type, $program->student_id);
+            static::resequencePrograms($program->group_id, $program->programType?->code, $program->student_id);
         });
     }
 
@@ -41,7 +33,7 @@ class Program extends Model
         }
 
         // Ambil sisa program di kelompok dan tipe yang sama, urutkan dari yang pertama dibuat
-        $query = static::where('group_id', $groupId)->where('type', $type);
+        $query = static::where('group_id', $groupId)->whereType($type);
 
         if ($studentId) {
             $query->where('student_id', $studentId);
@@ -92,10 +84,10 @@ class Program extends Model
             }
         }
 
-        $typePrefix = match ($this->type) {
-            ProgramType::Multidisiplin => 'M',
-            ProgramType::SosialKemasyarakatan => 'SK',
-            ProgramType::Lainnya => 'L',
+        $typePrefix = match ($this->programType?->code) {
+            'multidisiplin' => 'M',
+            'sosial_kemasyarakatan' => 'SK',
+            'lainnya' => 'L',
             default => 'X',
         };
 
@@ -117,7 +109,7 @@ class Program extends Model
             return false;
         }
 
-        return $this->type === ProgramType::Multidisiplin && (
+        return $this->programType?->code === 'multidisiplin' && (
             str_contains(strtolower($title), 'video')
         );
     }
@@ -128,6 +120,24 @@ class Program extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * Get the type of this program.
+     */
+    public function programType(): BelongsTo
+    {
+        return $this->belongsTo(ProgramType::class);
+    }
+
+    /**
+     * Scope a query to only include programs of a given type by code.
+     */
+    public function scopeWhereType($query, $code)
+    {
+        return $query->whereHas('programType', function ($q) use ($code) {
+            $q->where('code', $code);
+        });
     }
 
     /**

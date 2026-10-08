@@ -113,7 +113,7 @@
                                     <span class="font-medium">{{ $participant->program->title }}</span>
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    <flux:badge size="sm" color="zinc">{{ $participant->program->type->label() }}</flux:badge>
+                                    <flux:badge size="sm" color="zinc">{{ $participant->program->programType?->name }}</flux:badge>
                                 </flux:table.cell>
                                 <flux:table.cell>{{ $participant->student?->name ?? __('Kelompok') }}</flux:table.cell>
                                 <flux:table.cell>
