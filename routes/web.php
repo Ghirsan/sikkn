@@ -54,13 +54,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Prodi Routes
     Route::middleware('role:prodi')->prefix('prodi')->group(function () {
         Route::view('students', 'prodi.students.index')->name('prodi.students.index');
+        Route::view('dpls', 'prodi.dpls.index')->name('prodi.dpls.index');
         Route::view('programs', 'prodi.programs.index')->name('prodi.programs.index');
+        Route::view('logbooks', 'prodi.logbooks.index')->name('prodi.logbooks.index');
+        Route::view('mentoring', 'prodi.mentoring.index')->name('prodi.mentoring.index');
+        Route::view('grades', 'prodi.grades.index')->name('prodi.grades.index');
+        Route::view('documents', 'prodi.documents.index')->name('prodi.documents.index');
     });
 
     // Fakultas Routes
     Route::middleware('role:fakultas')->prefix('fakultas')->group(function () {
         Route::view('students', 'fakultas.students.index')->name('fakultas.students.index');
+        Route::view('dpls', 'fakultas.dpls.index')->name('fakultas.dpls.index');
         Route::view('programs', 'fakultas.programs.index')->name('fakultas.programs.index');
+        Route::view('logbooks', 'fakultas.logbooks.index')->name('fakultas.logbooks.index');
+        Route::view('mentoring', 'fakultas.mentoring.index')->name('fakultas.mentoring.index');
+        Route::view('grades', 'fakultas.grades.index')->name('fakultas.grades.index');
+        Route::view('documents', 'fakultas.documents.index')->name('fakultas.documents.index');
     });
 });
 

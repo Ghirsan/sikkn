@@ -108,8 +108,23 @@
                     <flux:sidebar.item icon="academic-cap" :href="route('prodi.students.index')" :current="request()->routeIs('prodi.students.*')" wire:navigate>
                         {{ __('Mahasiswa KKN') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-circle" :href="route('prodi.dpls.index')" :current="request()->routeIs('prodi.dpls.*')" wire:navigate>
+                        {{ __('Dosen KKN (DPL)') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="light-bulb" :href="route('prodi.programs.index')" :current="request()->routeIs('prodi.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :href="route('prodi.documents.index')" :current="request()->routeIs('prodi.documents.*')" wire:navigate>
+                        {{ __('Dokumen Tim') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="book-open" :href="route('prodi.logbooks.index')" :current="request()->routeIs('prodi.logbooks.*')" wire:navigate>
+                        {{ __('Logbook') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('prodi.mentoring.index')" :current="request()->routeIs('prodi.mentoring.*')" wire:navigate>
+                        {{ __('Buku Pembimbingan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('prodi.grades.index')" :current="request()->routeIs('prodi.grades.*')" wire:navigate>
+                        {{ __('Penilaian') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
@@ -120,8 +135,23 @@
                     <flux:sidebar.item icon="academic-cap" :href="route('fakultas.students.index')" :current="request()->routeIs('fakultas.students.*')" wire:navigate>
                         {{ __('Mahasiswa Per Prodi') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-circle" :href="route('fakultas.dpls.index')" :current="request()->routeIs('fakultas.dpls.*')" wire:navigate>
+                        {{ __('Dosen KKN (DPL)') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="light-bulb" :href="route('fakultas.programs.index')" :current="request()->routeIs('fakultas.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :href="route('fakultas.documents.index')" :current="request()->routeIs('fakultas.documents.*')" wire:navigate>
+                        {{ __('Dokumen Tim') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="book-open" :href="route('fakultas.logbooks.index')" :current="request()->routeIs('fakultas.logbooks.*')" wire:navigate>
+                        {{ __('Logbook') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('fakultas.mentoring.index')" :current="request()->routeIs('fakultas.mentoring.*')" wire:navigate>
+                        {{ __('Buku Pembimbingan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('fakultas.grades.index')" :current="request()->routeIs('fakultas.grades.*')" wire:navigate>
+                        {{ __('Penilaian') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif

@@ -36,7 +36,7 @@ class User extends Authenticatable
                     $user->faculty_id = $studyProgram->faculty_id;
                 }
             }
-            
+
             // Auto-fill faculty_id if study_program_id was manually assigned (e.g., DPL, Prodi admin)
             if ($user->isDirty('study_program_id') && $user->study_program_id && ! $user->isDirty('faculty_id')) {
                 $facultyId = StudyProgram::where('id', $user->study_program_id)->value('faculty_id');
@@ -146,7 +146,7 @@ class User extends Authenticatable
     }
 
     // ── Relationships ────────────────────────────────────────────
-    
+
     /**
      * Get the study program this user belongs to.
      */

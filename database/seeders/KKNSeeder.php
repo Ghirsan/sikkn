@@ -13,6 +13,7 @@ use App\Models\MentoringLog;
 use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramType;
+use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -34,7 +35,7 @@ class KKNSeeder extends Seeder
             $dpl1->update([
                 'nip' => '197805152005011002',
                 'name' => 'Dr. Budi Santoso, M.Kom.',
-                'study_program_id' => \App\Models\StudyProgram::where('code', '240601')->first()->id, // Informatika
+                'study_program_id' => StudyProgram::where('code', '240601')->first()->id, // Informatika
             ]);
         }
 
@@ -42,14 +43,14 @@ class KKNSeeder extends Seeder
             'name' => 'Dr. Siti Aminah, M.Pd.',
             'email' => 'dpl2@sikkn.test',
             'nip' => '198201102008012001',
-            'study_program_id' => \App\Models\StudyProgram::where('code', '240101')->first()->id, // Matematika
+            'study_program_id' => StudyProgram::where('code', '240101')->first()->id, // Matematika
         ]);
 
         $dpl3 = User::factory()->dpl()->create([
             'name' => 'Ir. Hendra Pratama, M.T.',
             'email' => 'dpl3@sikkn.test',
             'nip' => '196909201998021003',
-            'study_program_id' => \App\Models\StudyProgram::where('code', '210101')->first()->id, // Teknik Sipil
+            'study_program_id' => StudyProgram::where('code', '210101')->first()->id, // Teknik Sipil
         ]);
 
         // ── 3. Groups ─────────────────────────────────────────────

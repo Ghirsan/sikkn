@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Faculty;
 use App\Models\StudyProgram;
 use Illuminate\Database\Seeder;
 
@@ -89,7 +90,7 @@ class StudyProgramSeeder extends Seeder
 
         $faculties = [];
         foreach ($facultiesData as $name => $data) {
-            $faculties[$name] = \App\Models\Faculty::updateOrCreate(
+            $faculties[$name] = Faculty::updateOrCreate(
                 ['code' => $data['code']],
                 ['name' => $name, 'short_name' => $data['short_name']]
             );
