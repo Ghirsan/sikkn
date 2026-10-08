@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin;
 
-use App\Enums\Role;
 use App\Models\Group;
 use App\Models\User;
 use Carbon\Carbon;
@@ -135,7 +134,7 @@ class Groups extends Component
         }
 
         $groups = $query->latest()->get();
-        $availableDpls = User::where('role', Role::Dpl)->get();
+        $availableDpls = User::where('role', \App\Enums\UserRole::Dpl)->get();
 
         return view('livewire.admin.groups', [
             'groups' => $groups,

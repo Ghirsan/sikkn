@@ -80,7 +80,7 @@
 
                 {{-- P2KKN Admin Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::P2kkn))
-                <flux:sidebar.group :heading="__('Manajemen')" class="grid">
+                <flux:sidebar.group :heading="__('Manajemen KKN')" class="grid">
                     <flux:sidebar.item icon="calendar" :href="route('admin.periods.index')" :current="request()->routeIs('admin.periods.*')" wire:navigate>
                         {{ __('Periode KKN') }}
                     </flux:sidebar.item>
@@ -98,6 +98,30 @@
                 <flux:sidebar.group :heading="__('Dokumen')" class="grid">
                     <flux:sidebar.item icon="document-text" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>
                         {{ __('Rancangan Dokumen') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Data Master')" class="grid">
+                    <flux:sidebar.item icon="building-office-2" :href="route('admin.faculties.index')" :current="request()->routeIs('admin.faculties.*')" wire:navigate>
+                        {{ __('Fakultas') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="building-library" :href="route('admin.study-programs.index')" :current="request()->routeIs('admin.study-programs.*')" wire:navigate>
+                        {{ __('Program Studi') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="tag" :href="route('admin.group-types.index')" :current="request()->routeIs('admin.group-types.*')" wire:navigate>
+                        {{ __('Jenis Kelompok') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="squares-plus" :href="route('admin.program-types.index')" :current="request()->routeIs('admin.program-types.*')" wire:navigate>
+                        {{ __('Sifat Program') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="globe-americas" :href="route('admin.sdg-categories.index')" :current="request()->routeIs('admin.sdg-categories.*')" wire:navigate>
+                        {{ __('Kategori SDG') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Sistem')" class="grid">
+                    <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                        {{ __('Pengguna Sistem') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
