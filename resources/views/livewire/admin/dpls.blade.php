@@ -10,6 +10,12 @@
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Dosen KKN') }}</flux:heading>
         <div class="flex items-center gap-3">
+            <flux:select wire:model.live="periodId" size="sm" class="w-48" placeholder="{{ __('Semua Periode') }}">
+                <flux:select.option value="">{{ __('Semua Periode') }}</flux:select.option>
+                @foreach($periods as $p)
+                    <flux:select.option value="{{ $p->id }}">{{ $p->display_name }}</flux:select.option>
+                @endforeach
+            </flux:select>
             <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau NIP...') }}" size="sm" class="w-64" />
             <flux:button variant="filled" size="sm" icon="plus">{{ __('Tambah Dosen KKN') }}</flux:button>
         </div>
@@ -37,8 +43,12 @@
                             <flux:table.cell>{{ $dpl->nip }}</flux:table.cell>
                             <flux:table.cell>{{ $dpl->prodi }}</flux:table.cell>
                             <flux:table.cell>
-                                @if($dpl->group)
-                                    <flux:badge size="sm" color="blue" inset="top bottom">{{ $dpl->group->name }}</flux:badge>
+                                @if($dpl->dplGroups->isNotEmpty())
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach($dpl->dplGroups as $group)
+                                            <flux:badge size="sm" color="blue" inset="top bottom">{{ $group->name }}</flux:badge>
+                                        @endforeach
+                                    </div>
                                 @else
                                     <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Belum Ditugaskan') }}</flux:badge>
                                 @endif

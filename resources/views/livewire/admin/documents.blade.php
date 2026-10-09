@@ -8,7 +8,15 @@
     </div>
 
     {{-- Filter Bar --}}
-    <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok...') }}" size="sm" class="w-72" />
+    <div class="flex items-center gap-3">
+        <flux:select wire:model.live="periodId" size="sm" class="w-48" placeholder="{{ __('Semua Periode') }}">
+            <flux:select.option value="">{{ __('Semua Periode') }}</flux:select.option>
+            @foreach($periods as $p)
+                <flux:select.option value="{{ $p->id }}">{{ $p->display_name }}</flux:select.option>
+            @endforeach
+        </flux:select>
+        <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok...') }}" size="sm" class="w-72" />
+    </div>
 
     {{-- Documents Table --}}
     <div class="flex items-center justify-between">

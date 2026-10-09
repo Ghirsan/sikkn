@@ -9,6 +9,8 @@ use Livewire\Component;
 
 class Periods extends Component
 {
+    public string $name = '';
+
     public Semester $semester = Semester::Ganjil;
 
     public string $year = '';
@@ -17,30 +19,54 @@ class Periods extends Component
 
     public string $end_date = '';
 
-    public bool $isCreating = false;
+    public function mount()
+    {
+        $this->year = date('Y');
+    }
 
     public function startCreating()
     {
-        $this->isCreating = true;
+        $this->reset(['name', 'year', 'start_date', 'end_date']);
+        $this->semester = Semester::Ganjil;
+        $this->year = date('Y');
+        $this->dispatch('modal-show', name: 'period-modal');
     }
 
     public function createPeriod()
     {
         $this->validate([
+            'name' => 'required|string|max:255',
             'semester' => ['required', Rule::enum(Semester::class)],
             'year' => 'required|digits:4',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'start_date' => [
+                'required',
+                'date',
+                'after_or_equal:' . $this->year . '-01-01',
+                'before_or_equal:' . $this->year . '-12-31',
+            ],
+            'end_date' => [
+                'required',
+                'date',
+                'after:start_date',
+                'before_or_equal:' . $this->year . '-12-31',
+            ],
+        ], [
+            'start_date.after_or_equal' => 'Tanggal mulai harus berada pada tahun ' . $this->year . '.',
+            'start_date.before_or_equal' => 'Tanggal mulai harus berada pada tahun ' . $this->year . '.',
+            'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai.',
+            'end_date.before_or_equal' => 'Tanggal selesai harus berada pada tahun ' . $this->year . '.',
         ]);
 
         Period::create([
+            'name' => $this->name,
             'semester' => $this->semester,
             'year' => $this->year,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
         ]);
 
-        $this->reset(['semester', 'year', 'start_date', 'end_date', 'isCreating']);
+        $this->dispatch('modal-close', name: 'period-modal');
+        \Flux\Flux::toast('Periode berhasil ditambahkan.', variant: 'success');
     }
 
     public function render()

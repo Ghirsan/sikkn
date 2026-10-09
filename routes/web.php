@@ -24,14 +24,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('students', 'admin.students.index')->name('admin.students.index');
         Route::view('dpl', 'admin.dpl.index')->name('admin.dpl.index');
         Route::view('documents', 'admin.documents.index')->name('admin.documents.index');
-        
+
         // Master Data
         Route::view('faculties', 'admin.faculties.index')->name('admin.faculties.index');
         Route::view('study-programs', 'admin.study-programs.index')->name('admin.study-programs.index');
         Route::view('group-types', 'admin.group-types.index')->name('admin.group-types.index');
         Route::view('program-types', 'admin.program-types.index')->name('admin.program-types.index');
         Route::view('sdg-categories', 'admin.sdg-categories.index')->name('admin.sdg-categories.index');
-        
+
         // System
         Route::view('users', 'admin.users.index')->name('admin.users.index');
     });

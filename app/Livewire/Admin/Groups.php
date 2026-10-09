@@ -2,14 +2,23 @@
 
 namespace App\Livewire\Admin;
 
+use App\Enums\UserRole;
 use App\Models\Group;
+use App\Models\Period;
 use App\Models\User;
 use Carbon\Carbon;
 use Livewire\Component;
 
 class Groups extends Component
 {
+    public ?int $periodId = null;
+
     public string $search = '';
+
+    public function mount()
+    {
+        $this->periodId = Period::active()->first()?->id;
+    }
 
     public bool $showAssignModal = false;
 
@@ -58,7 +67,7 @@ class Groups extends Component
         $this->assigningGroup->update(['lead_dpl_id' => $this->leadDplId]);
 
         $this->closeAssignModal();
-        flux()->toast('DPL berhasil ditugaskan ke kelompok.');
+        \Flux\Flux::toast('DPL berhasil ditugaskan ke kelompok.');
     }
 
     public bool $showDatesModal = false;
@@ -121,28 +130,35 @@ class Groups extends Component
         ]);
 
         $this->closeDatesModal();
-        flux()->toast('Waktu KKN berhasil disimpan.');
+        \Flux\Flux::toast('Waktu KKN berhasil disimpan.');
     }
 
     public function render()
     {
         $query = Group::with(['period', 'dpls'])->withCount('students');
 
+        if ($this->periodId) {
+            $query->where('period_id', $this->periodId);
+        }
+
         if ($this->search) {
-            $query->where('name', 'like', '%'.$this->search.'%')
-                ->orWhere('village', 'like', '%'.$this->search.'%');
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('village', 'like', '%'.$this->search.'%');
+            });
         }
 
         $groups = $query->latest()->get();
-        $availableDpls = User::where('role', \App\Enums\UserRole::Dpl)->get();
+        $availableDpls = User::where('role', UserRole::Dpl)->get();
 
         return view('livewire.admin.groups', [
             'groups' => $groups,
             'availableDpls' => $availableDpls,
+            'periods' => Period::orderByDesc('start_date')->get(),
             'stats' => [
-                'total' => Group::count(),
-                'with_dpl' => Group::whereHas('dpls')->count(),
-                'without_dpl' => Group::whereDoesntHave('dpls')->count(),
+                'total' => $groups->count(),
+                'with_dpl' => $groups->filter(fn ($g) => $g->dpls->count() > 0)->count(),
+                'without_dpl' => $groups->filter(fn ($g) => $g->dpls->count() == 0)->count(),
             ],
         ]);
     }

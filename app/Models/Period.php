@@ -13,6 +13,7 @@ class Period extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'semester',
         'year',
         'start_date',
@@ -34,6 +35,18 @@ class Period extends Model
     public function groups(): HasMany
     {
         return $this->hasMany(Group::class);
+    }
+
+    /**
+     * Get a formatted display name for the period.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->name) {
+            return $this->name . ' (' . $this->semester->value . ' ' . $this->year . ')';
+        }
+        
+        return 'Semester ' . $this->semester->value . ' ' . $this->year;
     }
 
     /**
