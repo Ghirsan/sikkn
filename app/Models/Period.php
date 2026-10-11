@@ -43,10 +43,10 @@ class Period extends Model
     public function getDisplayNameAttribute(): string
     {
         if ($this->name) {
-            return $this->name . ' (' . $this->semester->value . ' ' . $this->year . ')';
+            return $this->name.' ('.$this->semester->value.' '.$this->year.')';
         }
-        
-        return 'Semester ' . $this->semester->value . ' ' . $this->year;
+
+        return 'Semester '.$this->semester->value.' '.$this->year;
     }
 
     /**

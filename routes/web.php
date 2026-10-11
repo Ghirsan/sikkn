@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('group-types', 'admin.group-types.index')->name('admin.group-types.index');
         Route::view('program-types', 'admin.program-types.index')->name('admin.program-types.index');
         Route::view('sdg-categories', 'admin.sdg-categories.index')->name('admin.sdg-categories.index');
+        Route::view('grade-weights', 'admin.grade-weights.index')->name('admin.grade-weights.index');
 
         // System
         Route::view('users', 'admin.users.index')->name('admin.users.index');

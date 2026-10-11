@@ -62,30 +62,27 @@
             <flux:heading size="lg" class="mb-4">{{ __('Preview Konversi SIAP') }}</flux:heading>
             
             <div class="space-y-3">
-                <div class="flex justify-between">
-                    <flux:text>{{ __('Aktivitas Partisipatif') }} (30%)</flux:text>
-                    <flux:text variant="strong">{{ number_format($this->aktivitasPartisipatif, 2) }}</flux:text>
-                </div>
-                <div class="flex justify-between">
-                    <flux:text>{{ __('Hasil Proyek') }} (25%)</flux:text>
-                    <flux:text variant="strong">{{ number_format($this->hasilProyek, 2) }}</flux:text>
-                </div>
-                <div class="flex justify-between">
-                    <flux:text>{{ __('Tugas') }} (20%)</flux:text>
-                    <flux:text variant="strong">{{ number_format($this->tugas, 2) }}</flux:text>
-                </div>
-                <div class="flex justify-between">
-                    <flux:text>{{ __('Quiz') }} (5%)</flux:text>
-                    <flux:text variant="strong">{{ number_format($this->quiz, 2) }}</flux:text>
-                </div>
-                <div class="flex justify-between">
-                    <flux:text>{{ __('UTS') }} (10%)</flux:text>
-                    <flux:text variant="strong">{{ number_format($this->uts, 2) }}</flux:text>
-                </div>
-                <div class="flex justify-between">
-                    <flux:text>{{ __('UAS') }} (10%)</flux:text>
-                    <flux:text variant="strong">{{ number_format($this->uas, 2) }}</flux:text>
-                </div>
+                @php
+                    $items = [
+                        ['key' => 'aktivitas_partisipatif', 'label' => __('Aktivitas Partisipatif'), 'value' => $this->aktivitasPartisipatif],
+                        ['key' => 'hasil_proyek',           'label' => __('Hasil Proyek'),           'value' => $this->hasilProyek],
+                        ['key' => 'tugas',                  'label' => __('Tugas'),                  'value' => $this->tugas],
+                        ['key' => 'quiz',                   'label' => __('Quiz'),                   'value' => $this->quiz],
+                        ['key' => 'uts',                    'label' => __('UTS'),                    'value' => $this->uts],
+                        ['key' => 'uas',                    'label' => __('UAS'),                    'value' => $this->uas],
+                    ];
+                @endphp
+
+                @foreach ($items as $item)
+                    <div class="flex justify-between">
+                        <flux:text>
+                            {{ $item['label'] }} ({{ $this->formattedWeights[$item['key']] ?? 0 }}%)
+                        </flux:text>
+                        <flux:text variant="strong">
+                            {{ number_format($item['value'], 2) }}
+                        </flux:text>
+                    </div>
+                @endforeach
                 
                 <flux:separator class="my-2" />
 

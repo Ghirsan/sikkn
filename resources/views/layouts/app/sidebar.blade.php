@@ -117,6 +117,9 @@
                     <flux:sidebar.item icon="globe-americas" :href="route('admin.sdg-categories.index')" :current="request()->routeIs('admin.sdg-categories.*')" wire:navigate>
                         {{ __('Kategori SDG') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="calculator" :href="route('admin.grade-weights.index')" :current="request()->routeIs('admin.grade-weights.*')" wire:navigate>
+                        {{ __('Bobot Penilaian') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Sistem')" class="grid">

@@ -3,6 +3,7 @@
 namespace App\Livewire\Dpl;
 
 use App\Models\Grade;
+use App\Models\GradeWeight;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -40,9 +41,9 @@ class StudentGradeForm extends Component
     #[Validate('nullable|string')]
     public $keterangan;
 
-    public function mount()
+    public function mount($student = null)
     {
-        $studentId = request()->route('student');
+        $studentId = $student ?? request()->route('student');
         $this->student = User::with(['grade', 'group'])->findOrFail($studentId);
 
         // Populate existing grade if any
@@ -106,15 +107,29 @@ class StudentGradeForm extends Component
     }
 
     #[Computed]
+    public function gradeWeights(): array
+    {
+        return GradeWeight::getWeights();
+    }
+
+    #[Computed]
+    public function formattedWeights(): array
+    {
+        return GradeWeight::getPercentages();
+    }
+
+    #[Computed]
     public function nilaiAkhir()
     {
+        $weights = $this->gradeWeights;
+
         return round(
-            ($this->aktivitasPartisipatif * 0.30) +
-            ($this->hasilProyek * 0.25) +
-            ($this->tugas * 0.20) +
-            ($this->quiz * 0.05) +
-            ($this->uts * 0.10) +
-            ($this->uas * 0.10),
+            ($this->aktivitasPartisipatif * ($weights['aktivitas_partisipatif'] ?? 0.30)) +
+            ($this->hasilProyek * ($weights['hasil_proyek'] ?? 0.25)) +
+            ($this->tugas * ($weights['tugas'] ?? 0.20)) +
+            ($this->quiz * ($weights['quiz'] ?? 0.05)) +
+            ($this->uts * ($weights['uts'] ?? 0.10)) +
+            ($this->uas * ($weights['uas'] ?? 0.10)),
             2
         );
     }

@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Enums\Semester;
 use App\Models\Period;
+use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -41,20 +42,20 @@ class Periods extends Component
             'start_date' => [
                 'required',
                 'date',
-                'after_or_equal:' . $this->year . '-01-01',
-                'before_or_equal:' . $this->year . '-12-31',
+                'after_or_equal:'.$this->year.'-01-01',
+                'before_or_equal:'.$this->year.'-12-31',
             ],
             'end_date' => [
                 'required',
                 'date',
                 'after:start_date',
-                'before_or_equal:' . $this->year . '-12-31',
+                'before_or_equal:'.$this->year.'-12-31',
             ],
         ], [
-            'start_date.after_or_equal' => 'Tanggal mulai harus berada pada tahun ' . $this->year . '.',
-            'start_date.before_or_equal' => 'Tanggal mulai harus berada pada tahun ' . $this->year . '.',
+            'start_date.after_or_equal' => 'Tanggal mulai harus berada pada tahun '.$this->year.'.',
+            'start_date.before_or_equal' => 'Tanggal mulai harus berada pada tahun '.$this->year.'.',
             'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai.',
-            'end_date.before_or_equal' => 'Tanggal selesai harus berada pada tahun ' . $this->year . '.',
+            'end_date.before_or_equal' => 'Tanggal selesai harus berada pada tahun '.$this->year.'.',
         ]);
 
         Period::create([
@@ -66,7 +67,7 @@ class Periods extends Component
         ]);
 
         $this->dispatch('modal-close', name: 'period-modal');
-        \Flux\Flux::toast('Periode berhasil ditambahkan.', variant: 'success');
+        Flux::toast('Periode berhasil ditambahkan.', variant: 'success');
     }
 
     public function render()

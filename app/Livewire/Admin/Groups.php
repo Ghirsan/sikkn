@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Models\Period;
 use App\Models\User;
 use Carbon\Carbon;
+use Flux\Flux;
 use Livewire\Component;
 
 class Groups extends Component
@@ -67,7 +68,7 @@ class Groups extends Component
         $this->assigningGroup->update(['lead_dpl_id' => $this->leadDplId]);
 
         $this->closeAssignModal();
-        \Flux\Flux::toast('DPL berhasil ditugaskan ke kelompok.');
+        Flux::toast('DPL berhasil ditugaskan ke kelompok.');
     }
 
     public bool $showDatesModal = false;
@@ -130,7 +131,7 @@ class Groups extends Component
         ]);
 
         $this->closeDatesModal();
-        \Flux\Flux::toast('Waktu KKN berhasil disimpan.');
+        Flux::toast('Waktu KKN berhasil disimpan.');
     }
 
     public function render()
