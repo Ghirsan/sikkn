@@ -121,11 +121,11 @@
                 </flux:select>
             </div>
 
-            <div class="flex gap-2 justify-end">
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary">{{ __('Simpan') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan') }}</flux:button>
             </div>
         </form>
     </flux:modal>
@@ -138,12 +138,11 @@
             <flux:text>{{ __('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.') }}</flux:text>
         </div>
 
-        <div class="flex gap-2">
-            <flux:spacer />
-            <flux:modal.close>
-                <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
             </flux:modal.close>
-            <flux:button variant="danger" wire:click="delete">{{ __('Hapus') }}</flux:button>
+            <flux:button variant="danger" wire:click="delete" class="w-full sm:w-auto">{{ __('Hapus') }}</flux:button>
         </div>
     </flux:modal>
 </div>

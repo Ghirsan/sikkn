@@ -258,12 +258,11 @@
                 </flux:text>
             </div>
 
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="deleteParticipant" variant="danger">{{ __('Hapus Program') }}</flux:button>
+                <flux:button wire:click="deleteParticipant" variant="danger" class="w-full sm:w-auto">{{ __('Hapus Program') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -279,12 +278,11 @@
                 </flux:text>
             </div>
 
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="submitLrk" variant="primary">{{ __('Ya, Ajukan') }}</flux:button>
+                <flux:button wire:click="submitLrk" variant="primary" class="w-full sm:w-auto">{{ __('Ya, Ajukan') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -300,12 +298,11 @@
                 </flux:text>
             </div>
 
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="submitLpk" variant="primary">{{ __('Ya, Ajukan') }}</flux:button>
+                <flux:button wire:click="submitLpk" variant="primary" class="w-full sm:w-auto">{{ __('Ya, Ajukan') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -475,9 +472,9 @@
                 </div>
             @endif
 
-            <div class="flex justify-end">
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Tutup') }}</flux:button>
                 </flux:modal.close>
             </div>
         </div>

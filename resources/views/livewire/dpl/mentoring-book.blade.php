@@ -5,8 +5,11 @@
         <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
     </div>
 
-    {{-- Filter --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+    {{-- Filters --}}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full max-w-sm">
+            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau topik...') }}" clearable class="w-full sm:w-80" />
+        </div>
         <div class="flex flex-wrap items-center gap-3">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
@@ -32,64 +35,53 @@
         </div>
     </div>
 
-    @if($logs->isEmpty())
-        <flux:card>
+    {{-- Mentoring Logs Table --}}
+    <flux:card>
+        @if($logs->isEmpty())
             <x-empty-state icon="clipboard-document-list" :heading="__('Belum Ada Catatan')" :description="__('Belum ada catatan pembimbingan dari mahasiswa.')" />
-        </flux:card>
-    @else
-        <div class="flex flex-col gap-4">
-            @foreach($logs as $log)
-                <flux:card class="flex flex-col gap-4">
-                    {{-- Top bar --}}
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800/10 dark:border-white/10 pb-4">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex items-center gap-3">
-                                <flux:badge size="sm" color="zinc" class="font-medium whitespace-nowrap">
-                                    {{ $log->date->translatedFormat('d M Y') }}
-                                </flux:badge>
-                                <flux:text variant="strong" class="text-sm">
-                                    {{ $log->topic }}
+        @else
+            <flux:table :paginate="$logs">
+                <flux:table.columns>
+                    <flux:table.column>{{ __('Mahasiswa & Kelompok') }}</flux:table.column>
+                    <flux:table.column>{{ __('Tanggal') }}</flux:table.column>
+                    <flux:table.column>{{ __('Topik & Pembahasan') }}</flux:table.column>
+                    <flux:table.column>{{ __('Status') }}</flux:table.column>
+                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
+                </flux:table.columns>
+                <flux:table.rows>
+                    @foreach($logs as $log)
+                        <flux:table.row :key="$log->id">
+                            <flux:table.cell>
+                                <flux:text variant="strong">{{ $log->student->name }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs block">{{ $log->student->nim }} &middot; {{ $log->group?->name }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:text variant="strong">{{ $log->date->translatedFormat('d M Y') }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs block">{{ $log->date->translatedFormat('l') }}</flux:text>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:text variant="strong" class="block max-w-sm truncate" title="{{ $log->topic }}">{{ $log->topic }}</flux:text>
+                                <flux:text variant="subtle" class="text-xs line-clamp-1 max-w-sm mt-0.5" title="{{ $log->discussion_summary }}">
+                                    {{ $log->discussion_summary }}
                                 </flux:text>
-                            </div>
-                            <div class="text-xs text-zinc-500 flex items-center gap-2 mt-1">
-                                <span class="font-medium text-zinc-700 dark:text-zinc-300"><flux:icon.user variant="micro" class="inline mr-1"/>{{ $log->student->name }}</span>
                                 @if($log->program)
-                                    <span>·</span>
-                                    <span><flux:icon.folder variant="micro" class="inline mr-1"/>[{{ $log->program->programType?->name ?? 'Program' }}] {{ $log->program->title }}</span>
+                                    <flux:badge size="sm" color="zinc" class="mt-1">
+                                        [{{ $log->program->programType?->name ?? 'Program' }}] {{ $log->program->title }}
+                                    </flux:badge>
                                 @endif
-                            </div>
-                        </div>
-                        <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->mentoringLabel() }}</flux:badge>
-                    </div>
-
-                    {{-- Body --}}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="flex flex-col gap-2">
-                            <flux:text variant="strong" class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Uraian & Hambatan') }}</flux:text>
-                            <div class="text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-white/5 rounded-lg p-3 whitespace-pre-wrap h-full">{{ $log->discussion_summary }}</div>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <flux:text variant="strong" class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Tanggapan Anda') }}</flux:text>
-                            @if($log->dpl_feedback)
-                                <flux:callout variant="success" icon="check-circle" class="h-full">
-                                    <div class="whitespace-pre-wrap">{{ $log->dpl_feedback }}</div>
-                                </flux:callout>
-                            @else
-                                <div class="bg-zinc-50 dark:bg-white/5 rounded-lg p-3 h-full flex flex-col justify-center items-center gap-2 border border-dashed border-zinc-300 dark:border-zinc-700">
-                                    <span class="text-sm text-zinc-500 italic">{{ __('Belum ditanggapi.') }}</span>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- Actions --}}
-                    <div class="flex justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
-                        <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat Detail') }}</flux:button>
-                    </div>
-                </flux:card>
-            @endforeach
-        </div>
-    @endif
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge size="sm" :color="$log->status->color()" inset="top bottom">{{ $log->status->mentoringLabel() }}</flux:badge>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button wire:click="viewLog({{ $log->id }})" size="sm" variant="ghost" icon="eye">{{ __('Periksa') }}</flux:button>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        @endif
+    </flux:card>
 
     {{-- View & Feedback Modal --}}
     <flux:modal name="mentoring-view-modal" scroll="body" @close="closeView" class="max-w-2xl w-full">
@@ -174,23 +166,23 @@
                         @error('feedback')
                             <flux:text class="text-xs text-red-500">{{ $message }}</flux:text>
                         @enderror
-                        <div class="flex justify-end gap-2">
-                            <flux:button wire:click="cancelFeedback" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
-                            <flux:button wire:click="submitFeedback" size="sm" variant="primary" icon="paper-airplane">{{ __('Kirim Tanggapan') }}</flux:button>
+                        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
+                            <flux:button wire:click="cancelFeedback" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                            <flux:button wire:click="submitFeedback" variant="primary" icon="paper-airplane" class="w-full sm:w-auto">{{ __('Kirim Tanggapan') }}</flux:button>
                         </div>
                     </section>
                 @endif
 
                 {{-- Actions --}}
-                <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-white/10">
-                    <flux:modal.close>
-                        <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                    <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                        <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
                     @if(! $showFeedbackForm)
                         @if(! $this->viewLogData->dpl_feedback)
-                            <flux:button variant="primary" icon="chat-bubble-left-right" wire:click="startFeedback">{{ __('Beri Tanggapan') }}</flux:button>
+                            <flux:button variant="primary" icon="chat-bubble-left-right" wire:click="startFeedback" class="w-full sm:w-auto">{{ __('Beri Tanggapan') }}</flux:button>
                         @else
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="startFeedback">{{ __('Ubah Tanggapan') }}</flux:button>
+                            <flux:button variant="ghost" icon="pencil-square" wire:click="startFeedback" class="w-full sm:w-auto">{{ __('Ubah Tanggapan') }}</flux:button>
                         @endif
                     @endif
                 </div>

@@ -279,9 +279,9 @@
                 </div>
             @endif
 
-            <div class="flex justify-end">
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Tutup') }}</flux:button>
                 </flux:modal.close>
             </div>
         </div>

@@ -8,9 +8,14 @@ use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class MentoringBook extends Component
 {
+    use WithPagination;
+
+    public string $search = '';
+
     public string $feedback = '';
 
     public int $feedbackLogId = 0;
@@ -24,6 +29,27 @@ class MentoringBook extends Component
     public ?int $viewingLogId = null;
 
     public bool $showFeedbackForm = false;
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterStudent(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSelectedGroupId(): void
+    {
+        $this->filterStudent = '';
+        $this->resetPage();
+    }
 
     public function viewLog(int $id, bool $startFeedback = false): void
     {
@@ -129,6 +155,15 @@ class MentoringBook extends Component
 
         $query = MentoringLog::whereIn('student_id', $studentIds)->with(['student', 'group', 'program.programType']);
 
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->whereHas('student', function ($sq) {
+                    $sq->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('nim', 'like', '%'.$this->search.'%');
+                })->orWhere('topic', 'like', '%'.$this->search.'%');
+            });
+        }
+
         if ($this->filterStudent) {
             $query->where('student_id', $this->filterStudent);
         }
@@ -137,17 +172,19 @@ class MentoringBook extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $logs = $query->latest('date')->get();
+        $stats = [
+            'pending' => (clone $query)->where('status', LogStatus::Pending)->count(),
+            'reviewed' => (clone $query)->where('status', LogStatus::Approved)->count(),
+            'total' => (clone $query)->count(),
+        ];
+
+        $logs = $query->latest('date')->paginate(10);
 
         return view('livewire.dpl.mentoring-book', [
             'logs' => $logs,
             'students' => $students,
             'allGroups' => $allGroups,
-            'stats' => [
-                'pending' => $logs->where('status', LogStatus::Pending)->count(),
-                'reviewed' => $logs->where('status', LogStatus::Approved)->count(),
-                'total' => $logs->count(),
-            ],
+            'stats' => $stats,
         ]);
     }
 

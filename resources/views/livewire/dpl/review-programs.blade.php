@@ -120,11 +120,11 @@
                 <flux:text class="mt-2">{{ __('Apakah Anda yakin ingin menghapus tema ":title"?', ['title' => $deletingThemeTitle]) }}</flux:text>
             </div>
 
-            <div class="flex justify-end gap-2">
-                <flux:modal.close>
-                    <flux:button wire:click="cancelDeleteTheme" variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button wire:click="cancelDeleteTheme" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="confirmDelete" variant="danger">{{ __('Ya, Hapus') }}</flux:button>
+                <flux:button wire:click="confirmDelete" variant="danger" class="w-full sm:w-auto">{{ __('Ya, Hapus') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -406,24 +406,24 @@
                             @error('revisionNote')
                                 <flux:text class="text-xs text-red-500">{{ $message }}</flux:text>
                             @enderror
-                            <div class="flex justify-end gap-2">
-                                <flux:button wire:click="$set('showRevisionForm', false)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
-                                <flux:button wire:click="submitRevision" size="sm" variant="primary">{{ __('Kirim Revisi') }}</flux:button>
+                            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
+                                <flux:button wire:click="$set('showRevisionForm', false)" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                                <flux:button wire:click="submitRevision" variant="primary" class="w-full sm:w-auto">{{ __('Kirim Revisi') }}</flux:button>
                             </div>
                         </section>
                     @endif
                 </div>
 
-                <div class="flex justify-end">
-                    <flux:modal.close>
-                        <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                    <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                        <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
                     @if($this->inspectingParticipant->status->value === 'submitted' && !$showRevisionForm)
-                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi Rencana') }}</flux:button>
-                        <flux:button wire:click="approve({{ $this->inspectingParticipant->id }})" variant="primary" icon="check">{{ __('Setujui Rencana') }}</flux:button>
+                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path" class="w-full sm:w-auto">{{ __('Revisi Rencana') }}</flux:button>
+                        <flux:button wire:click="approve({{ $this->inspectingParticipant->id }})" variant="primary" icon="check" class="w-full sm:w-auto">{{ __('Setujui Rencana') }}</flux:button>
                     @elseif($this->inspectingParticipant->status->value === 'approved' && $this->inspectingParticipant->lpk_status?->value === 'submitted' && !$showRevisionForm)
-                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path">{{ __('Revisi Laporan') }}</flux:button>
-                        <flux:button wire:click="approve({{ $this->inspectingParticipant->id }})" variant="primary" icon="check">{{ __('Setujui Laporan') }}</flux:button>
+                        <flux:button wire:click="startRevision" variant="filled" color="amber" icon="arrow-path" class="w-full sm:w-auto">{{ __('Revisi Laporan') }}</flux:button>
+                        <flux:button wire:click="approve({{ $this->inspectingParticipant->id }})" variant="primary" icon="check" class="w-full sm:w-auto">{{ __('Setujui Laporan') }}</flux:button>
                     @endif
                 </div>
             </div>

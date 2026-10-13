@@ -176,12 +176,11 @@
                     @endif
                 </flux:text>
             </div>
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="setLeader" variant="primary">{{ $isReplacing ? __('Ganti Ketua') : __('Tetapkan') }}</flux:button>
+                <flux:button wire:click="setLeader" variant="primary" class="w-full sm:w-auto">{{ $isReplacing ? __('Ganti Ketua') : __('Tetapkan') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -211,11 +210,11 @@
                 <flux:input type="date" wire:model="editEndDate" label="{{ __('Tanggal Selesai') }}" />
             </div>
 
-            <div class="flex justify-end gap-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary">{{ __('Simpan Perubahan') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Perubahan') }}</flux:button>
             </div>
         </form>
     </flux:modal>

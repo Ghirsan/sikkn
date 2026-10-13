@@ -167,6 +167,37 @@ class MentoringLogsTest extends TestCase
             ->assertHasErrors(['feedback' => 'min']);
     }
 
+    public function test_dpl_can_search_mentoring_logs(): void
+    {
+        [$student, $group, $program, $dpl] = $this->createStudentWithGroupAndProgram(includeDpl: true);
+
+        MentoringLog::create([
+            'student_id' => $student->id,
+            'group_id' => $group->id,
+            'program_id' => $program->id,
+            'date' => '2026-06-12',
+            'topic' => 'Diskusi Khusus Sanitasi Air',
+            'discussion_summary' => 'Fokus penyusunan filter air bersih.',
+            'status' => LogStatus::Pending,
+        ]);
+
+        MentoringLog::create([
+            'student_id' => $student->id,
+            'group_id' => $group->id,
+            'program_id' => $program->id,
+            'date' => '2026-06-13',
+            'topic' => 'Sosialisasi Bahaya Narkoba',
+            'discussion_summary' => 'Persiapan materi penyuluhan siswa sekolah.',
+            'status' => LogStatus::Pending,
+        ]);
+
+        Livewire::actingAs($dpl)
+            ->test(MentoringBook::class)
+            ->set('search', 'Sanitasi')
+            ->assertSee('Diskusi Khusus Sanitasi Air')
+            ->assertDontSee('Sosialisasi Bahaya Narkoba');
+    }
+
     public function test_student_can_view_lrk_and_lpk_documents_with_program_type_filter(): void
     {
         [$student, $group, $program] = $this->createStudentWithGroupAndProgram();

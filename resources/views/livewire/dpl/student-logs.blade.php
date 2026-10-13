@@ -237,13 +237,13 @@
                 @endif
                 
                 {{-- Actions --}}
-                <div class="flex justify-end">
-                    <flux:modal.close>
-                        <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                    <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                        <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Tutup') }}</flux:button>
                     </flux:modal.close>
                         
                     @if($viewLogData->status->value === 'pending')
-                        <flux:button wire:click="approveDailyLog({{ $viewLogData->id }})" variant="primary" icon="check">
+                        <flux:button wire:click="approveDailyLog({{ $viewLogData->id }})" variant="primary" icon="check" class="w-full sm:w-auto">
                             {{ __('Setujui Logbook') }}
                         </flux:button>
                     @endif
@@ -261,11 +261,11 @@
                     {{ __('Apakah Anda yakin ingin menyetujui logbook ini? Tindakan ini tidak dapat dibatalkan.') }}
                 </flux:text>
             </div>
-            <div class="flex gap-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary">{{ __('Ya, Setujui') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Ya, Setujui') }}</flux:button>
             </div>
         </form>
     </flux:modal>
@@ -279,11 +279,11 @@
                     {{ __('Apakah Anda yakin ingin menyetujui :count logbook yang dipilih? Tindakan ini tidak dapat dibatalkan.', ['count' => count($selectedLogs)]) }}
                 </flux:text>
             </div>
-            <div class="flex gap-2">
-                <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary">{{ __('Ya, Setujui') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Ya, Setujui') }}</flux:button>
             </div>
         </form>
     </flux:modal>
