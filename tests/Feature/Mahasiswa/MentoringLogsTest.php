@@ -111,6 +111,62 @@ class MentoringLogsTest extends TestCase
             ->assertSee($program->title);
     }
 
+    public function test_dpl_can_open_view_modal_and_submit_feedback_for_mentoring_log(): void
+    {
+        [$student, $group, $program, $dpl] = $this->createStudentWithGroupAndProgram(includeDpl: true);
+
+        $log = MentoringLog::create([
+            'student_id' => $student->id,
+            'group_id' => $group->id,
+            'program_id' => $program->id,
+            'date' => '2026-06-12',
+            'topic' => 'Diskusi Rencana Kegiatan KKN',
+            'discussion_summary' => 'Mahasiswa mendiskusikan rencana survei lokasi.',
+            'status' => LogStatus::Pending,
+        ]);
+
+        Livewire::actingAs($dpl)
+            ->test(MentoringBook::class)
+            ->assertStatus(200)
+            ->call('viewLog', $log->id)
+            ->assertSet('viewingLogId', $log->id)
+            ->assertSet('showFeedbackForm', false)
+            ->call('startFeedback')
+            ->assertSet('showFeedbackForm', true)
+            ->set('feedback', 'Saran agar koordinasi dipercepat dengan kepala desa setempat.')
+            ->call('submitFeedback')
+            ->assertHasNoErrors()
+            ->assertSet('viewingLogId', null)
+            ->assertSet('showFeedbackForm', false);
+
+        $freshLog = $log->fresh();
+        $this->assertSame(LogStatus::Approved, $freshLog->status);
+        $this->assertSame('Saran agar koordinasi dipercepat dengan kepala desa setempat.', $freshLog->dpl_feedback);
+    }
+
+    public function test_dpl_feedback_requires_minimum_length(): void
+    {
+        [$student, $group, $program, $dpl] = $this->createStudentWithGroupAndProgram(includeDpl: true);
+
+        $log = MentoringLog::create([
+            'student_id' => $student->id,
+            'group_id' => $group->id,
+            'program_id' => $program->id,
+            'date' => '2026-06-12',
+            'topic' => 'Evaluasi KKN',
+            'discussion_summary' => 'Mahasiswa memaparkan evaluasi kegiatan.',
+            'status' => LogStatus::Pending,
+        ]);
+
+        Livewire::actingAs($dpl)
+            ->test(MentoringBook::class)
+            ->call('viewLog', $log->id, true)
+            ->assertSet('showFeedbackForm', true)
+            ->set('feedback', 'Pendek')
+            ->call('submitFeedback')
+            ->assertHasErrors(['feedback' => 'min']);
+    }
+
     public function test_student_can_view_lrk_and_lpk_documents_with_program_type_filter(): void
     {
         [$student, $group, $program] = $this->createStudentWithGroupAndProgram();

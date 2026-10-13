@@ -74,38 +74,127 @@
                                 <flux:callout variant="success" icon="check-circle" class="h-full">
                                     <div class="whitespace-pre-wrap">{{ $log->dpl_feedback }}</div>
                                 </flux:callout>
-                            @elseif($feedbackLogId === $log->id)
-                                <div class="border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 rounded-lg p-3 h-full">
-                                    <flux:textarea wire:model="feedback" placeholder="{{ __('Berikan tanggapan atau solusi...') }}" rows="3" />
-                                    @error('feedback') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
-                                    <div class="mt-3 flex gap-2 justify-end">
-                                        <flux:button wire:click="$set('feedbackLogId', 0)" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
-                                        <flux:button wire:click="submitFeedback" size="sm" variant="primary">{{ __('Kirim Tanggapan') }}</flux:button>
-                                    </div>
-                                </div>
                             @else
                                 <div class="bg-zinc-50 dark:bg-white/5 rounded-lg p-3 h-full flex flex-col justify-center items-center gap-2 border border-dashed border-zinc-300 dark:border-zinc-700">
                                     <span class="text-sm text-zinc-500 italic">{{ __('Belum ditanggapi.') }}</span>
-                                    <flux:button wire:click="startFeedback({{ $log->id }})" size="sm" variant="filled" icon="chat-bubble-left-right">{{ __('Beri Tanggapan') }}</flux:button>
                                 </div>
                             @endif
                         </div>
                     </div>
 
-                    {{-- Bottom info --}}
-                    <div class="flex flex-wrap gap-2 pt-4 border-t border-zinc-800/10 dark:border-white/10">
-                        @if($log->target_group)
-                            <flux:badge size="sm" color="zinc" icon="user-group">{{ __('Sasaran: ') }} {{ $log->target_group }}</flux:badge>
-                        @endif
-                        @if($log->student_count)
-                            <flux:badge size="sm" color="zinc" icon="users">{{ __('Jumlah: ') }} {{ $log->student_count }} {{ __('Mahasiswa') }}</flux:badge>
-                        @endif
-                        @if($log->output)
-                            <flux:badge size="sm" color="zinc" icon="document-text">{{ __('Luaran: ') }} {{ $log->output }}</flux:badge>
-                        @endif
+                    {{-- Actions --}}
+                    <div class="flex justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                        <flux:button variant="ghost" size="sm" icon="eye" wire:click="viewLog({{ $log->id }})">{{ __('Lihat Detail') }}</flux:button>
                     </div>
                 </flux:card>
             @endforeach
         </div>
     @endif
+
+    {{-- View & Feedback Modal --}}
+    <flux:modal name="mentoring-view-modal" scroll="body" @close="closeView" class="max-w-2xl w-full">
+        @if($this->viewLogData)
+            <div class="flex flex-col gap-6">
+                {{-- Header --}}
+                <div class="flex flex-col gap-3">
+                    <flux:heading size="lg">{{ $this->viewLogData->topic }}</flux:heading>
+                    <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
+                        <span>{{ $this->viewLogData->date->translatedFormat('l, d M Y') }}</span>
+                        <span>·</span>
+                        <span class="font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                            <flux:icon.user variant="micro" />
+                            {{ $this->viewLogData->student->name }}
+                        </span>
+                        @if($this->viewLogData->group)
+                            <span>·</span>
+                            <span>{{ $this->viewLogData->group->name }}</span>
+                        @endif
+                    </div>
+                    <div>
+                        <flux:badge size="sm" :color="$this->viewLogData->status->color()">{{ $this->viewLogData->status->mentoringLabel() }}</flux:badge>
+                    </div>
+                    @if($this->viewLogData->program)
+                        <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
+                            <flux:icon.folder variant="micro" class="text-zinc-400" />
+                            <span>[{{ $this->viewLogData->program->programType?->name ?? 'Program' }}] {{ $this->viewLogData->program->title }}</span>
+                        </div>
+                    @else
+                        <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
+                            <flux:icon.folder variant="micro" class="text-zinc-400" />
+                            <span>{{ __('Umum / Tidak terikat program spesifik') }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Content --}}
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
+                        <flux:heading size="sm" class="font-medium">{{ __('Uraian & Hambatan') }}</flux:heading>
+                        <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">{{ $this->viewLogData->discussion_summary }}</div>
+                    </div>
+
+                    @if($this->viewLogData->dpl_feedback && ! $showFeedbackForm)
+                        <div class="flex flex-col gap-2">
+                            <flux:heading size="sm" class="font-medium">{{ __('Tanggapan Anda') }}</flux:heading>
+                            <flux:callout variant="success" icon="check-circle">
+                                <div class="whitespace-pre-wrap text-sm">{{ $this->viewLogData->dpl_feedback }}</div>
+                            </flux:callout>
+                        </div>
+                    @elseif(! $this->viewLogData->dpl_feedback && ! $showFeedbackForm)
+                        <div class="flex flex-col gap-2">
+                            <flux:heading size="sm" class="font-medium">{{ __('Tanggapan Anda') }}</flux:heading>
+                            <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-400 dark:text-zinc-500 italic flex items-center">
+                                {{ __('Belum ada tanggapan yang diberikan.') }}
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Metrics --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
+                        <span class="text-xs text-zinc-500">{{ __('Kelompok Sasaran') }}</span>
+                        <span class="text-sm font-medium">{{ $this->viewLogData->target_group ?? '-' }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
+                        <span class="text-xs text-zinc-500">{{ __('Jumlah Mahasiswa') }}</span>
+                        <span class="text-sm font-medium">{{ $this->viewLogData->student_count ?? '-' }}</span>
+                    </div>
+                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
+                        <span class="text-xs text-zinc-500">{{ __('Luaran') }}</span>
+                        <span class="text-sm font-medium">{{ $this->viewLogData->output ?? '-' }}</span>
+                    </div>
+                </div>
+
+                {{-- Feedback Form Section (ReviewPrograms modal style) --}}
+                @if($showFeedbackForm)
+                    <flux:separator variant="subtle" />
+                    <section class="space-y-3">
+                        <flux:textarea wire:model="feedback" label="{{ __('Tanggapan / Solusi DPL') }}" placeholder="{{ __('Berikan arahan, tanggapan, atau solusi untuk mahasiswa...') }}" rows="3" />
+                        @error('feedback')
+                            <flux:text class="text-xs text-red-500">{{ $message }}</flux:text>
+                        @enderror
+                        <div class="flex justify-end gap-2">
+                            <flux:button wire:click="cancelFeedback" size="sm" variant="ghost">{{ __('Batal') }}</flux:button>
+                            <flux:button wire:click="submitFeedback" size="sm" variant="primary" icon="paper-airplane">{{ __('Kirim Tanggapan') }}</flux:button>
+                        </div>
+                    </section>
+                @endif
+
+                {{-- Actions --}}
+                <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-white/10">
+                    <flux:modal.close>
+                        <flux:button variant="ghost">{{ __('Tutup') }}</flux:button>
+                    </flux:modal.close>
+                    @if(! $showFeedbackForm)
+                        @if(! $this->viewLogData->dpl_feedback)
+                            <flux:button variant="primary" icon="chat-bubble-left-right" wire:click="startFeedback">{{ __('Beri Tanggapan') }}</flux:button>
+                        @else
+                            <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="startFeedback">{{ __('Ubah Tanggapan') }}</flux:button>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        @endif
+    </flux:modal>
 </div>

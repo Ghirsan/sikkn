@@ -4,7 +4,9 @@ namespace App\Livewire\Dpl;
 
 use App\Enums\LogStatus;
 use App\Models\MentoringLog;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class MentoringBook extends Component
@@ -19,25 +21,94 @@ class MentoringBook extends Component
 
     public string $filterStatus = '';
 
-    public function startFeedback(int $logId): void
+    public ?int $viewingLogId = null;
+
+    public bool $showFeedbackForm = false;
+
+    public function viewLog(int $id, bool $startFeedback = false): void
     {
-        $this->feedbackLogId = $logId;
+        $studentIds = $this->getStudentIds();
+        $log = MentoringLog::with(['student.studyProgram', 'student.group', 'program.programType', 'group'])
+            ->whereIn('student_id', $studentIds)
+            ->findOrFail($id);
+
+        $this->viewingLogId = $log->id;
+        $this->feedbackLogId = $log->id;
+        $this->feedback = $log->dpl_feedback ?? '';
+        $this->showFeedbackForm = $startFeedback;
+
+        $this->modal('mentoring-view-modal')->show();
+    }
+
+    public function closeView(): void
+    {
+        $this->viewingLogId = null;
+        $this->feedbackLogId = 0;
         $this->feedback = '';
+        $this->showFeedbackForm = false;
+        $this->resetErrorBag();
+    }
+
+    public function startFeedback(?int $logId = null): void
+    {
+        if ($logId) {
+            $this->viewLog($logId, true);
+
+            return;
+        }
+
+        $this->feedback = $this->viewLogData?->dpl_feedback ?? '';
+        $this->showFeedbackForm = true;
+    }
+
+    public function cancelFeedback(): void
+    {
+        $this->showFeedbackForm = false;
+        $this->feedback = $this->viewLogData?->dpl_feedback ?? '';
+        $this->resetErrorBag();
+    }
+
+    public function startFeedbackFromModal(int $id): void
+    {
+        $this->startFeedback($id);
     }
 
     public function submitFeedback(): void
     {
         $this->validate(['feedback' => 'required|min:10']);
 
+        $logId = $this->viewingLogId ?: $this->feedbackLogId;
+        if (! $logId) {
+            return;
+        }
+
         $studentIds = $this->getStudentIds();
-        $log = MentoringLog::whereIn('student_id', $studentIds)->findOrFail($this->feedbackLogId);
+        $log = MentoringLog::whereIn('student_id', $studentIds)->findOrFail($logId);
         $log->update([
             'dpl_feedback' => $this->feedback,
             'status' => LogStatus::Approved,
         ]);
 
-        $this->feedbackLogId = 0;
-        $this->feedback = '';
+        $this->modal('mentoring-view-modal')->close();
+        $this->closeView();
+
+        Flux::toast(
+            variant: 'success',
+            heading: __('Tanggapan Terkirim'),
+            text: __('Tanggapan pembimbingan berhasil dikirim.'),
+        );
+    }
+
+    #[Computed]
+    public function viewLogData(): ?MentoringLog
+    {
+        if (! $this->viewingLogId) {
+            return null;
+        }
+
+        return MentoringLog::with(['student.studyProgram', 'student.group', 'program.programType', 'group'])
+            ->whereIn('student_id', $this->getStudentIds())
+            ->find($this->viewingLogId);
     }
 
     public function render()
