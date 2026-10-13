@@ -194,86 +194,117 @@
     </div>
 
     {{-- ═══ VIEW PROGRAM MODAL ═══ --}}
-    <flux:modal name="view-program" class="md:w-3/4 lg:w-1/2">
+    {{-- ═══ VIEW PROGRAM MODAL ═══ --}}
+    <flux:modal name="view-program" scroll="body" class="max-w-2xl w-full">
         <div class="space-y-6">
             @if($this->selectedProgram)
+                {{-- Header --}}
                 <div>
                     <flux:heading size="lg">{{ $this->selectedProgram->title ?: __('(Belum ada judul)') }}</flux:heading>
                     <flux:text class="mt-1">{{ $this->selectedProgram->programType?->name }}</flux:text>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant?->participant_code ?? $this->selectedProgram->getProgramCodeFor($this->selectedParticipant?->student_id) }}</flux:text>
-                    </div>
-                    @if($this->selectedParticipant && $this->selectedParticipant->execution_date)
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->execution_date->format('d M Y') }}</flux:text>
-                    </div>
-                    @endif
-                    @if($this->selectedParticipant && $this->selectedParticipant->problem_potential)
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->problem_potential }}</flux:text>
-                    </div>
-                    @endif
-                    @if($this->selectedParticipant && $this->selectedParticipant->location)
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->location }}</flux:text>
-                    </div>
-                    @endif
-                    @if($this->selectedParticipant && $this->selectedParticipant->method)
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->method }}</flux:text>
-                    </div>
-                    @endif
-                    @if($this->selectedParticipant && $this->selectedParticipant->target_audience)
-                    <div>
-                        <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->target_audience }}</flux:text>
-                    </div>
-                    @endif
-                    @if($this->selectedParticipant && $this->selectedParticipant->output_target)
-                    <div class="sm:col-span-2">
-                        <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
-                        <flux:text>{{ $this->selectedParticipant->output_target }}</flux:text>
-                    </div>
-                    @endif
-                </div>
+                <flux:separator variant="subtle" />
 
-                @if($this->selectedParticipant)
-                    <flux:separator variant="subtle" />
-                    <div>
-                        <flux:heading size="md" class="mb-2">{{ __('Peran Mahasiswa') }}</flux:heading>
-                        <div class="flex items-center gap-2 mb-1">
-                            <flux:text variant="strong">{{ $this->selectedParticipant->student->name }}</flux:text>
-                        </div>
-                        @if($this->selectedParticipant->role_in_program)
-                            <flux:text class="text-sm">{{ __('Peran') }}: {{ $this->selectedParticipant->role_in_program }}</flux:text>
-                        @endif
-                        @if($this->selectedParticipant->responsibility)
-                            <flux:text class="text-sm mt-1">{{ $this->selectedParticipant->responsibility }}</flux:text>
-                        @endif
-
-                        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Sections --}}
+                <div class="space-y-6">
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Identitas Program') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Kode Program') }}</flux:text>
+                                <flux:text>{{ $this->selectedParticipant?->participant_code ?? $this->selectedProgram->getProgramCodeFor($this->selectedParticipant?->student_id) }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Tanggal Pelaksanaan') }}</flux:text>
+                                <flux:text>{{ $this->selectedParticipant?->execution_date?->format('d M Y') ?? __('Belum diisi') }}</flux:text>
+                            </div>
                             <div>
                                 <flux:text variant="strong" class="mb-1">{{ __('Status Rencana') }}</flux:text>
-                                <flux:badge size="sm" :color="$this->selectedParticipant->status->color()" class="mt-1">{{ $this->selectedParticipant->status->label() }}</flux:badge>
-                                @if($this->selectedParticipant->revision_note)
-                                    <div class="mt-1 text-xs text-red-600">{{ __('Revisi') }}: {{ $this->selectedParticipant->revision_note }}</div>
+                                @if($this->selectedParticipant?->status)
+                                    <flux:badge size="sm" :color="$this->selectedParticipant->status->color()" class="mt-1">{{ $this->selectedParticipant->status->label() }}</flux:badge>
+                                    @if($this->selectedParticipant->revision_note)
+                                        <div class="mt-1 text-xs text-red-600">{{ __('Revisi') }}: {{ $this->selectedParticipant->revision_note }}</div>
+                                    @endif
+                                @else
+                                    <flux:text>{{ __('Belum diisi') }}</flux:text>
                                 @endif
                             </div>
                             <div>
                                 <flux:text variant="strong" class="mb-1">{{ __('Status Laporan') }}</flux:text>
-                                <flux:badge size="sm" :color="$this->selectedParticipant->lpk_status->color()" class="mt-1">{{ $this->selectedParticipant->lpk_status->label() }}</flux:badge>
+                                @if($this->selectedParticipant?->lpk_status)
+                                    <flux:badge size="sm" :color="$this->selectedParticipant->lpk_status->color()" class="mt-1">{{ $this->selectedParticipant->lpk_status->label() }}</flux:badge>
+                                @else
+                                    <flux:text>{{ __('Belum diisi') }}</flux:text>
+                                @endif
                             </div>
                         </div>
-                    </div>
-                @endif
+                    </section>
+
+                    <flux:separator variant="subtle" />
+
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Rancangan Program') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                            @if($this->selectedParticipant?->problem_potential)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Potensi / Permasalahan') }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->problem_potential }}</flux:text>
+                                </div>
+                            @endif
+                            @if($this->selectedParticipant?->location)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Lokasi / Narsum') }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->location }}</flux:text>
+                                </div>
+                            @endif
+                            @if($this->selectedParticipant?->method)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Metode Pelaksanaan') }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->method }}</flux:text>
+                                </div>
+                            @endif
+                            @if($this->selectedParticipant?->target_audience)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->target_audience }}</flux:text>
+                                </div>
+                            @endif
+                            @if($this->selectedParticipant?->output_target)
+                                <div class="sm:col-span-2">
+                                    <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->output_target }}</flux:text>
+                                </div>
+                            @endif
+                        </div>
+                    </section>
+
+                    @if($this->selectedParticipant)
+                        <flux:separator variant="subtle" />
+
+                        <section class="space-y-3">
+                            <flux:heading size="sm">{{ __('Peran Mahasiswa') }}</flux:heading>
+                            <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Nama Mahasiswa') }}</flux:text>
+                                    <flux:text>{{ $this->selectedParticipant->student->name }}</flux:text>
+                                </div>
+                                @if($this->selectedParticipant->role_in_program)
+                                    <div>
+                                        <flux:text variant="strong" class="mb-1">{{ __('Peran') }}</flux:text>
+                                        <flux:text>{{ $this->selectedParticipant->role_in_program }}</flux:text>
+                                    </div>
+                                @endif
+                                @if($this->selectedParticipant->responsibility)
+                                    <div class="sm:col-span-2">
+                                        <flux:text variant="strong" class="mb-1">{{ __('Tanggung Jawab') }}</flux:text>
+                                        <flux:text>{{ $this->selectedParticipant->responsibility }}</flux:text>
+                                    </div>
+                                @endif
+                            </div>
+                        </section>
+                    @endif
+                </div>
             @endif
 
             <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">

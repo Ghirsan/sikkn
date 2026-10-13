@@ -81,66 +81,70 @@
     @endif
 
     {{-- View Modal --}}
-    <flux:modal name="mentoring-view-modal" class="md:w-3/4 lg:w-[40rem]">
+    <flux:modal name="mentoring-view-modal" scroll="body" class="max-w-2xl w-full">
         @if($viewLogData)
-            <div class="flex flex-col gap-6">
+            <div class="space-y-6">
                 {{-- Header --}}
-                <div class="flex flex-col gap-3">
+                <div>
                     <flux:heading size="lg">{{ $viewLogData->topic }}</flux:heading>
-                    <flux:text class="text-sm text-zinc-500">
-                        {{ $viewLogData->date->translatedFormat('l, d M Y') }}
-                    </flux:text>
-                    <div>
+                    <div class="flex flex-wrap items-center gap-2 mt-1">
+                        <flux:text variant="subtle" class="text-sm">{{ $viewLogData->date->translatedFormat('l, d M Y') }}</flux:text>
+                        <flux:separator vertical variant="subtle" class="h-4" />
                         <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->mentoringLabel() }}</flux:badge>
                     </div>
-                    @if($viewLogData->program)
-                        <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
-                            <flux:icon.folder variant="micro" class="text-zinc-400" />
-                            <span>[{{ $viewLogData->program->programType?->name ?? 'Program' }}] {{ $viewLogData->program->title }}</span>
-                        </div>
-                    @else
-                        <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
-                            <flux:icon.folder variant="micro" class="text-zinc-400" />
-                            <span>Umum / Tidak terikat program spesifik</span>
-                        </div>
-                    @endif
                 </div>
 
-                {{-- Content --}}
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-2">
-                        <flux:heading size="sm" class="font-medium">Uraian & Hambatan</flux:heading>
-                        <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">{{ $viewLogData->discussion_summary }}</div>
-                    </div>
-                    
-                    <div class="flex flex-col gap-2">
-                        <flux:heading size="sm" class="font-medium">Solusi / Saran Dosen KKN</flux:heading>
+                <flux:separator variant="subtle" />
+
+                {{-- Sections --}}
+                <div class="space-y-6">
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Identitas Bimbingan') }}</flux:heading>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Program Terkait') }}</flux:text>
+                                @if($viewLogData->program)
+                                    <flux:text>[{{ $viewLogData->program->programType?->name ?? 'Program' }}] {{ $viewLogData->program->title }}</flux:text>
+                                @else
+                                    <flux:text>{{ __('Umum / Tidak terikat program spesifik') }}</flux:text>
+                                @endif
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Kelompok Sasaran') }}</flux:text>
+                                <flux:text>{{ $viewLogData->target_group ?: '-' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Jumlah Mahasiswa') }}</flux:text>
+                                <flux:text>{{ $viewLogData->student_count ?: '-' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text variant="strong" class="mb-1">{{ __('Luaran (Output)') }}</flux:text>
+                                <flux:text>{{ $viewLogData->output ?: '-' }}</flux:text>
+                            </div>
+                        </div>
+                    </section>
+
+                    <flux:separator variant="subtle" />
+
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Uraian & Hambatan') }}</flux:heading>
+                        <div>
+                            <flux:text class="whitespace-pre-wrap">{{ $viewLogData->discussion_summary }}</flux:text>
+                        </div>
+                    </section>
+
+                    <flux:separator variant="subtle" />
+
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Solusi / Saran Dosen KKN') }}</flux:heading>
                         @if($viewLogData->dpl_feedback)
                             <flux:callout variant="success" icon="check-circle">
                                 <div class="whitespace-pre-wrap text-sm">{{ $viewLogData->dpl_feedback }}</div>
                             </flux:callout>
                         @else
-                            <div class="p-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 text-sm text-zinc-400 dark:text-zinc-500 italic flex items-center">
-                                {{ __('Belum ada tanggapan dari Dosen KKN.') }}
-                            </div>
+                            <flux:text class="italic text-zinc-500">{{ __('Belum ada tanggapan dari Dosen KKN.') }}</flux:text>
                         @endif
-                    </div>
-                </div>
-
-                {{-- Metrics --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
-                        <span class="text-xs text-zinc-500">Kelompok Sasaran</span>
-                        <span class="text-sm font-medium">{{ $viewLogData->target_group ?? '-' }}</span>
-                    </div>
-                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
-                        <span class="text-xs text-zinc-500">Jumlah Mahasiswa</span>
-                        <span class="text-sm font-medium">{{ $viewLogData->student_count ?? '-' }}</span>
-                    </div>
-                    <div class="flex flex-col gap-1 p-3 rounded-lg border border-zinc-200 dark:border-white/10">
-                        <span class="text-xs text-zinc-500">Luaran</span>
-                        <span class="text-sm font-medium">{{ $viewLogData->output ?? '-' }}</span>
-                    </div>
+                    </section>
                 </div>
 
                 {{-- Actions --}}

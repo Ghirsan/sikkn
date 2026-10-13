@@ -169,7 +169,7 @@
     {{-- View Modal --}}
     <flux:modal name="log-view-modal" scroll="body" class="max-w-2xl w-full">
         @if($viewLogData)
-            <div class="flex flex-col gap-6">
+            <div class="space-y-6">
                 {{-- Header --}}
                 <div class="flex items-start gap-3">
                     <flux:avatar
@@ -178,63 +178,69 @@
                         size="sm"
                         class="mt-0.5"
                     />
-                    <div class="flex flex-col gap-1.5">
+                    <div class="flex min-w-0 flex-col gap-1.5">
                         <flux:heading size="lg">{{ $viewLogData->student->name }}</flux:heading>
                         <div class="flex flex-wrap items-center gap-2">
-                            <flux:text variant="subtle">Logbook Hari Ke-{{ $viewLogData->day_number }}</flux:text>
-                            <flux:separator vertical variant="subtle" />
-                            <flux:text variant="subtle">{{ $viewLogData->date->translatedFormat('l, d M Y') }}</flux:text>
+                            <flux:text variant="subtle" class="text-sm">Logbook Hari Ke-{{ $viewLogData->day_number }}</flux:text>
+                            <flux:separator vertical variant="subtle" class="h-4" />
+                            <flux:text variant="subtle" class="text-sm">{{ $viewLogData->date->translatedFormat('l, d M Y') }}</flux:text>
                         </div>
-                        <div class="space-y-1.5">
+                        <div>
                             <flux:badge size="sm" :color="$viewLogData->status->color()">{{ $viewLogData->status->label() }}</flux:badge>
                         </div>
                     </div>
                 </div>
 
-                <flux:separator />
-
-                {{-- Activities --}}
-                <div class="flex flex-col gap-3">
-                    <flux:heading size="sm">Kegiatan</flux:heading>
-                    <div class="flex flex-col gap-2">
-                        @foreach($viewLogData->activities as $index => $activity)
-                            <flux:card variant="subtle" class="flex gap-4 p-2">
-                                <flux:text variant="subtle" class="text-sm">
-                                    {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
-                                </flux:text>
-                                <flux:text variant="strong" class="text-sm">
-                                    {{ $activity->activity_description }}
-                                </flux:text>
-                            </flux:card>
-                        @endforeach
-                    </div>
-                </div>
-
                 <flux:separator variant="subtle" />
 
-                {{-- Notes & Image --}}
-                @if($viewLogData->important_notes || $viewLogData->image_path)
-                    <flux:heading size="sm">Catatan Penting</flux:heading>
-                    @if($viewLogData->important_notes)
-                        <flux:text>
-                            {{ ($viewLogData->important_notes) }}
-                        </flux:text>
-                    @endif
-                    <div>
-                        <flux:card variant="soft" class="overflow-hidden p-0">
-                            @if($viewLogData->image_path && $viewLogData->image_url)
-                                <img
-                                    src="{{ $viewLogData->image_url }}"
-                                    alt="Catatan gambar"
-                                    class="mx-auto block max-h-96 max-w-full object-contain"
-                                    x-on:click="$flux.modal('image-preview-view').show()"
-                                    />
-                                
-                                <x-image-preview-modal name="image-preview-view" url="{{ $viewLogData->image_url }}" />
+                {{-- Sections --}}
+                <div class="space-y-6">
+                    {{-- Activities --}}
+                    <section class="space-y-3">
+                        <flux:heading size="sm">{{ __('Kegiatan Harian') }}</flux:heading>
+                        <div class="space-y-2">
+                            @foreach($viewLogData->activities as $index => $activity)
+                                <flux:card variant="subtle" class="flex gap-4 p-3">
+                                    <div class="text-sm font-medium text-zinc-500 whitespace-nowrap min-w-[90px]">
+                                        {{ \Carbon\Carbon::parse($activity->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($activity->end_time)->format('H:i') }}
+                                    </div>
+                                    <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $activity->activity_description }}
+                                    </div>
+                                </flux:card>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    {{-- Notes & Image --}}
+                    @if($viewLogData->important_notes || ($viewLogData->image_path && $viewLogData->image_url))
+                        <flux:separator variant="subtle" />
+
+                        <section class="space-y-3">
+                            <flux:heading size="sm">{{ __('Catatan & Dokumentasi') }}</flux:heading>
+                            @if($viewLogData->important_notes)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Catatan Penting') }}</flux:text>
+                                    <flux:text class="whitespace-pre-wrap">{{ $viewLogData->important_notes }}</flux:text>
+                                </div>
                             @endif
-                        </flux:card>
-                    </div>
-                @endif
+                            @if($viewLogData->image_path && $viewLogData->image_url)
+                                <div>
+                                    <flux:text variant="strong" class="mb-1">{{ __('Foto Dokumentasi') }}</flux:text>
+                                    <flux:card variant="soft" class="overflow-hidden p-0 max-w-md">
+                                        <img
+                                            src="{{ $viewLogData->image_url }}"
+                                            alt="{{ __('Dokumentasi Kegiatan') }}"
+                                            class="mx-auto block max-h-80 max-w-full object-contain cursor-pointer hover:opacity-85 transition"
+                                            x-on:click="$flux.modal('image-preview-view').show()"
+                                        />
+                                        <x-image-preview-modal name="image-preview-view" url="{{ $viewLogData->image_url }}" />
+                                    </flux:card>
+                                </div>
+                            @endif
+                        </section>
+                    @endif
+                </div>
                 
                 {{-- Actions --}}
                 <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
