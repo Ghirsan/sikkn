@@ -8,6 +8,7 @@ use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
+use App\Models\SdgCategory;
 use App\Services\ExternalImagePreviewUrl;
 use App\Services\ExternalUrlMetadata;
 use App\Services\ProgramOutputUrlResolver;
@@ -114,7 +115,7 @@ class ProgramForm extends Component
         if ($this->action === 'create') {
             $this->type = $this->type ?? 'lainnya';
 
-            if ($this->programType?->code === 'multidisiplin') {
+            if ($this->type === 'multidisiplin') {
                 $this->formMode = 'create_multidisiplin';
                 $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
                 $this->availableMultidisiplinPrograms = Program::where('group_id', $user->group_id)
@@ -148,7 +149,7 @@ class ProgramForm extends Component
                 $this->participant_title = $participant->participant_title ?? '';
                 $this->role_in_program = $participant->role_in_program ?? '';
                 $this->responsibility = $participant->responsibility ?? '';
-                $this->sdg_category = $participant->sdg_category?->value ? (string) $participant->sdg_category->value : null;
+                $this->sdg_category = $participant->sdgCategory?->code ? (string) $participant->sdgCategory->code : null;
                 if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
                     $this->execution_date = $participant->execution_date?->format('Y-m-d');
                 }
@@ -169,7 +170,7 @@ class ProgramForm extends Component
                     $this->participant_title = $participant->participant_title ?? '';
                     $this->role_in_program = $participant->role_in_program ?? '';
                     $this->responsibility = $participant->responsibility ?? '';
-                    $this->sdg_category = $participant->sdg_category?->value ? (string) $participant->sdg_category->value : null;
+                    $this->sdg_category = $participant->sdgCategory?->code ? (string) $participant->sdgCategory->code : null;
                     if ($this->formMode === 'edit_program' || $this->formMode === 'create_individual' || $this->formMode === 'edit_peran') {
                         $this->execution_date = $participant->execution_date?->format('Y-m-d');
                     }
@@ -319,7 +320,7 @@ class ProgramForm extends Component
 
     public function updatedProgramId($value)
     {
-        if ($this->action === 'create' && $this->programType?->code === 'multidisiplin') {
+        if ($this->action === 'create' && $this->type === 'multidisiplin') {
             if ($value) {
                 $program = Program::find($value);
                 $this->title = $program->title;
@@ -410,9 +411,14 @@ class ProgramForm extends Component
             }
 
             // 2. Handle Participant Creation/Update
+            $sdgCategoryId = null;
+            if ($this->sdg_category) {
+                $sdgCategoryId = SdgCategory::where('code', $this->sdg_category)->first()?->id;
+            }
+
             $participantData = [
                 'status' => ProgramStatus::Draft,
-                'sdg_category' => $this->sdg_category ?: null,
+                'sdg_category_id' => $sdgCategoryId,
             ];
 
             // Ensure we preserve existing role/responsibility for edit_program

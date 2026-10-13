@@ -56,7 +56,7 @@ class MentoringBook extends Component
         $students = $groups->pluck('students')->flatten();
         $studentIds = $students->pluck('id');
 
-        $query = MentoringLog::whereIn('student_id', $studentIds)->with(['student', 'group', 'program']);
+        $query = MentoringLog::whereIn('student_id', $studentIds)->with(['student', 'group', 'program.programType']);
 
         if ($this->filterStudent) {
             $query->where('student_id', $this->filterStudent);

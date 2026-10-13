@@ -55,7 +55,7 @@
                                 <span class="font-medium text-zinc-700 dark:text-zinc-300"><flux:icon.user variant="micro" class="inline mr-1"/>{{ $log->student->name }}</span>
                                 @if($log->program)
                                     <span>·</span>
-                                    <span><flux:icon.folder variant="micro" class="inline mr-1"/>[{{ $log->program->type }}] {{ $log->program->title }}</span>
+                                    <span><flux:icon.folder variant="micro" class="inline mr-1"/>[{{ $log->program->programType?->name ?? 'Program' }}] {{ $log->program->title }}</span>
                                 @endif
                             </div>
                         </div>

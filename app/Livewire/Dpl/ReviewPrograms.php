@@ -5,6 +5,7 @@ namespace App\Livewire\Dpl;
 use App\Enums\ProgramStatus;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -136,11 +137,13 @@ class ReviewPrograms extends Component
             ->whereNull('student_id')
             ->max('sequence') + 1;
 
+        $multidisiplinType = ProgramType::where('code', 'multidisiplin')->first();
+
         Program::create([
             'group_id' => $groupId,
             'student_id' => null,
             'title' => $this->newThemeTitle,
-            'type' => 'multidisiplin',
+            'program_type_id' => $multidisiplinType?->id,
             'sequence' => $nextSequence,
         ]);
 

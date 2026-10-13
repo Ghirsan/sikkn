@@ -9,7 +9,7 @@
                     <flux:select wire:model="program_id" label="Terkait Program (Opsional)" placeholder="Pilih Program">
                         <flux:select.option value="">Umum / Tidak spesifik program</flux:select.option>
                         @foreach($programs as $program)
-                            <flux:select.option value="{{ $program->id }}">[{{ $program->type }}] {{ $program->title }}</flux:select.option>
+                            <flux:select.option value="{{ $program->id }}">[{{ $program->programType?->name ?? 'Program' }}] {{ $program->title }}</flux:select.option>
                         @endforeach
                     </flux:select>
                 </div>

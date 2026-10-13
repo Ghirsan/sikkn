@@ -15,8 +15,10 @@ class LpkPdfController extends Controller
             'period',
             'dpls',
             'students',
+            'programs.programType',
             'programs.participants.student',
             'programs.participants.outputs',
+            'programs.participants.sdgCategory',
             'scheduleEvents',
         ]);
 

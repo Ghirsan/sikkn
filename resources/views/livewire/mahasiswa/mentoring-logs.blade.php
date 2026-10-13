@@ -42,7 +42,7 @@
                             @if($log->program)
                                 <div class="text-xs text-zinc-500 flex items-center gap-1 mt-1">
                                     <flux:icon.folder variant="micro" />
-                                    <span>[{{ $log->program->type }}] {{ $log->program->title }}</span>
+                                    <span>[{{ $log->program->programType?->name ?? 'Program' }}] {{ $log->program->title }}</span>
                                 </div>
                             @endif
                         </div>
@@ -96,7 +96,7 @@
                     @if($viewLogData->program)
                         <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">
                             <flux:icon.folder variant="micro" class="text-zinc-400" />
-                            <span>[{{ $viewLogData->program->type }}] {{ $viewLogData->program->title }}</span>
+                            <span>[{{ $viewLogData->program->programType?->name ?? 'Program' }}] {{ $viewLogData->program->title }}</span>
                         </div>
                     @else
                         <div class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-1">

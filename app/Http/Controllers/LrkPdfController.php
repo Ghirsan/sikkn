@@ -15,7 +15,9 @@ class LrkPdfController extends Controller
             'period',
             'dpls',
             'students',
+            'programs.programType',
             'programs.participants.student',
+            'programs.participants.sdgCategory',
             'scheduleEvents',
         ]);
 

@@ -13,7 +13,7 @@ class MentoringLogs extends Component
 
     public function viewLog($id)
     {
-        $this->viewLogData = MentoringLog::with(['program', 'student.group'])->where('student_id', Auth::id())->findOrFail($id);
+        $this->viewLogData = MentoringLog::with(['program.programType', 'student.group'])->where('student_id', Auth::id())->findOrFail($id);
         \Flux::modal('mentoring-view-modal')->show();
     }
 
@@ -33,7 +33,7 @@ class MentoringLogs extends Component
     {
         $user = Auth::user();
 
-        $logs = MentoringLog::with('program')->where('student_id', $user->id)->latest('date')->get();
+        $logs = MentoringLog::with('program.programType')->where('student_id', $user->id)->latest('date')->get();
 
         return view('livewire.mahasiswa.mentoring-logs', [
             'logs' => $logs,

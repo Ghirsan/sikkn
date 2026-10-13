@@ -144,14 +144,15 @@ class MentoringLogForm extends Component
     public function render()
     {
         $user = Auth::user();
-        $programs = Program::where('group_id', $user->group_id)
+        $programs = Program::with('programType')
+            ->where('group_id', $user->group_id)
             ->where(function ($query) use ($user) {
                 $query->where('student_id', $user->id)
                     ->orWhereHas('participants', function ($q) use ($user) {
                         $q->where('student_id', $user->id);
                     });
             })
-            ->orderBy('type')
+            ->orderBy('program_type_id')
             ->orderBy('sequence')
             ->get();
         $group = $user->group()->first();

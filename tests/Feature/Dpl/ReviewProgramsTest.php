@@ -139,4 +139,37 @@ class ReviewProgramsTest extends TestCase
             ->assertDispatched('toast-show');
         $this->assertDatabaseMissing('programs', ['id' => $emptyTheme->id]);
     }
+
+    public function test_dpl_can_add_multidisiplin_theme(): void
+    {
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-12-31',
+        ]);
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 10',
+        ]);
+        $dpl = User::factory()->dpl()->create();
+        $group->dpls()->attach($dpl->id);
+
+        $multidisiplinTypeId = ProgramType::where('code', 'multidisiplin')->value('id');
+
+        Livewire::actingAs($dpl)
+            ->test(ReviewProgramsComponent::class)
+            ->set('selectedGroupId', (string) $group->id)
+            ->set('newThemeTitle', 'Tema Inovasi Desa Digital')
+            ->call('addTheme')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('programs', [
+            'group_id' => $group->id,
+            'student_id' => null,
+            'title' => 'Tema Inovasi Desa Digital',
+            'program_type_id' => $multidisiplinTypeId,
+            'sequence' => 1,
+        ]);
+    }
 }

@@ -155,13 +155,15 @@ class LrkDocuments extends Component
         // Query for the paginated detail table
         $paginatedParticipants = collect();
         if ($group) {
-            $query = ProgramParticipant::with(['program', 'student'])
+            $query = ProgramParticipant::with(['program.programType', 'student'])
                 ->join('programs', 'program_participants.program_id', '=', 'programs.id')
                 ->where('programs.group_id', $group->id)
                 ->select('program_participants.*');
 
             if ($this->filterType) {
-                $query->where('programs.type', $this->filterType);
+                $query->whereHas('program', function ($q) {
+                    $q->whereType($this->filterType);
+                });
             }
             if ($this->filterStatus) {
                 $query->where('program_participants.status', $this->filterStatus);
@@ -175,7 +177,7 @@ class LrkDocuments extends Component
                 $query->orderBy('program_participants.execution_date', $this->sortDirection);
             }
 
-            $query->orderBy('programs.type')
+            $query->orderBy('programs.program_type_id')
                 ->orderBy('programs.sequence')
                 ->orderBy('program_participants.student_id');
 

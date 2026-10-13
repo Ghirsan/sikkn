@@ -10,6 +10,7 @@ use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
+use App\Models\SdgCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -19,6 +20,139 @@ use Tests\TestCase;
 class ProgramFormTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_student_can_open_create_form_for_all_types(): void
+    {
+        [$student, $participant] = $this->createApprovedParticipant();
+
+        // Type: multidisiplin
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'multidisiplin'])
+            ->assertSet('formMode', 'create_multidisiplin')
+            ->assertSet('type', 'multidisiplin')
+            ->assertHasNoErrors();
+
+        // Type: sosial_kemasyarakatan
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'sosial_kemasyarakatan'])
+            ->assertSet('formMode', 'create_individual')
+            ->assertSet('type', 'sosial_kemasyarakatan')
+            ->assertHasNoErrors();
+
+        // Type: lainnya
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'lainnya'])
+            ->assertSet('formMode', 'create_individual')
+            ->assertSet('type', 'lainnya')
+            ->assertHasNoErrors();
+
+        // Default type
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'create'])
+            ->assertSet('formMode', 'create_individual')
+            ->assertSet('type', 'lainnya')
+            ->assertHasNoErrors();
+    }
+
+    public function test_student_can_create_individual_program_with_sdg_category(): void
+    {
+        [$student, $participant] = $this->createApprovedParticipant();
+
+        $sdg = SdgCategory::first();
+
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'sosial_kemasyarakatan'])
+            ->set('title', 'Bakti Sosial Lingkungan')
+            ->set('execution_date', '2026-06-01')
+            ->set('role_in_program', 'Koordinator Lapangan')
+            ->set('responsibility', 'Mengatur logistik dan koordinasi warga')
+            ->set('sdg_category', (string) $sdg->code)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('programs.index'));
+
+        $this->assertDatabaseHas('programs', [
+            'group_id' => $student->group_id,
+            'student_id' => $student->id,
+            'title' => 'Bakti Sosial Lingkungan',
+            'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->value('id'),
+        ]);
+
+        $createdProgram = Program::where('title', 'Bakti Sosial Lingkungan')->first();
+        $this->assertNotNull($createdProgram);
+        $this->assertDatabaseHas('program_participants', [
+            'program_id' => $createdProgram->id,
+            'student_id' => $student->id,
+            'sdg_category_id' => $sdg->id,
+        ]);
+    }
+
+    public function test_student_can_join_multidisiplin_theme_with_sdg_category(): void
+    {
+        [$student, $participant] = $this->createApprovedParticipant();
+
+        $theme = Program::create([
+            'group_id' => $student->group_id,
+            'student_id' => null,
+            'title' => 'Pemberdayaan UMKM Desa',
+            'program_type_id' => ProgramType::where('code', 'multidisiplin')->value('id'),
+            'sequence' => 1,
+        ]);
+
+        $sdg = SdgCategory::where('code', 8)->first() ?? SdgCategory::first();
+
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'multidisiplin'])
+            ->set('programId', (string) $theme->id)
+            ->assertSet('formMode', 'edit_program')
+            ->set('participant_title', 'Pelatihan Digital Marketing')
+            ->set('problem_potential', 'Kurangnya pemahaman promosi online')
+            ->set('location', 'Balai Desa')
+            ->set('method', 'Workshop dan pendampingan')
+            ->set('target_audience', 'Pelaku UMKM')
+            ->set('output_target', '10 UMKM memiliki akun media sosial bisnis')
+            ->set('execution_date', '2026-06-15')
+            ->set('sdg_category', (string) $sdg->code)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('programs.index'));
+
+        $this->assertDatabaseHas('program_participants', [
+            'program_id' => $theme->id,
+            'student_id' => $student->id,
+            'participant_title' => 'Pelatihan Digital Marketing',
+            'sdg_category_id' => $sdg->id,
+        ]);
+    }
+
+    public function test_student_can_edit_program_and_sdg_category_is_preserved(): void
+    {
+        [$student, $participant] = $this->createApprovedParticipant();
+
+        $sdg = SdgCategory::where('code', 4)->first() ?? SdgCategory::first();
+        $participant->update([
+            'sdg_category_id' => $sdg->id,
+            'role_in_program' => 'Anggota Tim',
+            'responsibility' => 'Tugas dokumentasi',
+            'execution_date' => '2026-06-20',
+        ]);
+
+        Livewire::actingAs($student)
+            ->test(ProgramForm::class, [
+                'action' => 'edit',
+                'programId' => $participant->program_id,
+                'participantId' => $participant->id,
+            ])
+            ->assertSet('sdg_category', (string) $sdg->code)
+            ->set('title', 'Program Dokumentasi Diperbarui')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('program_participants', [
+            'id' => $participant->id,
+            'sdg_category_id' => $sdg->id,
+        ]);
+    }
 
     public function test_lpk_form_resolves_google_drive_thumbnail_for_preview(): void
     {
