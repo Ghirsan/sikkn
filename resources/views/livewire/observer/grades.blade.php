@@ -12,6 +12,12 @@
             @endif
 
             <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM...') }}" size="sm" class="w-64" />
+
+            @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
+            <flux:button wire:click="exportSiapExcel" icon="document-arrow-down" variant="primary" size="sm">
+                {{ __('Export Nilai SIAP') }}
+            </flux:button>
+            @endif
         </div>
     </div>
 

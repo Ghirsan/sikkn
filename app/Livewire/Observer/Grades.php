@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Livewire\Concerns\ScopesObserverQuery;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\GradeExcelService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,6 +18,32 @@ class Grades extends Component
     public string $search = '';
 
     public string $studyProgramId = '';
+
+    public function exportSiapExcel(GradeExcelService $excelService)
+    {
+        $user = auth()->user();
+
+        $query = User::where('role', UserRole::Mahasiswa)
+            ->with(['group.period', 'studyProgram', 'faculty', 'grade']);
+
+        $query = $this->applyObserverScope($query);
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('nim', 'like', '%'.$this->search.'%');
+            });
+        }
+
+        if ($this->studyProgramId) {
+            $query->where('study_program_id', $this->studyProgramId);
+        }
+
+        $students = $query->orderBy('name')->get();
+        $facultyName = $user->faculty ? $user->faculty->name : null;
+
+        return $excelService->exportFacultySiapGrades($students, $facultyName);
+    }
 
     public function render()
     {
