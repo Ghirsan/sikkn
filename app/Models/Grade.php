@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -154,5 +155,48 @@ class Grade extends Model
             $this->final_grade >= 50 => 'D',
             default => 'E',
         };
+    }
+
+    public function isPassing(): bool
+    {
+        return $this->final_grade >= 50 && $this->grade_letter !== 'E';
+    }
+
+    public function scopeForDpl(Builder $query, int $dplId): Builder
+    {
+        return $query->where('dpl_id', $dplId);
+    }
+
+    public function scopeForGroup(Builder $query, int $groupId): Builder
+    {
+        return $query->whereHas('student', function (Builder $q) use ($groupId) {
+            $q->where('group_id', $groupId);
+        });
+    }
+
+    public function scopePassed(Builder $query): Builder
+    {
+        return $query->where('final_grade', '>=', 50)->where('grade_letter', '!=', 'E');
+    }
+
+    public function scopeFailed(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where('final_grade', '<', 50)->orWhere('grade_letter', 'E');
+        });
+    }
+
+    public function scopeForStudyProgram(Builder $query, int $studyProgramId): Builder
+    {
+        return $query->whereHas('student', function (Builder $q) use ($studyProgramId) {
+            $q->where('study_program_id', $studyProgramId);
+        });
+    }
+
+    public function scopeForFaculty(Builder $query, int $facultyId): Builder
+    {
+        return $query->whereHas('student', function (Builder $q) use ($facultyId) {
+            $q->where('faculty_id', $facultyId);
+        });
     }
 }

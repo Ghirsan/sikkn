@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,13 @@ class Program extends Model
         'sequence',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'sequence' => 'integer',
+        ];
+    }
+
     protected static function booted()
     {
         static::deleted(function ($program) {
@@ -33,7 +41,9 @@ class Program extends Model
         }
 
         // Ambil sisa program di kelompok dan tipe yang sama, urutkan dari yang pertama dibuat
-        $query = static::where('group_id', $groupId)->whereType($type);
+        $query = static::with(['participants.program.programType', 'programType'])
+            ->where('group_id', $groupId)
+            ->whereType($type);
 
         if ($studentId) {
             $query->where('student_id', $studentId);
@@ -133,10 +143,40 @@ class Program extends Model
     /**
      * Scope a query to only include programs of a given type by code.
      */
-    public function scopeWhereType($query, $code)
+    public function scopeWhereType(Builder $query, string $code): Builder
     {
-        return $query->whereHas('programType', function ($q) use ($code) {
+        return $query->whereHas('programType', function (Builder $q) use ($code) {
             $q->where('code', $code);
+        });
+    }
+
+    public function scopeForGroup(Builder $query, int $groupId): Builder
+    {
+        return $query->where('group_id', $groupId);
+    }
+
+    public function scopeMultidisiplin(Builder $query): Builder
+    {
+        return $this->scopeWhereType($query, 'multidisiplin');
+    }
+
+    public function scopeMonodisiplin(Builder $query): Builder
+    {
+        return $query->whereNotNull('student_id');
+    }
+
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        if (blank($term)) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $q) use ($term) {
+            $q->where('title', 'like', "%{$term}%")
+                ->orWhereHas('student', function (Builder $sq) use ($term) {
+                    $sq->where('name', 'like', "%{$term}%")
+                        ->orWhere('nim', 'like', "%{$term}%");
+                });
         });
     }
 

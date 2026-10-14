@@ -22,6 +22,30 @@ class GradeWeight extends Model
         ];
     }
 
+    protected static ?array $cachedWeights = null;
+
+    protected static ?array $cachedPercentages = null;
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            static::flushCache();
+        });
+
+        static::deleted(function () {
+            static::flushCache();
+        });
+    }
+
+    /**
+     * Flush in-memory cached weights.
+     */
+    public static function flushCache(): void
+    {
+        static::$cachedWeights = null;
+        static::$cachedPercentages = null;
+    }
+
     /**
      * Default weights for the SIAP grading components (as multipliers, e.g. 0.30 = 30%).
      *
@@ -64,8 +88,12 @@ class GradeWeight extends Model
      *
      * @return array<string, float>
      */
-    public static function getWeights(): array
+    public static function getWeights(bool $fresh = false): array
     {
+        if (static::$cachedWeights !== null && ! $fresh) {
+            return static::$cachedWeights;
+        }
+
         $defaults = static::defaultWeights();
 
         try {
@@ -75,7 +103,7 @@ class GradeWeight extends Model
                 })
                 ->toArray();
 
-            return array_merge($defaults, $weights);
+            return static::$cachedWeights = array_merge($defaults, $weights);
         } catch (\Throwable) {
             return $defaults;
         }
@@ -86,10 +114,14 @@ class GradeWeight extends Model
      *
      * @return array<string, float>
      */
-    public static function getPercentages(): array
+    public static function getPercentages(bool $fresh = false): array
     {
-        $weights = static::getWeights();
+        if (static::$cachedPercentages !== null && ! $fresh) {
+            return static::$cachedPercentages;
+        }
 
-        return array_map(fn ($val) => round($val * 100, 2), $weights);
+        $weights = static::getWeights($fresh);
+
+        return static::$cachedPercentages = array_map(fn ($val) => round($val * 100, 2), $weights);
     }
 }

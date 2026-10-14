@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\PeriodStatus;
 use App\Enums\Semester;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,6 +28,7 @@ class Period extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'semester' => Semester::class,
+            'year' => 'integer',
         ];
     }
 
@@ -40,39 +43,73 @@ class Period extends Model
     /**
      * Get a formatted display name for the period.
      */
-    public function getDisplayNameAttribute(): string
+    protected function displayName(): Attribute
     {
-        if ($this->name) {
-            return $this->name.' ('.$this->semester->value.' '.$this->year.')';
-        }
-
-        return 'Semester '.$this->semester->value.' '.$this->year;
-    }
-
-    /**
-     * Scope to active periods.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('start_date', '<=', now())
-            ->where('end_date', '>=', now());
+        return Attribute::make(
+            get: fn () => $this->name
+                ? $this->name.' ('.$this->semester->value.' '.$this->year.')'
+                : 'Semester '.$this->semester->value.' '.$this->year,
+        );
     }
 
     /**
      * Dynamically determine the status based on dates.
      */
-    public function getStatusAttribute(): PeriodStatus
+    protected function status(): Attribute
     {
-        $now = now()->startOfDay();
-        $start = $this->start_date->startOfDay();
-        $end = $this->end_date->startOfDay();
+        return Attribute::make(
+            get: function () {
+                $now = now()->startOfDay();
+                $start = $this->start_date?->startOfDay();
+                $end = $this->end_date?->startOfDay();
 
-        if ($now->lt($start)) {
-            return PeriodStatus::Inactive;
-        } elseif ($now->gt($end)) {
-            return PeriodStatus::Completed;
-        }
+                if (! $start || ! $end) {
+                    return PeriodStatus::Inactive;
+                }
 
-        return PeriodStatus::Active;
+                if ($now->lt($start)) {
+                    return PeriodStatus::Inactive;
+                } elseif ($now->gt($end)) {
+                    return PeriodStatus::Completed;
+                }
+
+                return PeriodStatus::Active;
+            }
+        );
+    }
+
+    /**
+     * Scope to active periods.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        $today = now()->toDateString();
+
+        return $query->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today);
+    }
+
+    /**
+     * Scope to inactive / upcoming periods.
+     */
+    public function scopeUpcoming(Builder $query): Builder
+    {
+        return $query->where('start_date', '>', now()->toDateString());
+    }
+
+    /**
+     * Scope to completed periods.
+     */
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->where('end_date', '<', now()->toDateString());
+    }
+
+    /**
+     * Scope to order by descending start date.
+     */
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderByDesc('start_date');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LogStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class MentoringLog extends Model
         return [
             'date' => 'date',
             'status' => LogStatus::class,
+            'student_count' => 'integer',
         ];
     }
 
@@ -55,5 +57,40 @@ class MentoringLog extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function isEditable(): bool
+    {
+        return $this->status !== LogStatus::Approved;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === LogStatus::Approved;
+    }
+
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', LogStatus::Approved);
+    }
+
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status', LogStatus::Pending);
+    }
+
+    public function scopeForStudent(Builder $query, int $studentId): Builder
+    {
+        return $query->where('student_id', $studentId);
+    }
+
+    public function scopeForGroup(Builder $query, int $groupId): Builder
+    {
+        return $query->where('group_id', $groupId);
+    }
+
+    public function scopeBetweenDates(Builder $query, $startDate, $endDate): Builder
+    {
+        return $query->whereBetween('date', [$startDate, $endDate]);
     }
 }

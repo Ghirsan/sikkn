@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\ProgramOutputType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ParticipantOutput extends Model
 {
@@ -25,9 +27,21 @@ class ParticipantOutput extends Model
         ];
     }
 
-    public function participant()
+    public function participant(): BelongsTo
     {
         return $this->belongsTo(ProgramParticipant::class, 'program_participant_id');
+    }
+
+    public function scopeForParticipant(Builder $query, int $participantId): Builder
+    {
+        return $query->where('program_participant_id', $participantId);
+    }
+
+    public function scopeType(Builder $query, ProgramOutputType|string $type): Builder
+    {
+        $value = $type instanceof ProgramOutputType ? $type->value : $type;
+
+        return $query->where('type', $value);
     }
 
     /**

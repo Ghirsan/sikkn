@@ -4,7 +4,10 @@ namespace App\Models;
 
 use App\Enums\ProgramStatus;
 use App\Services\ExternalImagePreviewUrl;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProgramParticipant extends Model
 {
@@ -87,19 +90,24 @@ class ProgramParticipant extends Model
         return $baseCode;
     }
 
-    public function program()
+    public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
     }
 
-    public function student()
+    public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
     }
 
-    public function outputs()
+    public function outputs(): HasMany
     {
         return $this->hasMany(ParticipantOutput::class, 'program_participant_id');
+    }
+
+    public function sdgCategory(): BelongsTo
+    {
+        return $this->belongsTo(SdgCategory::class);
     }
 
     public function isEditable(): bool
@@ -129,8 +137,40 @@ class ProgramParticipant extends Model
         }
     }
 
-    public function sdgCategory()
+    public function getDocumentationImageUrlAttribute(): ?string
     {
-        return $this->belongsTo(SdgCategory::class);
+        return $this->documentationImageUrl();
+    }
+
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', ProgramStatus::Approved);
+    }
+
+    public function scopeNeedsRevision(Builder $query): Builder
+    {
+        return $query->where('status', ProgramStatus::NeedsRevision);
+    }
+
+    public function scopeDraft(Builder $query): Builder
+    {
+        return $query->where('status', ProgramStatus::Draft);
+    }
+
+    public function scopeLpkApproved(Builder $query): Builder
+    {
+        return $query->where('lpk_status', ProgramStatus::Approved);
+    }
+
+    public function scopeForStudent(Builder $query, int $studentId): Builder
+    {
+        return $query->where('student_id', $studentId);
+    }
+
+    public function scopeForGroup(Builder $query, int $groupId): Builder
+    {
+        return $query->whereHas('program', function (Builder $q) use ($groupId) {
+            $q->where('group_id', $groupId);
+        });
     }
 }

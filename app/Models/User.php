@@ -7,10 +7,12 @@ use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -244,10 +246,105 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the program participations for this student.
+     */
+    public function programParticipants(): HasMany
+    {
+        return $this->hasMany(ProgramParticipant::class, 'student_id');
+    }
+
+    /**
      * Get the program outputs produced by this student.
      */
-    public function programOutputs(): HasMany
+    public function participantOutputs(): HasManyThrough
     {
-        return $this->hasMany(ProgramOutput::class, 'student_id');
+        return $this->hasManyThrough(
+            ParticipantOutput::class,
+            ProgramParticipant::class,
+            'student_id',
+            'program_participant_id'
+        );
+    }
+
+    /**
+     * Alias for participantOutputs.
+     */
+    public function programOutputs(): HasManyThrough
+    {
+        return $this->participantOutputs();
+    }
+
+    /**
+     * Get grades submitted by this DPL.
+     */
+    public function dplGrades(): HasMany
+    {
+        return $this->hasMany(Grade::class, 'dpl_id');
+    }
+
+    // ── Scopes ───────────────────────────────────────────────────
+
+    public function scopeRole(Builder $query, UserRole|string $role): Builder
+    {
+        $value = $role instanceof UserRole ? $role->value : $role;
+
+        return $query->where('role', $value);
+    }
+
+    public function scopeMahasiswa(Builder $query): Builder
+    {
+        return $this->scopeRole($query, UserRole::Mahasiswa);
+    }
+
+    public function scopeDpl(Builder $query): Builder
+    {
+        return $this->scopeRole($query, UserRole::Dpl);
+    }
+
+    public function scopeP2kkn(Builder $query): Builder
+    {
+        return $this->scopeRole($query, UserRole::P2kkn);
+    }
+
+    public function scopeProdi(Builder $query): Builder
+    {
+        return $this->scopeRole($query, UserRole::Prodi);
+    }
+
+    public function scopeFakultas(Builder $query): Builder
+    {
+        return $this->scopeRole($query, UserRole::Fakultas);
+    }
+
+    public function scopeForStudyProgram(Builder $query, int $studyProgramId): Builder
+    {
+        return $query->where('study_program_id', $studyProgramId);
+    }
+
+    public function scopeForFaculty(Builder $query, int $facultyId): Builder
+    {
+        return $query->where('faculty_id', $facultyId);
+    }
+
+    public function scopeInGroup(Builder $query, int $groupId): Builder
+    {
+        return $query->where('group_id', $groupId);
+    }
+
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        if (blank($term)) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $q) use ($term) {
+            $q->where('name', 'like', "%{$term}%")
+                ->orWhere('email', 'like', "%{$term}%")
+                ->orWhere('nim', 'like', "%{$term}%")
+                ->orWhere('nip', 'like', "%{$term}%")
+                ->orWhereHas('studyProgram', function (Builder $sq) use ($term) {
+                    $sq->where('name', 'like', "%{$term}%");
+                });
+        });
     }
 }
