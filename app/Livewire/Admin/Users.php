@@ -191,7 +191,7 @@ class Users extends Component
         }
 
         return view('livewire.admin.users', [
-            'users' => $query->paginate(15),
+            'users' => $query->paginate(10),
         ]);
     }
 }

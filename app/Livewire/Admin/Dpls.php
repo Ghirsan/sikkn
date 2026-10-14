@@ -6,9 +6,12 @@ use App\Enums\UserRole;
 use App\Models\Period;
 use App\Models\User;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Dpls extends Component
 {
+    use WithPagination;
+
     public ?int $periodId = null;
 
     public string $search = '';
@@ -18,9 +21,19 @@ class Dpls extends Component
         $this->periodId = Period::active()->first()?->id;
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPeriodId(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $query = User::where('role', UserRole::Dpl)->with('dplGroups.period');
+        $query = User::where('role', UserRole::Dpl)->with(['studyProgram', 'dplGroups.period']);
 
         if ($this->periodId) {
             $query->whereHas('dplGroups', function ($q) {
@@ -35,16 +48,23 @@ class Dpls extends Component
             });
         }
 
-        $dpls = $query->latest()->get();
-        $totalDpls = User::where('role', UserRole::Dpl)->count(); // global total available
+        $dpls = $query->latest()->paginate(10);
+        $totalDpls = User::where('role', UserRole::Dpl)->count();
+
+        $assignedQuery = User::where('role', UserRole::Dpl)->whereHas('dplGroups', function ($q) {
+            if ($this->periodId) {
+                $q->where('period_id', $this->periodId);
+            }
+        });
+        $assignedCount = $assignedQuery->count();
 
         return view('livewire.admin.dpls', [
             'dpls' => $dpls,
             'periods' => Period::orderByDesc('start_date')->get(),
             'stats' => [
-                'total' => $totalDpls, // total DPL di database
-                'assigned' => $dpls->filter(fn ($dpl) => $dpl->dplGroups->count() > 0)->count(),
-                'unassigned' => $totalDpls - User::where('role', UserRole::Dpl)->whereHas('dplGroups')->count(),
+                'total' => $totalDpls,
+                'assigned' => $assignedCount,
+                'unassigned' => max(0, $totalDpls - $assignedCount),
             ],
         ]);
     }

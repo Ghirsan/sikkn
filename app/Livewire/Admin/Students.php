@@ -6,9 +6,12 @@ use App\Enums\UserRole;
 use App\Models\Period;
 use App\Models\User;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Students extends Component
 {
+    use WithPagination;
+
     public ?int $periodId = null;
 
     public string $search = '';
@@ -16,6 +19,16 @@ class Students extends Component
     public function mount()
     {
         $this->periodId = Period::active()->first()?->id;
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPeriodId(): void
+    {
+        $this->resetPage();
     }
 
     public function render()
@@ -38,10 +51,12 @@ class Students extends Component
             });
         }
 
+        $students = $query->latest()->paginate(10);
+
         return view('livewire.admin.students', [
-            'students' => $query->latest()->paginate(20),
+            'students' => $students,
             'periods' => Period::orderByDesc('start_date')->get(),
-            'totalStudents' => $query->count(),
+            'totalStudents' => $students->total(),
         ]);
     }
 }

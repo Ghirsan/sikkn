@@ -26,7 +26,7 @@
         @if($groups->isEmpty())
             <x-empty-state icon="user-group" :heading="__('Tidak Ada Data Kelompok')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$groups">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Nama Kelompok') }}</flux:table.column>
                     <flux:table.column>{{ __('Jenis') }}</flux:table.column>

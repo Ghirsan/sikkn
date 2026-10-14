@@ -26,7 +26,7 @@
         @if($dpls->isEmpty())
             <x-empty-state icon="user-circle" :heading="__('Tidak Ada Data Dosen KKN')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$dpls">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Nama Dosen KKN') }}</flux:table.column>
                     <flux:table.column>{{ __('NIP') }}</flux:table.column>

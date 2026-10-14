@@ -9,9 +9,12 @@ use App\Models\User;
 use Carbon\Carbon;
 use Flux\Flux;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Groups extends Component
 {
+    use WithPagination;
+
     public ?int $periodId = null;
 
     public string $search = '';
@@ -19,6 +22,16 @@ class Groups extends Component
     public function mount()
     {
         $this->periodId = Period::active()->first()?->id;
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPeriodId(): void
+    {
+        $this->resetPage();
     }
 
     public bool $showAssignModal = false;
@@ -136,7 +149,7 @@ class Groups extends Component
 
     public function render()
     {
-        $query = Group::with(['period', 'dpls'])->withCount('students');
+        $query = Group::query();
 
         if ($this->periodId) {
             $query->where('period_id', $this->periodId);
@@ -149,7 +162,13 @@ class Groups extends Component
             });
         }
 
-        $groups = $query->latest()->get();
+        $groups = (clone $query)
+            ->with(['period', 'dpls', 'groupType', 'leadDpl'])
+            ->withCount('students')
+            ->latest()
+            ->paginate(10);
+
+        $withDpl = (clone $query)->has('dpls')->count();
         $availableDpls = User::where('role', UserRole::Dpl)->get();
 
         return view('livewire.admin.groups', [
@@ -157,9 +176,9 @@ class Groups extends Component
             'availableDpls' => $availableDpls,
             'periods' => Period::orderByDesc('start_date')->get(),
             'stats' => [
-                'total' => $groups->count(),
-                'with_dpl' => $groups->filter(fn ($g) => $g->dpls->count() > 0)->count(),
-                'without_dpl' => $groups->filter(fn ($g) => $g->dpls->count() == 0)->count(),
+                'total' => $groups->total(),
+                'with_dpl' => $withDpl,
+                'without_dpl' => max(0, $groups->total() - $withDpl),
             ],
         ]);
     }
