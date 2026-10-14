@@ -79,31 +79,33 @@ class StudyProgramSeeder extends Seeder
             ['code' => '400406', 'faculty' => 'SEKOLAH VOKASI', 'name' => 'Teknik Listrik Industri D4', 'short_name' => 'SV'],
         ];
 
+        $now = now();
         $facultiesData = [];
         foreach ($programs as $program) {
             $facultyCode = substr($program['code'], 0, 2);
             $facultiesData[$program['faculty']] = [
                 'code' => $facultyCode,
+                'name' => $program['faculty'],
                 'short_name' => $program['short_name'],
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
 
-        $faculties = [];
-        foreach ($facultiesData as $name => $data) {
-            $faculties[$name] = Faculty::updateOrCreate(
-                ['code' => $data['code']],
-                ['name' => $name, 'short_name' => $data['short_name']]
-            );
+        Faculty::upsert(array_values($facultiesData), ['code'], ['name', 'short_name', 'updated_at']);
+        $facultyMap = Faculty::pluck('id', 'name');
+
+        $studyProgramsData = [];
+        foreach ($programs as $program) {
+            $studyProgramsData[] = [
+                'code' => $program['code'],
+                'faculty_id' => $facultyMap[$program['faculty']],
+                'name' => $program['name'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        foreach ($programs as $program) {
-            StudyProgram::updateOrCreate(
-                ['code' => $program['code']],
-                [
-                    'faculty_id' => $faculties[$program['faculty']]->id,
-                    'name' => $program['name'],
-                ]
-            );
-        }
+        StudyProgram::upsert($studyProgramsData, ['code'], ['faculty_id', 'name', 'updated_at']);
     }
 }
