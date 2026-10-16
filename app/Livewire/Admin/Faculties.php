@@ -7,10 +7,11 @@ use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Faculties extends Component
 {
-    public $faculties;
+    use WithPagination;
 
     public $isEditing = false;
 
@@ -23,16 +24,6 @@ class Faculties extends Component
     public $short_name = '';
 
     public $deletingId = null;
-
-    public function mount()
-    {
-        $this->loadFaculties();
-    }
-
-    public function loadFaculties()
-    {
-        $this->faculties = Faculty::orderBy('code')->get();
-    }
 
     public function resetForm()
     {
@@ -90,7 +81,6 @@ class Faculties extends Component
             $message = 'Fakultas berhasil ditambahkan.';
         }
 
-        $this->loadFaculties();
         $this->dispatch('modal-close', name: 'faculty-modal');
         $this->dispatch('toast', message: $message, type: 'success');
     }
@@ -115,13 +105,14 @@ class Faculties extends Component
 
         $faculty->delete();
 
-        $this->loadFaculties();
         $this->dispatch('modal-close', name: 'delete-faculty-modal');
         $this->dispatch('toast', message: 'Fakultas berhasil dihapus.', type: 'success');
     }
 
     public function render()
     {
-        return view('livewire.admin.faculties');
+        return view('livewire.admin.faculties', [
+            'faculties' => Faculty::orderBy('code')->paginate(10),
+        ]);
     }
 }

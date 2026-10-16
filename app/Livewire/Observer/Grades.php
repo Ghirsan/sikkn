@@ -69,7 +69,7 @@ class Grades extends Component
         }
 
         return view('livewire.observer.grades', [
-            'students' => $query->latest()->paginate(20),
+            'students' => $query->latest()->paginate(10),
             'studyPrograms' => $studyPrograms,
         ]);
     }

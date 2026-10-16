@@ -11,7 +11,7 @@
         @if($faculties->isEmpty())
             <x-empty-state icon="building-office-2" :heading="__('Belum ada data fakultas')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$faculties">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Kode') }}</flux:table.column>
                     <flux:table.column>{{ __('Singkatan') }}</flux:table.column>

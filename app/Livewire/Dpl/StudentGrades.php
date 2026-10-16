@@ -2,21 +2,30 @@
 
 namespace App\Livewire\Dpl;
 
-use App\Enums\PeriodStatus;
+use App\Enums\UserRole;
+use App\Models\Period;
+use App\Models\User;
 use App\Services\GradeExcelService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class StudentGrades extends Component
 {
     use WithFileUploads;
+    use WithPagination;
 
     public string $selectedGroupId = '';
 
     public $gradeFile = null;
 
     public bool $showImportPanel = false;
+
+    public function updatedSelectedGroupId(): void
+    {
+        $this->resetPage();
+    }
 
     /**
      * @var array<string>
@@ -61,12 +70,26 @@ class StudentGrades extends Component
     {
         $user = Auth::user();
 
-        $allGroups = $user->dplGroups()->with('period')->get();
-        $periodCompleted = $allGroups->isNotEmpty() && $allGroups->every(fn ($g) => $g->period?->status === PeriodStatus::Completed);
+        $currentPeriod = Period::current();
 
-        if (! $periodCompleted) {
-            $this->importErrors = ['Penilaian belum dapat diimpor karena masa pelaksanaan KKN belum berakhir.'];
-            $this->dispatch('toast', message: 'Masa pelaksanaan KKN belum berakhir.', type: 'danger');
+        if (! $currentPeriod) {
+            $this->importErrors = ['Tidak ada periode KKN aktif untuk melakukan penilaian.'];
+            $this->dispatch('toast', message: 'Tidak ada periode KKN.', type: 'danger');
+
+            return;
+        }
+
+        $allowedGroupsQuery = $user->dplGroups()->where('period_id', $currentPeriod->id)->with(['students.grade', 'students.group']);
+
+        if ($this->selectedGroupId) {
+            $allowedGroupsQuery->where('groups.id', $this->selectedGroupId);
+        }
+
+        $allowedGroups = $allowedGroupsQuery->get();
+
+        if ($allowedGroups->isEmpty()) {
+            $this->importErrors = ['Kelompok yang dipilih tidak berada pada periode KKN saat ini. Penilaian telah ditutup karena periode baru telah dibuat.'];
+            $this->dispatch('toast', message: 'Penilaian telah ditutup untuk kelompok ini.', type: 'danger');
 
             return;
         }
@@ -79,9 +102,16 @@ class StudentGrades extends Component
             'gradeFile.max' => 'Ukuran file Excel tidak boleh melebihi 10MB.',
         ]);
 
-        $allowedStudents = $user->dplGroups()->with(['students.grade', 'students.group'])->get()->pluck('students')->flatten();
+        $allowedStudents = $allowedGroups->pluck('students')->flatten();
 
         $result = $excelService->importDplGrades($this->gradeFile, $user, $allowedStudents);
+
+        // Clean up temporary file immediately from server
+        try {
+            $this->gradeFile?->delete();
+        } catch (\Throwable) {
+            // Ignore if already cleaned up
+        }
 
         if ($result['success']) {
             $this->reset(['gradeFile', 'importErrors']);
@@ -103,7 +133,7 @@ class StudentGrades extends Component
     {
         $user = Auth::user();
 
-        $groupsQuery = $user->dplGroups()->with(['students.grade', 'period']);
+        $groupsQuery = $user->dplGroups()->with(['period']);
 
         if ($this->selectedGroupId) {
             $groupsQuery->where('groups.id', $this->selectedGroupId);
@@ -112,22 +142,32 @@ class StudentGrades extends Component
         $groups = $groupsQuery->get();
         $allGroups = $user->dplGroups()->get();
 
-        // If there's no period, or if ANY group is not completed, we consider period not completed.
-        // It's safer to just check if every group is completed.
-        $periodCompleted = $groups->isNotEmpty() && $groups->every(fn ($g) => $g->period?->status === PeriodStatus::Completed);
+        $currentPeriod = Period::current();
 
-        $students = $groups->pluck('students')->flatten();
-        $graded = $students->filter(fn ($s) => $s->grade !== null)->count();
+        // Grading is open if any of the displayed groups belong to the current period
+        $isGradingOpen = $currentPeriod !== null && $groups->isNotEmpty() && $groups->some(fn ($g) => $g->period_id === $currentPeriod->id);
+
+        $assignedGroupIds = $groups->pluck('id');
+
+        $studentsQuery = User::where('role', UserRole::Mahasiswa)
+            ->whereIn('group_id', $assignedGroupIds)
+            ->with(['grade', 'studyProgram', 'group']);
+
+        $totalStudents = (clone $studentsQuery)->count();
+        $gradedCount = (clone $studentsQuery)->whereHas('grade')->count();
+
+        $students = $studentsQuery->latest()->paginate(10);
 
         return view('livewire.dpl.student-grades', [
             'groups' => $groups,
             'allGroups' => $allGroups,
             'students' => $students,
-            'periodCompleted' => $periodCompleted,
+            'isGradingOpen' => $isGradingOpen,
+            'currentPeriod' => $currentPeriod,
             'stats' => [
-                'total' => $students->count(),
-                'graded' => $graded,
-                'ungraded' => $students->count() - $graded,
+                'total' => $totalStudents,
+                'graded' => $gradedCount,
+                'ungraded' => max(0, $totalStudents - $gradedCount),
             ],
         ]);
     }

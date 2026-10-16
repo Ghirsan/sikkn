@@ -4,6 +4,7 @@ namespace Tests\Feature\Dpl;
 
 use App\Enums\PeriodStatus;
 use App\Enums\Semester;
+use App\Livewire\Dpl\StudentGradeForm;
 use App\Livewire\Dpl\StudentGrades;
 use App\Models\Grade;
 use App\Models\Group;
@@ -222,11 +223,39 @@ class StudentGradesExcelTest extends TestCase
         ]);
     }
 
-    public function test_dpl_cannot_import_if_period_not_completed(): void
+    public function test_dpl_can_import_and_grade_bit_by_bit_while_period_is_active(): void
     {
         $this->period->update([
             'start_date' => now()->subDays(10),
             'end_date' => now()->addDays(10),
+        ]);
+
+        $file = $this->createExcelFile([
+            [1, 'Budi Santoso', '24060120120001', 'Informatika', 'Sains dan Matematika', 'Desa Sukamaju', 85, 85, 85, 85, 85, 85, 85, 85, 'Bit by bit grading'],
+        ]);
+
+        Livewire::actingAs($this->dpl)
+            ->test(StudentGrades::class)
+            ->set('gradeFile', $file)
+            ->call('importExcel')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast');
+
+        $this->assertDatabaseHas('grades', [
+            'student_id' => $this->student1->id,
+            'dpl_id' => $this->dpl->id,
+            'keterangan' => 'Bit by bit grading',
+        ]);
+    }
+
+    public function test_dpl_cannot_import_if_period_superseded_by_new_period(): void
+    {
+        // Admin creates a newer period, making $this->period no longer the current period
+        Period::create([
+            'semester' => Semester::Genap->value,
+            'year' => 2026,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-08-01',
         ]);
 
         $file = $this->createExcelFile([
@@ -239,9 +268,32 @@ class StudentGradesExcelTest extends TestCase
             ->call('importExcel');
 
         $this->assertNotEmpty($component->get('importErrors'));
+        $this->assertContains(
+            'Kelompok yang dipilih tidak berada pada periode KKN saat ini. Penilaian telah ditutup karena periode baru telah dibuat.',
+            $component->get('importErrors')
+        );
         $this->assertDatabaseMissing('grades', [
             'student_id' => $this->student1->id,
         ]);
+    }
+
+    public function test_dpl_single_student_grade_form_blocked_when_period_superseded(): void
+    {
+        // Admin creates a newer period
+        Period::create([
+            'semester' => Semester::Genap->value,
+            'year' => 2026,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-08-01',
+        ]);
+
+        $component = Livewire::actingAs($this->dpl)
+            ->test(StudentGradeForm::class, ['student' => $this->student1->id]);
+
+        $this->assertFalse($component->get('isGradingOpen'));
+
+        $component->call('saveGrade')
+            ->assertStatus(403);
     }
 
     public function test_dpl_import_handles_nim_in_scientific_notation_or_float(): void

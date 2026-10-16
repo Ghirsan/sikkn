@@ -1,18 +1,9 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
-    @if($allGroups->count() > 1)
-        <div class="flex items-center justify-end">
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
-                <option value="">{{ __('Semua Kelompok') }}</option>
-                @foreach($allGroups as $g)
-                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
-                @endforeach
-            </flux:select>
-        </div>
-    @endif
-    @if(!$periodCompleted)
+    
+    @if(!$isGradingOpen)
         <flux:callout variant="warning" icon="exclamation-triangle">
-            <flux:callout.heading>{{ __('Penilaian Belum Dibuka') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('Formulir penilaian akan terbuka setelah masa pelaksanaan KKN berakhir.') }}</flux:callout.text>
+            <flux:callout.heading>{{ __('Periode Penilaian Ditutup') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('Penilaian untuk periode KKN ini telah ditutup karena periode KKN baru telah dibuat.') }}</flux:callout.text>
         </flux:callout>
     @endif
 
@@ -25,7 +16,15 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
         <div class="flex flex-wrap items-center gap-2">
-            <flux:button wire:click="toggleImportPanel" icon="arrow-up-tray" variant="{{ $showImportPanel ? 'filled' : 'subtle' }}" size="sm" :disabled="!$periodCompleted">
+            @if($allGroups->count() > 1)
+                <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
+                    <option value="">{{ __('Semua Kelompok') }}</option>
+                    @foreach($allGroups as $g)
+                        <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
+                    @endforeach
+                </flux:select>
+            @endif
+            <flux:button wire:click="toggleImportPanel" icon="arrow-up-tray" variant="{{ $showImportPanel ? 'filled' : 'subtle' }}" size="sm" :disabled="!$isGradingOpen">
                 {{ __('Import Nilai Excel') }}
             </flux:button>
             <flux:button wire:click="exportExcel" icon="document-arrow-down" variant="primary" size="sm">
@@ -96,7 +95,7 @@
         @if($students->isEmpty())
             <x-empty-state icon="academic-cap" :heading="__('Belum Ada Mahasiswa')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$students">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Mahasiswa') }}</flux:table.column>
                     <flux:table.column>{{ __('NIM') }}</flux:table.column>
@@ -129,8 +128,11 @@
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:button size="sm" variant="ghost" icon="pencil-square" href="{{ route('dpl.grades.form', $student->id) }}" wire:navigate :disabled="!$periodCompleted">
-                                    {{ __('Nilai Mahasiswa') }}
+                                @php
+                                    $canGradeStudent = $currentPeriod && $student->group?->period_id === $currentPeriod->id;
+                                @endphp
+                                <flux:button size="sm" variant="ghost" :icon="$canGradeStudent ? 'pencil-square' : 'eye'" href="{{ route('dpl.grades.form', $student->id) }}" wire:navigate>
+                                    {{ $canGradeStudent ? __('Nilai Mahasiswa') : __('Lihat Nilai') }}
                                 </flux:button>
                             </flux:table.cell>
                         </flux:table.row>

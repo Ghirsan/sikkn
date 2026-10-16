@@ -11,7 +11,7 @@
         @if($sdgCategories->isEmpty())
             <x-empty-state icon="globe-americas" :heading="__('Belum ada data kategori SDG')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$sdgCategories">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Kode / No') }}</flux:table.column>
                     <flux:table.column>{{ __('Nama') }}</flux:table.column>

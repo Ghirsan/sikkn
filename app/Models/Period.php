@@ -112,4 +112,23 @@ class Period extends Model
     {
         return $query->orderByDesc('start_date');
     }
+
+    /**
+     * Get the current period.
+     * The current period is the latest period ordered by start_date and id.
+     */
+    public static function current(): ?self
+    {
+        return static::orderByDesc('start_date')->orderByDesc('id')->first();
+    }
+
+    /**
+     * Determine if this period is the current period.
+     */
+    public function isCurrent(): bool
+    {
+        $current = static::current();
+
+        return $current !== null && $current->id === $this->id;
+    }
 }

@@ -24,7 +24,7 @@ class Documents extends Component
         }
 
         return view('livewire.observer.documents', [
-            'groups' => $query->latest()->paginate(20),
+            'groups' => $query->latest()->paginate(10),
         ]);
     }
 }

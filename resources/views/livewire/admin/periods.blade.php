@@ -26,7 +26,7 @@
         @if($periods->isEmpty())
             <x-empty-state icon="calendar" :heading="__('Belum Ada Periode')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$periods">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Nama Periode') }}</flux:table.column>
                     <flux:table.column>{{ __('Semester & Tahun') }}</flux:table.column>

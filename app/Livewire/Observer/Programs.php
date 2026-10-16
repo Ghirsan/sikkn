@@ -48,7 +48,7 @@ class Programs extends Component
         }
 
         return view('livewire.observer.programs', [
-            'participants' => $query->latest()->paginate(20),
+            'participants' => $query->latest()->paginate(10),
             'studyPrograms' => $studyPrograms,
         ]);
     }

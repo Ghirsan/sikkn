@@ -44,7 +44,7 @@ class Logbooks extends Component
         }
 
         return view('livewire.observer.logbooks', [
-            'logs' => $query->latest('date')->paginate(20),
+            'logs' => $query->latest('date')->paginate(10),
             'studyPrograms' => $studyPrograms,
         ]);
     }

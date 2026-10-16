@@ -210,4 +210,12 @@ class Group extends Model
     {
         return $query->where('is_lpk_locked', $locked);
     }
+
+    /**
+     * Check if this group belongs to the current period and can be graded.
+     */
+    public function isGradingOpen(): bool
+    {
+        return $this->period?->isCurrent() ?? false;
+    }
 }

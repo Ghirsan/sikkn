@@ -11,7 +11,7 @@
         @if($programTypes->isEmpty())
             <x-empty-state icon="squares-plus" :heading="__('Belum ada data sifat program')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$programTypes">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Kode') }}</flux:table.column>
                     <flux:table.column>{{ __('Nama') }}</flux:table.column>

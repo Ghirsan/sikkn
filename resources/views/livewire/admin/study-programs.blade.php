@@ -11,7 +11,7 @@
         @if($studyPrograms->isEmpty())
             <x-empty-state icon="building-library" :heading="__('Belum ada data program studi')" />
         @else
-            <flux:table>
+            <flux:table :paginate="$studyPrograms">
                 <flux:table.columns>
                     <flux:table.column>{{ __('Kode') }}</flux:table.column>
                     <flux:table.column>{{ __('Nama Program Studi') }}</flux:table.column>

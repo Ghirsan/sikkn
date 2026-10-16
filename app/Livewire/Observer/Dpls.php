@@ -39,7 +39,7 @@ class Dpls extends Component
             $studyPrograms = StudyProgram::where('faculty_id', auth()->user()->faculty_id)->orderBy('name')->get();
         }
 
-        $dpls = $query->latest()->paginate(20);
+        $dpls = $query->latest()->paginate(10);
 
         return view('livewire.observer.dpls', [
             'dpls' => $dpls,

@@ -7,10 +7,11 @@ use App\Models\GroupType;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class GroupTypes extends Component
 {
-    public $groupTypes;
+    use WithPagination;
 
     public $isEditing = false;
 
@@ -21,16 +22,6 @@ class GroupTypes extends Component
     public $code = '';
 
     public $deletingId = null;
-
-    public function mount()
-    {
-        $this->loadGroupTypes();
-    }
-
-    public function loadGroupTypes()
-    {
-        $this->groupTypes = GroupType::orderBy('id')->get();
-    }
 
     public function resetForm()
     {
@@ -84,7 +75,6 @@ class GroupTypes extends Component
             $message = 'Jenis kelompok berhasil ditambahkan.';
         }
 
-        $this->loadGroupTypes();
         $this->dispatch('modal-close', name: 'group-type-modal');
         $this->dispatch('toast', message: $message, type: 'success');
     }
@@ -109,7 +99,6 @@ class GroupTypes extends Component
 
         $type->delete();
 
-        $this->loadGroupTypes();
         $this->dispatch('modal-close', name: 'delete-group-type-modal');
         $this->dispatch('toast', message: 'Jenis kelompok berhasil dihapus.', type: 'success');
     }
@@ -117,6 +106,8 @@ class GroupTypes extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.admin.group-types');
+        return view('livewire.admin.group-types', [
+            'groupTypes' => GroupType::orderBy('id')->paginate(10),
+        ]);
     }
 }

@@ -7,9 +7,12 @@ use App\Models\Period;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Periods extends Component
 {
+    use WithPagination;
+
     public string $name = '';
 
     public Semester $semester = Semester::Ganjil;
@@ -72,7 +75,7 @@ class Periods extends Component
 
     public function render()
     {
-        $periods = Period::withCount('groups')->latest()->get();
+        $periods = Period::withCount('groups')->latest()->paginate(10);
         $activePeriod = Period::active()->first();
 
         return view('livewire.admin.periods', [

@@ -6,10 +6,11 @@ use App\Models\ProgramParticipant;
 use App\Models\SdgCategory;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class SdgCategories extends Component
 {
-    public $sdgCategories;
+    use WithPagination;
 
     public $isEditing = false;
 
@@ -20,16 +21,6 @@ class SdgCategories extends Component
     public $code = '';
 
     public $deletingId = null;
-
-    public function mount()
-    {
-        $this->loadSdgCategories();
-    }
-
-    public function loadSdgCategories()
-    {
-        $this->sdgCategories = SdgCategory::orderBy('code')->get();
-    }
 
     public function resetForm()
     {
@@ -82,7 +73,6 @@ class SdgCategories extends Component
             $message = 'Kategori SDG berhasil ditambahkan.';
         }
 
-        $this->loadSdgCategories();
         $this->dispatch('modal-close', name: 'sdg-category-modal');
         $this->dispatch('toast', message: $message, type: 'success');
     }
@@ -107,13 +97,14 @@ class SdgCategories extends Component
 
         $type->delete();
 
-        $this->loadSdgCategories();
         $this->dispatch('modal-close', name: 'delete-sdg-category-modal');
         $this->dispatch('toast', message: 'Kategori SDG berhasil dihapus.', type: 'success');
     }
 
     public function render()
     {
-        return view('livewire.admin.sdg-categories');
+        return view('livewire.admin.sdg-categories', [
+            'sdgCategories' => SdgCategory::orderBy('code')->paginate(10),
+        ]);
     }
 }

@@ -43,7 +43,7 @@ class Students extends Component
         }
 
         return view('livewire.observer.students', [
-            'students' => $query->latest()->paginate(20),
+            'students' => $query->latest()->paginate(10),
             'totalStudents' => $this->applyObserverScope(User::where('role', UserRole::Mahasiswa))->count(),
             'studyPrograms' => $studyPrograms,
         ]);

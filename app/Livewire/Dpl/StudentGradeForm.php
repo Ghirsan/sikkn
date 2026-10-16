@@ -4,6 +4,7 @@ namespace App\Livewire\Dpl;
 
 use App\Models\Grade;
 use App\Models\GradeWeight;
+use App\Models\Period;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -13,6 +14,8 @@ use Livewire\Component;
 class StudentGradeForm extends Component
 {
     public $student;
+
+    public bool $isGradingOpen = true;
 
     #[Validate('required|numeric|min:0|max:100')]
     public $pembekalan;
@@ -44,7 +47,14 @@ class StudentGradeForm extends Component
     public function mount($student = null)
     {
         $studentId = $student ?? request()->route('student');
-        $this->student = User::with(['grade', 'group'])->findOrFail($studentId);
+        $this->student = User::with(['grade', 'group.period'])->findOrFail($studentId);
+
+        $currentPeriod = Period::current();
+        if ($this->student->group?->period_id && $currentPeriod) {
+            $this->isGradingOpen = $this->student->group->period_id === $currentPeriod->id;
+        } else {
+            $this->isGradingOpen = true;
+        }
 
         // Populate existing grade if any
         if ($this->student->grade) {
@@ -150,6 +160,10 @@ class StudentGradeForm extends Component
 
     public function saveGrade()
     {
+        if (! $this->isGradingOpen) {
+            abort(403, 'Penilaian untuk periode KKN ini telah ditutup karena periode baru telah dibuat.');
+        }
+
         $this->validate();
 
         $grade = Grade::firstOrNew([

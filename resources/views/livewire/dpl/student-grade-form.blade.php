@@ -1,5 +1,12 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
+        @if(!$isGradingOpen)
+            <flux:callout variant="warning" icon="exclamation-triangle">
+                <flux:callout.heading>{{ __('Periode Penilaian Ditutup') }}</flux:callout.heading>
+                <flux:callout.text>{{ __('Penilaian untuk periode KKN ini telah ditutup karena periode baru telah dibuka. Formulir ditampilkan dalam mode hanya-baca.') }}</flux:callout.text>
+            </flux:callout>
+        @endif
+
         <flux:card>
             <form wire:submit="saveGrade" class="flex flex-col gap-6">
                 <div>
@@ -8,21 +15,23 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <flux:input wire:model.live.debounce.300ms="pembekalan" type="number" step="0.01" min="0" max="100" label="{{ __('Pembekalan') }}" />
-                    <flux:input wire:model.live.debounce.300ms="gelar_karya" type="number" step="0.01" min="0" max="100" label="{{ __('Gelar Karya') }}" />
-                    <flux:input wire:model.live.debounce.300ms="kehadiran" type="number" step="0.01" min="0" max="100" label="{{ __('Kehadiran') }}" />
-                    <flux:input wire:model.live.debounce.300ms="lrk" type="number" step="0.01" min="0" max="100" label="{{ __('LRK') }}" />
-                    <flux:input wire:model.live.debounce.300ms="integritas" type="number" step="0.01" min="0" max="100" label="{{ __('Integritas') }}" />
-                    <flux:input wire:model.live.debounce.300ms="sosial_kemasyarakatan" type="number" step="0.01" min="0" max="100" label="{{ __('Sosial Kemasyarakatan') }}" />
-                    <flux:input wire:model.live.debounce.300ms="lpk" type="number" step="0.01" min="0" max="100" label="{{ __('LPK') }}" />
-                    <flux:input wire:model.live.debounce.300ms="ujian_akhir" type="number" step="0.01" min="0" max="100" label="{{ __('Ujian Akhir') }}" />
+                    <flux:input wire:model.live.debounce.300ms="pembekalan" type="number" step="0.01" min="0" max="100" label="{{ __('Pembekalan') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="gelar_karya" type="number" step="0.01" min="0" max="100" label="{{ __('Gelar Karya') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="kehadiran" type="number" step="0.01" min="0" max="100" label="{{ __('Kehadiran') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="lrk" type="number" step="0.01" min="0" max="100" label="{{ __('LRK') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="integritas" type="number" step="0.01" min="0" max="100" label="{{ __('Integritas') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="sosial_kemasyarakatan" type="number" step="0.01" min="0" max="100" label="{{ __('Sosial Kemasyarakatan') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="lpk" type="number" step="0.01" min="0" max="100" label="{{ __('LPK') }}" :disabled="!$isGradingOpen" />
+                    <flux:input wire:model.live.debounce.300ms="ujian_akhir" type="number" step="0.01" min="0" max="100" label="{{ __('Ujian Akhir') }}" :disabled="!$isGradingOpen" />
                 </div>
 
-                <flux:textarea wire:model="keterangan" label="{{ __('Keterangan') }}" rows="3" />
+                <flux:textarea wire:model="keterangan" label="{{ __('Keterangan') }}" rows="3" :disabled="!$isGradingOpen" />
 
                 <div class="flex items-center justify-end gap-2 mt-4">
                     <flux:button href="{{ route('dpl.grades.index') }}" wire:navigate variant="ghost">{{ __('Batal') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Simpan Nilai') }}</flux:button>
+                    @if($isGradingOpen)
+                        <flux:button type="submit" variant="primary">{{ __('Simpan Nilai') }}</flux:button>
+                    @endif
                 </div>
             </form>
         </flux:card>
