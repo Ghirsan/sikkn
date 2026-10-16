@@ -5,12 +5,17 @@
         <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
     </div>
 
-    {{-- Filters --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="w-full max-w-sm">
-            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau topik...') }}" clearable class="w-full sm:w-80" />
+    {{-- Heading --}}
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Catatan Pembimbingan Mahasiswa') }}</flux:heading>
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau topik...') }}" clearable class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                     <option value="">{{ __('Semua Kelompok') }}</option>

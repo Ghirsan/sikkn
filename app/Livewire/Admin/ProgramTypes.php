@@ -20,7 +20,14 @@ class ProgramTypes extends Component
 
     public $code = '';
 
+    public string $search = '';
+
     public $deletingId = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function resetForm()
     {
@@ -104,8 +111,18 @@ class ProgramTypes extends Component
 
     public function render()
     {
+        $programTypes = ProgramType::query()
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('code', 'like', '%'.$this->search.'%');
+                });
+            })
+            ->orderBy('id')
+            ->paginate(10);
+
         return view('livewire.admin.program-types', [
-            'programTypes' => ProgramType::orderBy('id')->paginate(10),
+            'programTypes' => $programTypes,
         ]);
     }
 }

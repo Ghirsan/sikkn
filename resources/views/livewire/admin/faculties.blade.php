@@ -1,10 +1,18 @@
 <div>
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <flux:heading size="xl">{{ __('Fakultas') }}</flux:heading>
-            <flux:subheading>{{ __('Kelola data fakultas di lingkungan universitas.') }}</flux:subheading>
+    {{-- Heading --}}
+    <div class="mb-6">
+        <flux:heading size="xl">{{ __('Fakultas') }}</flux:heading>
+        <flux:subheading>{{ __('Kelola data fakultas di lingkungan universitas.') }}</flux:subheading>
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, kode, singkatan...') }}" size="sm" class="w-full" />
         </div>
-        <flux:button variant="primary" icon="plus" wire:click="create">{{ __('Tambah Fakultas') }}</flux:button>
+        <div class="flex flex-wrap items-center gap-2">
+            <flux:button variant="primary" size="sm" icon="plus" wire:click="create">{{ __('Tambah Fakultas') }}</flux:button>
+        </div>
     </div>
 
     <flux:card>

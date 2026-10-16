@@ -23,7 +23,14 @@ class Faculties extends Component
 
     public $short_name = '';
 
+    public string $search = '';
+
     public $deletingId = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function resetForm()
     {
@@ -111,8 +118,19 @@ class Faculties extends Component
 
     public function render()
     {
+        $faculties = Faculty::query()
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('code', 'like', '%'.$this->search.'%')
+                        ->orWhere('short_name', 'like', '%'.$this->search.'%');
+                });
+            })
+            ->orderBy('code')
+            ->paginate(10);
+
         return view('livewire.admin.faculties', [
-            'faculties' => Faculty::orderBy('code')->paginate(10),
+            'faculties' => $faculties,
         ]);
     }
 }

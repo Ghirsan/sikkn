@@ -21,7 +21,14 @@ class GroupTypes extends Component
 
     public $code = '';
 
+    public string $search = '';
+
     public $deletingId = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function resetForm()
     {
@@ -106,8 +113,18 @@ class GroupTypes extends Component
     #[Layout('layouts.app')]
     public function render()
     {
+        $groupTypes = GroupType::query()
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('code', 'like', '%'.$this->search.'%');
+                });
+            })
+            ->orderBy('id')
+            ->paginate(10);
+
         return view('livewire.admin.group-types', [
-            'groupTypes' => GroupType::orderBy('id')->paginate(10),
+            'groupTypes' => $groupTypes,
         ]);
     }
 }

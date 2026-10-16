@@ -18,11 +18,18 @@ class StudentGrades extends Component
 
     public string $selectedGroupId = '';
 
+    public string $search = '';
+
     public $gradeFile = null;
 
     public bool $showImportPanel = false;
 
     public function updatedSelectedGroupId(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch(): void
     {
         $this->resetPage();
     }
@@ -151,7 +158,14 @@ class StudentGrades extends Component
 
         $studentsQuery = User::where('role', UserRole::Mahasiswa)
             ->whereIn('group_id', $assignedGroupIds)
-            ->with(['grade', 'studyProgram', 'group']);
+            ->with(['grade', 'studyProgram', 'group'])
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('nim', 'like', '%'.$this->search.'%')
+                        ->orWhereHas('studyProgram', fn ($sp) => $sp->where('name', 'like', '%'.$this->search.'%'));
+                });
+            });
 
         $totalStudents = (clone $studentsQuery)->count();
         $gradedCount = (clone $studentsQuery)->whereHas('grade')->count();

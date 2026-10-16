@@ -9,11 +9,18 @@
         @endif
     </div>
 
-    {{-- Filters + Actions --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end">
+    {{-- Heading --}}
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Logbook Mahasiswa') }}</flux:heading>
+    </div>
 
-        {{-- Filters --}}
-        <div class="flex flex-wrap items-center gap-3">
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari mahasiswa atau kegiatan...') }}" size="sm" class="w-full" />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
             @if($allGroups->count() > 1)
                 <flux:select
                     wire:model.live="selectedGroupId"
@@ -49,10 +56,7 @@
                 <option value="pending">{{ __('Menunggu Persetujuan') }}</option>
                 <option value="approved">{{ __('Disetujui') }}</option>
             </flux:select>
-        </div>
 
-        {{-- Actions --}}
-        <div class="mt-3 flex items-center gap-3 sm:mt-0 sm:ml-3 shrink-0">
             @if(count($selectedLogs) > 0)
                 <flux:modal.trigger name="confirm-bulk-approve-modal">
                     <flux:button

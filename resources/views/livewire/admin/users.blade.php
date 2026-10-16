@@ -1,21 +1,23 @@
 <div>
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <flux:heading size="xl">{{ __('Pengguna Sistem') }}</flux:heading>
-            <flux:subheading>{{ __('Kelola semua pengguna dalam sistem SIKKN.') }}</flux:subheading>
-        </div>
-        <flux:button variant="primary" icon="plus" wire:click="create">{{ __('Tambah Pengguna') }}</flux:button>
+    {{-- Heading --}}
+    <div class="mb-6">
+        <flux:heading size="xl">{{ __('Pengguna Sistem') }}</flux:heading>
+        <flux:subheading>{{ __('Kelola semua pengguna dalam sistem SIKKN.') }}</flux:subheading>
     </div>
 
-    <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-1 items-center gap-4">
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, email, NIM, NIP...') }}" class="max-w-md" />
-            <flux:select wire:model.live="filterRole" placeholder="{{ __('Semua Role') }}" class="max-w-xs">
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, email, NIM, NIP...') }}" size="sm" class="w-full" />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <flux:select wire:model.live="filterRole" size="sm" placeholder="{{ __('Semua Role') }}" class="w-48">
                 <flux:select.option value="">{{ __('Semua Role') }}</flux:select.option>
                 @foreach($roles as $r)
                     <flux:select.option value="{{ $r->value }}">{{ $r->label() }}</flux:select.option>
                 @endforeach
             </flux:select>
+            <flux:button variant="primary" size="sm" icon="plus" wire:click="create">{{ __('Tambah Pengguna') }}</flux:button>
         </div>
     </div>
 

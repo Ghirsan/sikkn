@@ -17,11 +17,18 @@ class StudentLogs extends Component
 
     public string $filterStudent = '';
 
+    public string $search = '';
+
     public string $selectedGroupId = '';
 
     public string $filterStatus = '';
 
     public string $selectedWeek = 'all';
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public string $sortBy = 'date';
 
@@ -163,6 +170,17 @@ class StudentLogs extends Component
                 $endDate = $startDate->copy()->addDays(6);
                 $query->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
             }
+        }
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->whereHas('student', function ($sq) {
+                    $sq->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('nim', 'like', '%'.$this->search.'%');
+                })->orWhereHas('activities', function ($aq) {
+                    $aq->where('activity_description', 'like', '%'.$this->search.'%');
+                });
+            });
         }
 
         return $query;

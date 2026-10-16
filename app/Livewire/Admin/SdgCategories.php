@@ -20,7 +20,14 @@ class SdgCategories extends Component
 
     public $code = '';
 
+    public string $search = '';
+
     public $deletingId = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function resetForm()
     {
@@ -103,8 +110,18 @@ class SdgCategories extends Component
 
     public function render()
     {
+        $sdgCategories = SdgCategory::query()
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('code', 'like', '%'.$this->search.'%');
+                });
+            })
+            ->orderBy('code')
+            ->paginate(10);
+
         return view('livewire.admin.sdg-categories', [
-            'sdgCategories' => SdgCategory::orderBy('code')->paginate(10),
+            'sdgCategories' => $sdgCategories,
         ]);
     }
 }

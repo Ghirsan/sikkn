@@ -104,12 +104,18 @@
 
     {{-- ═══ 3. DAFTAR RENCANA PROGRAM KELOMPOK ═══ --}}
     <div>
-        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
+        {{-- Heading --}}
+        <div class="mb-4">
             <flux:heading size="lg">{{ __('Rincian Rencana Program Kelompok') }}</flux:heading>
+        </div>
+
+        {{-- Search bar (justify between) filters, buttons --}}
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="w-full sm:w-72">
+                <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari judul atau kode...') }}" class="w-full" />
+            </div>
             
-            <div class="flex flex-col sm:flex-row items-center gap-2 w-full xl:w-auto">
-                <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari judul atau kode...') }}" class="w-full sm:w-48" />
-                
+            <div class="flex flex-wrap items-center gap-2">
                 <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-48">
                     <option value="">Semua Jenis Program</option>
                     <option value="multidisiplin">Multidisiplin</option>

@@ -1,10 +1,16 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
-    {{-- Students Table --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    {{-- Heading --}}
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
-        <div class="flex flex-wrap items-center gap-3">
-            <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa') }}</flux:badge>
-            
+        <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa') }}</flux:badge>
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau Prodi...') }}" size="sm" class="w-full" />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
             @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
             <flux:select wire:model.live="studyProgramId" placeholder="{{ __('Semua Program Studi') }}" size="sm" class="w-48">
                 <option value="">{{ __('Semua Program Studi') }}</option>
@@ -13,8 +19,6 @@
                 @endforeach
             </flux:select>
             @endif
-
-            <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau Prodi...') }}" size="sm" class="w-64" />
         </div>
     </div>
 

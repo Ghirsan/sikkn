@@ -1,17 +1,5 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     
-    {{-- Group Filter --}}
-    @if($allGroups->count() > 1)
-        <div class="flex justify-end">
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
-                <option value="">{{ __('Semua Kelompok') }}</option>
-                @foreach($allGroups as $g)
-                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
-                @endforeach
-            </flux:select>
-        </div>
-    @endif
-
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 md:grid-cols-2">
         @if($allGroups->count() > 1 && empty($selectedGroupId))
@@ -21,15 +9,28 @@
         @endif
         <x-stat-card icon="academic-cap" color="blue" :label="__('Total Mahasiswa')" :value="$totalStudents" />
     </div>
-    
-    {{-- Search Filter (All Groups) --}}
-    @if(empty($selectedGroupId))
-        <div class="flex items-center gap-4">
-            <div class="w-full max-w-sm">
-                <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
-            </div>
+
+    {{-- Heading --}}
+    <div class="flex items-center justify-between">
+        <flux:heading size="lg">{{ __('Kelompok Bimbingan') }}</flux:heading>
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
         </div>
-    @endif
+        <div class="flex flex-wrap items-center gap-2">
+            @if($allGroups->count() > 1)
+                <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
+                    <option value="">{{ __('Semua Kelompok') }}</option>
+                    @foreach($allGroups as $g)
+                        <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
+                    @endforeach
+                </flux:select>
+            @endif
+        </div>
+    </div>
     
     {{-- Groups --}}
     @forelse($groups as $group)
@@ -79,14 +80,7 @@
         </flux:card>
     @endif
     
-    {{-- Search Filter (Specific Group) --}}
-    @if(!empty($selectedGroupId))
-        <div class="mb-4 flex items-center gap-4">
-            <div class="w-full max-w-sm">
-                <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau prodi...') }}" clearable class="w-full" />
-            </div>
-        </div>
-    @endif
+
         
     {{-- Students Table --}}
     <flux:card>

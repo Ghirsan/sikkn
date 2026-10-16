@@ -15,6 +15,8 @@ class Periods extends Component
 
     public string $name = '';
 
+    public string $search = '';
+
     public Semester $semester = Semester::Ganjil;
 
     public string $year = '';
@@ -22,6 +24,11 @@ class Periods extends Component
     public string $start_date = '';
 
     public string $end_date = '';
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function mount()
     {
@@ -75,7 +82,15 @@ class Periods extends Component
 
     public function render()
     {
-        $periods = Period::withCount('groups')->latest()->paginate(10);
+        $periods = Period::withCount('groups')
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('year', 'like', '%'.$this->search.'%');
+                });
+            })
+            ->latest()
+            ->paginate(10);
         $activePeriod = Period::active()->first();
 
         return view('livewire.admin.periods', [

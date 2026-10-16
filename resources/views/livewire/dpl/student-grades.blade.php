@@ -13,8 +13,16 @@
         <x-stat-card icon="clock" color="amber" :label="__('Belum Dinilai')" :value="$stats['ungraded']" />
     </div>
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    {{-- Heading --}}
+    <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau prodi...') }}" size="sm" class="w-full" />
+        </div>
         <div class="flex flex-wrap items-center gap-2">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">

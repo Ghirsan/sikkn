@@ -12,14 +12,19 @@
         </flux:callout>
     @endif
 
-    {{-- Create Period Action --}}
-    <div class="flex flex-col items-end gap-2">
-        <flux:button wire:click="startCreating" variant="filled" icon="plus" :disabled="(bool) $activePeriod">{{ __('Tambah Periode') }}</flux:button>
-    </div>
-
-    {{-- Periods Table --}}
+    {{-- Heading --}}
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Periode') }}</flux:heading>
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau tahun periode...') }}" size="sm" class="w-full" />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <flux:button wire:click="startCreating" variant="filled" size="sm" icon="plus" :disabled="(bool) $activePeriod">{{ __('Tambah Periode') }}</flux:button>
+        </div>
     </div>
 
     <flux:card>

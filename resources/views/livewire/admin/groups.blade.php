@@ -6,17 +6,23 @@
         <x-stat-card icon="exclamation-triangle" color="amber" :label="__('Belum Ada Dosen KKN')" :value="$stats['without_dpl']" />
     </div>
 
-    {{-- Groups Table --}}
+    {{-- Heading --}}
     <div class="flex items-center justify-between">
         <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
-        <div class="flex items-center gap-3">
+    </div>
+
+    {{-- Search bar (justify between) filters, buttons --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-full" />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
             <flux:select wire:model.live="periodId" size="sm" class="w-48" placeholder="{{ __('Semua Periode') }}">
                 <flux:select.option value="">{{ __('Semua Periode') }}</flux:select.option>
                 @foreach($periods as $p)
                     <flux:select.option value="{{ $p->id }}">{{ $p->display_name }}</flux:select.option>
                 @endforeach
             </flux:select>
-            <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-64" />
             <flux:button variant="filled" size="sm" icon="plus">{{ __('Buat Kelompok') }}</flux:button>
         </div>
     </div>

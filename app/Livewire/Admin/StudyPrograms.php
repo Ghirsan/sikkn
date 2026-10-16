@@ -25,7 +25,21 @@ class StudyPrograms extends Component
 
     public $faculty_id = '';
 
+    public string $search = '';
+
+    public string $facultyFilter = '';
+
     public $deletingId = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFacultyFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function mount()
     {
@@ -118,8 +132,20 @@ class StudyPrograms extends Component
 
     public function render()
     {
+        $studyPrograms = StudyProgram::with('faculty')
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('code', 'like', '%'.$this->search.'%');
+                });
+            })
+            ->when($this->facultyFilter, fn ($query) => $query->where('faculty_id', $this->facultyFilter))
+            ->orderBy('faculty_id')
+            ->orderBy('code')
+            ->paginate(10);
+
         return view('livewire.admin.study-programs', [
-            'studyPrograms' => StudyProgram::with('faculty')->orderBy('faculty_id')->orderBy('code')->paginate(10),
+            'studyPrograms' => $studyPrograms,
         ]);
     }
 }
