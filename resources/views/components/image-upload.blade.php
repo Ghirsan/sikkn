@@ -2,11 +2,17 @@
     'modelName', // The name of the Livewire property, e.g. 'location_map_image'
     'file' => null, // The actual Livewire property object
     'existingPath' => null, // The path to the existing file in storage
-    'label' => 'Unggah Gambar',
-    'description' => 'Klik untuk memilih atau seret gambar ke sini',
-    'formatText' => 'Format: JPG, PNG. Maksimal 2MB.',
+    'label' => null,
+    'description' => null,
+    'formatText' => null,
     'modalName' => 'image-preview',
 ])
+
+@php
+    $label = $label ?? __('Unggah Gambar');
+    $description = $description ?? __('Klik untuk memilih atau seret gambar ke sini');
+    $formatText = $formatText ?? __('Format: JPG, PNG. Maksimal 2MB.');
+@endphp
 
 <div>
     @if($label)
@@ -81,9 +87,9 @@
     </div>
     <div>
         @if($file)
-            <img src="{{ $file->temporaryUrl() }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
+            <img src="{{ $file->temporaryUrl() }}" alt="{{ __('Preview') }}" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
         @elseif($existingPath)
-            <img src="{{ asset('storage/' . $existingPath) }}" alt="Preview" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
+            <img src="{{ asset('storage/' . $existingPath) }}" alt="{{ __('Preview') }}" class="w-full h-auto max-h-[75vh] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700" />
         @endif
     </div>
 </flux:modal>

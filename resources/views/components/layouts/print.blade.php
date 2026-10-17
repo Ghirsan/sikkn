@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Laporan Rencana Kegiatan' }}</title>
+    <title>{{ $title ?? __('Laporan Rencana Kegiatan') }}</title>
     @vite(['resources/css/app.css'])
     <style>
         /* ── Print-optimized base styles ─────────────────────── */
@@ -124,8 +124,8 @@
 <body>
     <!-- Print Controls (screen only) -->
     <div class="print-btn-bar no-print">
-        <span style="font-weight:600;">Laporan Rencana Kegiatan — Preview</span>
-        <button onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+        <span style="font-weight:600;">{{ __('Laporan Rencana Kegiatan') }} - {{ __('Preview') }}</span>
+        <button onclick="window.print()">🖨️ {{ __('Cetak / Simpan PDF') }}</button>
     </div>
 
     {{ $slot }}

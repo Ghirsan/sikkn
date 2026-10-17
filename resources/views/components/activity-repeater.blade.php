@@ -20,11 +20,11 @@
                 {{-- Item Body --}}
                 <div class="p-4 flex flex-col md:flex-row gap-4 items-start">
                     <div class="flex gap-2 w-full md:w-auto">
-                        <flux:input type="time" wire:model="activities.{{ $index }}.start_time" label="Mulai" />
-                        <flux:input type="time" wire:model="activities.{{ $index }}.end_time" label="Selesai" />
+                        <flux:input type="time" wire:model="activities.{{ $index }}.start_time" :label="__('Mulai')" />
+                        <flux:input type="time" wire:model="activities.{{ $index }}.end_time" :label="__('Selesai')" />
                     </div>
                     <div class="w-full flex-1">
-                        <flux:input wire:model="activities.{{ $index }}.activity_description" label="Deskripsi Kegiatan" placeholder="Contoh: Survei UMKM..." />
+                        <flux:input wire:model="activities.{{ $index }}.activity_description" :label="__('Deskripsi Kegiatan')" :placeholder="__('Contoh: Survei UMKM...')" />
                     </div>
                 </div>
             </div>

@@ -1,11 +1,17 @@
 @props([
     'outputs' => [],
-    'heading' => __('Luaran Program'),
-    'description' => __('Tambahkan luaran berupa tautan PDF, video, gambar, atau jenis lainnya.'),
-    'addLabel' => __('Tambah Luaran'),
+    'heading' => null,
+    'description' => null,
+    'addLabel' => null,
     'addAction' => 'addOutput',
     'removeAction' => 'removeOutput',
 ])
+
+@php
+    $heading = $heading ?? __('Luaran Program');
+    $description = $description ?? __('Tambahkan luaran berupa tautan PDF, video, gambar, atau jenis lainnya.');
+    $addLabel = $addLabel ?? __('Tambah Luaran');
+@endphp
 
 <div>
     {{-- Header --}}
@@ -31,7 +37,7 @@
                             {{ __('Luaran') }} #{{ $index + 1 }}
                         </flux:text>
                         @if(!empty($output['name']))
-                            <flux:text class="text-xs text-zinc-400 dark:text-zinc-500 truncate hidden sm:block">— {{ $output['name'] }}</flux:text>
+                            <flux:text class="text-xs text-zinc-400 dark:text-zinc-500 truncate hidden sm:block">- {{ $output['name'] }}</flux:text>
                         @endif
                     </div>
                     <flux:button wire:click="{{ $removeAction }}({{ $index }})" variant="ghost" size="sm" icon="x-mark" class="shrink-0 text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400" />

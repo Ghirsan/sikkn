@@ -111,7 +111,7 @@ class FacultySiapGradesTest extends TestCase
     {
         Livewire::actingAs($this->facultyUser)
             ->test(Grades::class)
-            ->assertSee('Export Nilai SIAP');
+            ->assertSee(__('Export Nilai SIAP'));
 
         $prodiUser = User::factory()->create([
             'role' => UserRole::Prodi,
@@ -120,6 +120,6 @@ class FacultySiapGradesTest extends TestCase
 
         Livewire::actingAs($prodiUser)
             ->test(Grades::class)
-            ->assertDontSee('Export Nilai SIAP');
+            ->assertDontSee(__('Export Nilai SIAP'));
     }
 }
