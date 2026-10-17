@@ -22,14 +22,14 @@
                     <flux:progress value="{{ $progressPercent }}" color="{{ $allApproved ? 'green' : 'blue' }}" />
                 </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 @if($isLeader)
-                    <flux:button href="{{ route('lrk.form') }}" wire:navigate variant="filled" size="sm" icon="pencil-square">
+                    <flux:button href="{{ route('lrk.form') }}" wire:navigate variant="filled" size="sm" icon="pencil-square" class="w-full sm:w-auto">
                         {{ __('Isi Laporan LRK') }}
                     </flux:button>
                 @endif
                 @if($allApproved && $group)
-                    <flux:button href="{{ route('lrk.pdf', $group) }}" target="_blank" icon="document-arrow-down" variant="primary" size="sm">
+                    <flux:button href="{{ route('lrk.pdf', $group) }}" target="_blank" icon="document-arrow-down" variant="primary" size="sm" class="w-full sm:w-auto">
                         {{ __('Cetak PDF') }}
                     </flux:button>
                 @endif
@@ -115,7 +115,7 @@
                 <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" size="sm" placeholder="{{ __('Cari judul atau kode...') }}" class="w-full" />
             </div>
             
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
                 <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-48">
                     <option value="">Semua Jenis Program</option>
                     <option value="multidisiplin">Multidisiplin</option>

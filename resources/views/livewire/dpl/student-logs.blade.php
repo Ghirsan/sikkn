@@ -10,7 +10,7 @@
     </div>
 
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Logbook Mahasiswa') }}</flux:heading>
     </div>
 
@@ -20,7 +20,7 @@
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari mahasiswa atau kegiatan...') }}" size="sm" class="w-full" />
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             @if($allGroups->count() > 1)
                 <flux:select
                     wire:model.live="selectedGroupId"
@@ -58,11 +58,12 @@
             </flux:select>
 
             @if(count($selectedLogs) > 0)
-                <flux:modal.trigger name="confirm-bulk-approve-modal">
+                <flux:modal.trigger name="confirm-bulk-approve-modal" class="w-full sm:w-auto">
                     <flux:button
                         variant="primary"
                         size="sm"
                         icon="check-circle"
+                        class="w-full sm:w-auto"
                     >
                         {{ __('Setujui Terpilih (:count)', ['count' => count($selectedLogs)]) }}
                     </flux:button>
@@ -76,6 +77,7 @@
                     icon="printer"
                     :href="route('logbook.pdf', $filterStudent)"
                     target="_blank"
+                    class="w-full sm:w-auto"
                 >
                     {{ __('Cetak') }}
                 </flux:button>

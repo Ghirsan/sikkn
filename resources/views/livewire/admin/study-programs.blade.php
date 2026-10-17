@@ -10,14 +10,14 @@
         <div class="w-full sm:w-72">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau kode prodi...') }}" size="sm" class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <flux:select wire:model.live="facultyFilter" size="sm" class="w-48" placeholder="{{ __('Semua Fakultas') }}">
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
+            <flux:select wire:model.live="facultyFilter" size="sm" class="w-full sm:w-48" placeholder="{{ __('Semua Fakultas') }}">
                 <flux:select.option value="">{{ __('Semua Fakultas') }}</flux:select.option>
                 @foreach($faculties as $faculty)
                     <flux:select.option value="{{ $faculty->id }}">{{ $faculty->name }}</flux:select.option>
                 @endforeach
             </flux:select>
-            <flux:button variant="primary" size="sm" icon="plus" wire:click="create">{{ __('Tambah Program Studi') }}</flux:button>
+            <flux:button variant="primary" size="sm" icon="plus" wire:click="create" class="w-full sm:w-auto">{{ __('Tambah Program Studi') }}</flux:button>
         </div>
     </div>
 

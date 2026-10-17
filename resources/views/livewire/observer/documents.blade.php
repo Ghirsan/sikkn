@@ -1,6 +1,6 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Dokumen Tim (LRK & LPK)') }}</flux:heading>
     </div>
 

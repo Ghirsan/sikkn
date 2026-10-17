@@ -1,6 +1,6 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     @if($allGroups->count() > 1)
-        <div class="flex items-center justify-end">
+        <div class="flex flex-col sm:flex-row sm:justify-end w-full">
             <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Kelompok') }}</option>
                 @foreach($allGroups as $g)

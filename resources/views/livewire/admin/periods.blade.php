@@ -13,7 +13,7 @@
     @endif
 
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Daftar Periode') }}</flux:heading>
     </div>
 
@@ -22,8 +22,8 @@
         <div class="w-full sm:w-72">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama atau tahun periode...') }}" size="sm" class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <flux:button wire:click="startCreating" variant="filled" size="sm" icon="plus" :disabled="(bool) $activePeriod">{{ __('Tambah Periode') }}</flux:button>
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
+            <flux:button wire:click="startCreating" variant="filled" size="sm" icon="plus" :disabled="(bool) $activePeriod" class="w-full sm:w-auto">{{ __('Tambah Periode') }}</flux:button>
         </div>
     </div>
 

@@ -10,8 +10,8 @@
                 contentClass="pt-4 flex flex-col gap-4"
             >
                 @if($hasAvailableMultidisiplin)
-                <div class="flex justify-end items-center gap-4">
-                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'multidisiplin']) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 w-full">
+                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'multidisiplin']) }}" wire:navigate variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">
                         {{ __('Tambah Program') }}
                     </flux:button>
                 </div>
@@ -94,8 +94,8 @@
                 description="Buat program sosial kemasyarakatan Anda (Saintek/Soshum). Wajib minimal 1 program."
                 contentClass="pt-4 flex flex-col gap-4"
             >
-                <div class="flex justify-end items-center gap-4">
-                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'sosial_kemasyarakatan']) }}" wire:navigate variant="filled" size="sm" icon="plus">
+                <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 w-full">
+                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'sosial_kemasyarakatan']) }}" wire:navigate variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">
                         {{ __('Tambah Program') }}
                     </flux:button>
                 </div>
@@ -170,11 +170,11 @@
                 description="Daftar program lainnya Anda. Wajib minimal 1 program."
                 contentClass="pt-4 flex flex-col gap-4"
             >
-                <div class="flex justify-end items-center gap-4">
-                            <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'lainnya']) }}" wire:navigate variant="filled" size="sm" icon="plus">
-                                {{ __('Tambah Program') }}
-                            </flux:button>
-                        </div>
+                <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 w-full">
+                    <flux:button href="{{ route('programs.form', ['action' => 'create', 'type' => 'lainnya']) }}" wire:navigate variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">
+                        {{ __('Tambah Program') }}
+                    </flux:button>
+                </div>
                         <flux:card>
             @if($lainnyaPrograms->isEmpty())
                 <x-empty-state icon="document-plus" :heading="__('Belum Ada Program')" :description="__('Silakan buat minimal 1 Program Lainnya.')" />

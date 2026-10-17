@@ -6,18 +6,16 @@
         <x-stat-card icon="clock" color="amber" :label="__('Menunggu Tanggapan')" :value="$stats['pending']" />
     </div>
 
-    {{-- Mentoring Logs --}}
-    <div class="flex items-center justify-end">
-        <div class="flex items-center gap-3">
-            @if($logs->isNotEmpty())
-                <flux:button variant="ghost" size="sm" icon="printer" :href="route('mentoring-logs.pdf', $student)" target="_blank">
-                    {{ __('Cetak Buku') }}
-                </flux:button>
-            @endif
-            <flux:button variant="filled" size="sm" icon="plus" href="{{ route('mentoring-logs.form') }}" wire:navigate>
-                {{ __('Tambah Catatan') }}
+    {{-- Mentoring Logs Actions --}}
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 w-full">
+        @if($logs->isNotEmpty())
+            <flux:button variant="ghost" size="sm" icon="printer" :href="route('mentoring-logs.pdf', $student)" target="_blank" class="w-full sm:w-auto">
+                {{ __('Cetak Buku') }}
             </flux:button>
-        </div>
+        @endif
+        <flux:button variant="filled" size="sm" icon="plus" href="{{ route('mentoring-logs.form') }}" wire:navigate class="w-full sm:w-auto">
+            {{ __('Tambah Catatan') }}
+        </flux:button>
     </div>
 
     @if($logs->isEmpty())

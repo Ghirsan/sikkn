@@ -10,8 +10,8 @@
         <div class="w-full sm:w-72">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari jenis kelompok atau kode...') }}" size="sm" class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <flux:button variant="primary" size="sm" icon="plus" wire:click="create">{{ __('Tambah Jenis Kelompok') }}</flux:button>
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
+            <flux:button variant="primary" size="sm" icon="plus" wire:click="create" class="w-full sm:w-auto">{{ __('Tambah Jenis Kelompok') }}</flux:button>
         </div>
     </div>
 

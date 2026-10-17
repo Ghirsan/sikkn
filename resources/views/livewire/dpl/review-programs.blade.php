@@ -10,19 +10,17 @@
 
     
     {{-- Tema Multidisiplin --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Tema Multidisiplin') }}</flux:heading>
-    </div>
-    
-    {{-- Filter Tema --}}
-    <div class="flex justify-end">
         @if($allGroups->count() > 1)
-            <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
-                <option value="">{{ __('Semua Kelompok') }}</option>
-                @foreach($allGroups as $g)
-                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
-                @endforeach
-            </flux:select>
+            <div class="w-full sm:w-auto">
+                <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
+                    <option value="">{{ __('Semua Kelompok') }}</option>
+                    @foreach($allGroups as $g)
+                        <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->village }})</option>
+                    @endforeach
+                </flux:select>
+            </div>
         @endif
     </div>
 
@@ -102,12 +100,12 @@
             @endif
 
             {{-- Add new theme form --}}
-            <form wire:submit="addTheme" class="mt-4 flex items-start gap-2">
+            <form wire:submit="addTheme" class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
                 <div class="flex-1">
-                    <flux:input wire:model="newThemeTitle" size="sm" placeholder="{{ __('Masukkan judul tema multidisiplin baru...') }}" />
+                    <flux:input wire:model="newThemeTitle" size="sm" placeholder="{{ __('Masukkan judul tema multidisiplin baru...') }}" class="w-full" />
                     @error('newThemeTitle') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
                 </div>
-                <flux:button type="submit" size="sm" variant="filled" icon="plus">{{ __('Tambah') }}</flux:button>
+                <flux:button type="submit" size="sm" variant="filled" icon="plus" class="w-full sm:w-auto">{{ __('Tambah') }}</flux:button>
             </form>
         @endif
     </flux:card>
@@ -130,17 +128,16 @@
     </flux:modal>
 
     {{-- Programs --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
     </div>
 
     {{-- Filters --}}
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="w-full max-w-sm">
-            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau judul program...') }}" clearable class="w-full sm:w-80" />
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-72">
+            <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau judul program...') }}" clearable class="w-full" />
         </div>
-        <div class="flex flex-wrap gap-4">
-
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             <flux:select wire:model.live="filterType" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Jenis') }}</option>
                 @foreach(\App\Models\ProgramType::all() as $type)

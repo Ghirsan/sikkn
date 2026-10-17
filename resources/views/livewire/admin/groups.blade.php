@@ -7,7 +7,7 @@
     </div>
 
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Daftar Kelompok') }}</flux:heading>
     </div>
 
@@ -16,14 +16,14 @@
         <div class="w-full sm:w-72">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari kelompok atau desa...') }}" size="sm" class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <flux:select wire:model.live="periodId" size="sm" class="w-48" placeholder="{{ __('Semua Periode') }}">
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
+            <flux:select wire:model.live="periodId" size="sm" class="w-full sm:w-48" placeholder="{{ __('Semua Periode') }}">
                 <flux:select.option value="">{{ __('Semua Periode') }}</flux:select.option>
                 @foreach($periods as $p)
                     <flux:select.option value="{{ $p->id }}">{{ $p->display_name }}</flux:select.option>
                 @endforeach
             </flux:select>
-            <flux:button variant="filled" size="sm" icon="plus">{{ __('Buat Kelompok') }}</flux:button>
+            <flux:button variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Buat Kelompok') }}</flux:button>
         </div>
     </div>
 

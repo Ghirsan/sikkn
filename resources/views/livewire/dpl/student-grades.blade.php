@@ -14,7 +14,7 @@
     </div>
 
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
     </div>
 
@@ -23,7 +23,7 @@
         <div class="w-full sm:w-72">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau prodi...') }}" size="sm" class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                     <option value="">{{ __('Semua Kelompok') }}</option>
@@ -32,10 +32,10 @@
                     @endforeach
                 </flux:select>
             @endif
-            <flux:button wire:click="toggleImportPanel" icon="arrow-up-tray" variant="{{ $showImportPanel ? 'filled' : 'subtle' }}" size="sm" :disabled="!$isGradingOpen">
+            <flux:button wire:click="toggleImportPanel" icon="arrow-up-tray" variant="{{ $showImportPanel ? 'filled' : 'subtle' }}" size="sm" :disabled="!$isGradingOpen" class="w-full sm:w-auto">
                 {{ __('Import Nilai Excel') }}
             </flux:button>
-            <flux:button wire:click="exportExcel" icon="document-arrow-down" variant="primary" size="sm">
+            <flux:button wire:click="exportExcel" icon="document-arrow-down" variant="primary" size="sm" class="w-full sm:w-auto">
                 {{ __('Export Format Excel') }}
             </flux:button>
         </div>

@@ -6,7 +6,7 @@
     </div>
 
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Catatan Pembimbingan Mahasiswa') }}</flux:heading>
     </div>
 
@@ -15,7 +15,7 @@
         <div class="w-full sm:w-72">
             <x-search-bar placeholder="{{ __('Cari mahasiswa, NIM, atau topik...') }}" clearable class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             @if($allGroups->count() > 1)
                 <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">
                     <option value="">{{ __('Semua Kelompok') }}</option>

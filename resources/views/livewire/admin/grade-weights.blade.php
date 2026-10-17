@@ -75,11 +75,11 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <flux:button type="button" variant="ghost" @click="$wire.loadWeights().then(() => { weights = $wire.weights; })">
+                <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <flux:button type="button" variant="ghost" @click="$wire.loadWeights().then(() => { weights = $wire.weights; })" class="w-full sm:w-auto">
                         {{ __('Reset Nilai') }}
                     </flux:button>
-                    <flux:button type="button" variant="primary" @click="confirmSave()">
+                    <flux:button type="button" variant="primary" @click="confirmSave()" class="w-full sm:w-auto">
                         {{ __('Simpan Bobot') }}
                     </flux:button>
                 </div>

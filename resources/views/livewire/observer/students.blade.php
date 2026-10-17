@@ -1,6 +1,6 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Heading --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
         <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa') }}</flux:badge>
     </div>
@@ -10,9 +10,9 @@
         <div class="w-full sm:w-72">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Cari nama, NIM, atau Prodi...') }}" size="sm" class="w-full" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
-            <flux:select wire:model.live="studyProgramId" placeholder="{{ __('Semua Program Studi') }}" size="sm" class="w-48">
+            <flux:select wire:model.live="studyProgramId" placeholder="{{ __('Semua Program Studi') }}" size="sm" class="w-full sm:w-48">
                 <option value="">{{ __('Semua Program Studi') }}</option>
                 @foreach($studyPrograms as $prodi)
                     <option value="{{ $prodi->id }}">{{ $prodi->name }}</option>
