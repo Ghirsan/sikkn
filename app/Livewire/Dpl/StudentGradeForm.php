@@ -168,8 +168,11 @@ class StudentGradeForm extends Component
 
         $grade = Grade::firstOrNew([
             'student_id' => $this->student->id,
+            'group_id' => $this->student->group_id,
+        ], [
             'dpl_id' => Auth::id(),
         ]);
+        $grade->dpl_id = Auth::id();
 
         $grade->pembekalan = $this->pembekalan;
         $grade->gelar_karya = $this->gelar_karya;

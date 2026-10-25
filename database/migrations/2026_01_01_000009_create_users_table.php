@@ -30,6 +30,10 @@ return new class extends Migration
             $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
+
+            $table->index(['role', 'group_id']);
+            $table->index(['role', 'study_program_id']);
+            $table->index(['role', 'faculty_id']);
         });
 
         Schema::table('groups', function (Blueprint $table) {

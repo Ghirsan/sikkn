@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Group extends Model
 {
@@ -129,9 +128,9 @@ class Group extends Model
     /**
      * Get all grades for students in this group.
      */
-    public function grades(): HasManyThrough
+    public function grades(): HasMany
     {
-        return $this->hasManyThrough(Grade::class, User::class, 'group_id', 'student_id');
+        return $this->hasMany(Grade::class, 'group_id');
     }
 
     /**

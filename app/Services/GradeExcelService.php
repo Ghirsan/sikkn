@@ -392,8 +392,11 @@ class GradeExcelService
 
                 $grade = Grade::firstOrNew([
                     'student_id' => $student->id,
+                    'group_id' => $student->group_id,
+                ], [
                     'dpl_id' => $dpl->id,
                 ]);
+                $grade->dpl_id = $dpl->id;
 
                 $grade->pembekalan = $scores['pembekalan'];
                 $grade->gelar_karya = $scores['gelar_karya'];

@@ -14,6 +14,7 @@ class Grade extends Model
     protected $fillable = [
         'student_id',
         'dpl_id',
+        'group_id',
         'pembekalan',
         'gelar_karya',
         'kehadiran',
@@ -32,6 +33,15 @@ class Grade extends Model
         'grade_letter',
         'keterangan',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Grade $grade) {
+            if (! $grade->group_id && $grade->student_id) {
+                $grade->group_id = $grade->student?->group_id;
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -68,6 +78,14 @@ class Grade extends Model
     public function dpl(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dpl_id');
+    }
+
+    /**
+     * Get the group this grade belongs to.
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 
     public function getAktivitasPartisipatifAttribute(): float
@@ -169,9 +187,7 @@ class Grade extends Model
 
     public function scopeForGroup(Builder $query, int $groupId): Builder
     {
-        return $query->whereHas('student', function (Builder $q) use ($groupId) {
-            $q->where('group_id', $groupId);
-        });
+        return $query->where('group_id', $groupId);
     }
 
     public function scopePassed(Builder $query): Builder

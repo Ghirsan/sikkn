@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->unique()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('dpl_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('group_id')->nullable()->constrained('groups')->cascadeOnDelete();
 
             // Legacy components
             $table->decimal('pembekalan', 5, 2)->default(0);
@@ -39,6 +40,8 @@ return new class extends Migration
             $table->char('grade_letter', 2)->nullable();
             $table->text('keterangan')->nullable();
             $table->timestamps();
+
+            $table->unique(['student_id', 'group_id']);
         });
     }
 

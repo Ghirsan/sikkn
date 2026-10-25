@@ -238,11 +238,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the grade for this student.
+     * Get all grades for this student.
+     */
+    public function grades(): HasMany
+    {
+        return $this->hasMany(Grade::class, 'student_id');
+    }
+
+    /**
+     * Get the current/latest grade for this student.
      */
     public function grade(): HasOne
     {
-        return $this->hasOne(Grade::class, 'student_id');
+        return $this->hasOne(Grade::class, 'student_id')->latestOfMany();
     }
 
     /**
