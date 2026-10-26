@@ -24,4 +24,24 @@ class DashboardTest extends TestCase
         $response = $this->get(route('dashboard'));
         $response->assertOk();
     }
+
+    public function test_mahasiswa_can_visit_the_dashboard(): void
+    {
+        $student = User::factory()->mahasiswa()->create();
+        $this->actingAs($student);
+
+        $response = $this->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('Aksi Cepat Mahasiswa');
+    }
+
+    public function test_dpl_can_visit_the_dashboard(): void
+    {
+        $dpl = User::factory()->dpl()->create();
+        $this->actingAs($dpl);
+
+        $response = $this->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('Belum Ada Kelompok Bimbingan Ditugaskan');
+    }
 }
