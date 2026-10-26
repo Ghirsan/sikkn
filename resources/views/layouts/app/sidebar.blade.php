@@ -12,7 +12,7 @@
 
             <flux:sidebar.nav>
                 {{-- Common Navigation --}}
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
+                <flux:sidebar.group :heading="__('Utama')" class="grid">
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
@@ -20,58 +20,52 @@
 
                 {{-- Mahasiswa Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Mahasiswa))
-                <flux:sidebar.group :heading="__('Program Kerja')" class="grid">
+                <flux:sidebar.group :heading="__('Pelaksanaan KKN')" class="grid">
+                    <flux:sidebar.item icon="user-group" :href="route('groups.index')" :current="request()->routeIs('groups.*')" wire:navigate>
+                        {{ __('Kelompok Saya') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="light-bulb" :href="route('programs.index')" :current="request()->routeIs('programs.*')" wire:navigate>
-                        {{ __('Program Saya') }}
+                        {{ __('Program Kerja') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group :heading="__('Dokumen')" class="grid">
-                    <flux:sidebar.item icon="document-text" :href="route('lrk.index')" :current="request()->routeIs('lrk.*')" wire:navigate>
-                        {{ __('LRK Tim') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-check" :href="route('lpk.index')" :current="request()->routeIs('lpk.*')" wire:navigate>
-                        {{ __('LPK Tim') }}
-                    </flux:sidebar.item>
+                <flux:sidebar.group :heading="__('Dokumen & Catatan')" class="grid">
                     <flux:sidebar.item icon="book-open" :href="route('logbook.index')" :current="request()->routeIs('logbook.*')" wire:navigate>
-                        {{ __('Logbook') }}
+                        {{ __('Logbook Harian') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('mentoring-logs.index')" :current="request()->routeIs('mentoring-logs.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
                     </flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group :heading="__('KKN')" class="grid">
-                    <flux:sidebar.item icon="user-group" :href="route('groups.index')" :current="request()->routeIs('groups.*')" wire:navigate>
-                        {{ __('Kelompok Saya') }}
+                    <flux:sidebar.item icon="document-text" :href="route('lrk.index')" :current="request()->routeIs('lrk.*')" wire:navigate>
+                        {{ __('Dokumen LRK') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-check" :href="route('lpk.index')" :current="request()->routeIs('lpk.*')" wire:navigate>
+                        {{ __('Dokumen LPK') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
 
                 {{-- DPL Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Dpl))
-                <flux:sidebar.group :heading="__('Bimbingan')" class="grid">
+                <flux:sidebar.group :heading="__('Pelaksanaan KKN')" class="grid">
                     <flux:sidebar.item icon="user-group" :href="route('dpl.groups.index')" :current="request()->routeIs('dpl.groups.*')" wire:navigate>
                         {{ __('Mahasiswa Bimbingan') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="light-bulb" :href="route('dpl.programs.index')" :current="request()->routeIs('dpl.programs.*')" wire:navigate>
                         {{ __('Review Program') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :href="route('dpl.documents.index')" :current="request()->routeIs('dpl.documents.*')" wire:navigate>
-                        {{ __('Dokumen Tim') }}
-                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group :heading="__('Supervisi')" class="grid">
+                <flux:sidebar.group :heading="__('Supervisi & Evaluasi')" class="grid">
                     <flux:sidebar.item icon="book-open" :href="route('dpl.logbook.index')" :current="request()->routeIs('dpl.logbook.*')" wire:navigate>
                         {{ __('Logbook Mahasiswa') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('dpl.mentoring.index')" :current="request()->routeIs('dpl.mentoring.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
                     </flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group :heading="__('Penilaian')" class="grid">
+                    <flux:sidebar.item icon="document-text" :href="route('dpl.documents.index')" :current="request()->routeIs('dpl.documents.*')" wire:navigate>
+                        {{ __('Dokumen Tim') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-check" :href="route('dpl.grades.index')" :current="request()->routeIs('dpl.grades.*')" wire:navigate>
                         {{ __('Penilaian Mahasiswa') }}
                     </flux:sidebar.item>
@@ -80,12 +74,12 @@
 
                 {{-- P2KKN Admin Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::P2kkn))
-                <flux:sidebar.group :heading="__('Manajemen KKN')" class="grid">
+                <flux:sidebar.group :heading="__('Pelaksanaan KKN')" class="grid">
                     <flux:sidebar.item icon="calendar" :href="route('admin.periods.index')" :current="request()->routeIs('admin.periods.*')" wire:navigate>
                         {{ __('Periode KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="user-group" :href="route('admin.groups.index')" :current="request()->routeIs('admin.groups.*')" wire:navigate>
-                        {{ __('Kelompok') }}
+                        {{ __('Kelompok KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="academic-cap" :href="route('admin.students.index')" :current="request()->routeIs('admin.students.*')" wire:navigate>
                         {{ __('Peserta KKN') }}
@@ -93,9 +87,6 @@
                     <flux:sidebar.item icon="user-circle" :href="route('admin.dpl.index')" :current="request()->routeIs('admin.dpl.*')" wire:navigate>
                         {{ __('Daftar Dosen KKN') }}
                     </flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group :heading="__('Dokumen')" class="grid">
                     <flux:sidebar.item icon="document-text" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>
                         {{ __('Rancangan Dokumen') }}
                     </flux:sidebar.item>
@@ -131,7 +122,7 @@
 
                 {{-- Prodi Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Prodi))
-                <flux:sidebar.group :heading="__('Program Studi')" class="grid">
+                <flux:sidebar.group :heading="__('Pelaksanaan KKN')" class="grid">
                     <flux:sidebar.item icon="academic-cap" :href="route('prodi.students.index')" :current="request()->routeIs('prodi.students.*')" wire:navigate>
                         {{ __('Mahasiswa KKN') }}
                     </flux:sidebar.item>
@@ -141,24 +132,27 @@
                     <flux:sidebar.item icon="light-bulb" :href="route('prodi.programs.index')" :current="request()->routeIs('prodi.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :href="route('prodi.documents.index')" :current="request()->routeIs('prodi.documents.*')" wire:navigate>
-                        {{ __('Dokumen Tim') }}
-                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Supervisi & Evaluasi')" class="grid">
                     <flux:sidebar.item icon="book-open" :href="route('prodi.logbooks.index')" :current="request()->routeIs('prodi.logbooks.*')" wire:navigate>
-                        {{ __('Logbook') }}
+                        {{ __('Logbook Mahasiswa') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('prodi.mentoring.index')" :current="request()->routeIs('prodi.mentoring.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :href="route('prodi.documents.index')" :current="request()->routeIs('prodi.documents.*')" wire:navigate>
+                        {{ __('Dokumen Tim') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-check" :href="route('prodi.grades.index')" :current="request()->routeIs('prodi.grades.*')" wire:navigate>
-                        {{ __('Penilaian') }}
+                        {{ __('Penilaian Mahasiswa') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
 
                 {{-- Fakultas Navigation --}}
                 @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
-                <flux:sidebar.group :heading="__('Fakultas')" class="grid">
+                <flux:sidebar.group :heading="__('Pelaksanaan KKN')" class="grid">
                     <flux:sidebar.item icon="academic-cap" :href="route('fakultas.students.index')" :current="request()->routeIs('fakultas.students.*')" wire:navigate>
                         {{ __('Mahasiswa Per Prodi') }}
                     </flux:sidebar.item>
@@ -168,17 +162,20 @@
                     <flux:sidebar.item icon="light-bulb" :href="route('fakultas.programs.index')" :current="request()->routeIs('fakultas.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :href="route('fakultas.documents.index')" :current="request()->routeIs('fakultas.documents.*')" wire:navigate>
-                        {{ __('Dokumen Tim') }}
-                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Supervisi & Evaluasi')" class="grid">
                     <flux:sidebar.item icon="book-open" :href="route('fakultas.logbooks.index')" :current="request()->routeIs('fakultas.logbooks.*')" wire:navigate>
-                        {{ __('Logbook') }}
+                        {{ __('Logbook Mahasiswa') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('fakultas.mentoring.index')" :current="request()->routeIs('fakultas.mentoring.*')" wire:navigate>
                         {{ __('Buku Pembimbingan') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :href="route('fakultas.documents.index')" :current="request()->routeIs('fakultas.documents.*')" wire:navigate>
+                        {{ __('Dokumen Tim') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-check" :href="route('fakultas.grades.index')" :current="request()->routeIs('fakultas.grades.*')" wire:navigate>
-                        {{ __('Penilaian') }}
+                        {{ __('Penilaian Mahasiswa') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
