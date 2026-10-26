@@ -44,4 +44,34 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertSee('Belum Ada Kelompok Bimbingan Ditugaskan');
     }
+
+    public function test_p2kkn_can_visit_the_dashboard(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $this->actingAs($admin);
+
+        $response = $this->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('Aksi Cepat Admin P2KKN');
+    }
+
+    public function test_prodi_can_visit_the_dashboard(): void
+    {
+        $prodi = User::factory()->prodi()->create();
+        $this->actingAs($prodi);
+
+        $response = $this->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('Aksi Cepat Program Studi');
+    }
+
+    public function test_fakultas_can_visit_the_dashboard(): void
+    {
+        $fakultas = User::factory()->fakultas()->create();
+        $this->actingAs($fakultas);
+
+        $response = $this->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('Aksi Cepat Fakultas');
+    }
 }
