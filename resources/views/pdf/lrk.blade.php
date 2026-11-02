@@ -74,10 +74,20 @@
 </head>
 <body>
 
+    @php
+        $logoPath = public_path('images/logo-undip.png');
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
+    @endphp
+
     {{-- ══════════════════════════════════════════ --}}
     {{-- HALAMAN JUDUL (Cover)                     --}}
     {{-- ══════════════════════════════════════════ --}}
-    <div class="cover-page">
+    <div class="cover-page" style="padding-top: 30px;">
+        @if($logoBase64)
+            <div style="margin-bottom: 20px;">
+                <img src="{{ $logoBase64 }}" style="width: 100px; height: auto;" alt="Logo Universitas Diponegoro">
+            </div>
+        @endif
         <h1>LAPORAN RENCANA KEGIATAN</h1>
         <h2>KULIAH KERJA NYATA {{ $period->semester->value === 'Ganjil' ? 'TIM I' : 'TIM II' }} TA {{ $period->year }}/{{ $period->year + 1 }}</h2>
 

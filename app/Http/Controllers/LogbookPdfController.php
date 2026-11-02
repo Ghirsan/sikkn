@@ -16,14 +16,16 @@ class LogbookPdfController extends Controller
             abort(404, 'User is not a student');
         }
 
+        $student->loadMissing(['studyProgram.faculty', 'faculty']);
+
         // Ambil grup dan period
-        $group = $student->group()->with(['period', 'dpls'])->first();
+        $group = $student->group()->with(['period', 'dpls', 'leadDpl'])->first();
         if (! $group || ! $group->period) {
             abort(404, 'Group or Period not found for this student');
         }
 
         $period = $group->period;
-        $dpl = $group->dpls->first(); // Mengambil DPL pertama
+        $dpl = $group->leadDpl ?? $group->dpls->first();
 
         // Ambil daily logs dengan aktivitas, urut berdasarkan tanggal
         $logs = DailyLog::with('activities')
@@ -55,6 +57,9 @@ class LogbookPdfController extends Controller
             'dpl' => $dpl,
             'logsGroupedByWeek' => $logsGroupedByWeek,
         ]);
+
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'sans-serif', 'isHtml5ParserEnabled' => true]);
 
         return $pdf->download('Logbook_KKN_'.$student->nim.'.pdf');
     }

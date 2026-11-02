@@ -104,9 +104,15 @@
         $period = $group->period;
         $tim = $period->semester->value === 'Ganjil' ? 'TIM I' : 'TIM II';
         $ta = $period->year . '/' . ($period->year + 1);
-        $kota = explode(' ', $group->regency);
-        $kotaName = isset($kota[1]) ? ucfirst(strtolower($kota[1])) : ucfirst(strtolower($group->regency));
+        $kota = explode(' ', $group->regency ?? '');
+        $kotaName = isset($kota[1]) ? ucfirst(strtolower($kota[1])) : (ucfirst(strtolower($group->regency ?? 'Semarang')) ?: 'Semarang');
         $printDate = \Carbon\Carbon::now()->translatedFormat('d F Y');
+
+        $logoPath = public_path('images/logo-undip-logbook.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/logo-undip.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
     @endphp
 
     @foreach($logsGroupedByWeek as $weekNumber => $logs)
@@ -176,8 +182,11 @@
             <table class="daily-header">
                 <tr>
                     <td class="logo">
-                        {{-- Placeholder untuk Logo Undip jika diperlukan, sementara kosong/teks --}}
-                        <div style="font-size: 8pt; font-style: italic;">[Logo Undip]</div>
+                        @if($logoBase64)
+                            <img src="{{ $logoBase64 }}" style="width: 70px; height: auto;" alt="Logo Universitas Diponegoro">
+                        @else
+                            <div style="font-size: 8pt; font-style: italic;">UNIVERSITAS DIPONEGORO</div>
+                        @endif
                     </td>
                     <td class="title-center">
                         BUKU CATATAN HARIAN<br>
@@ -193,7 +202,7 @@
                 </tr>
             </table>
 
-            <div class="section-title">1. Jadwal Kegiatan</div>
+            <div class="section-title">A. Jadwal Kegiatan</div>
             <table class="activity-table">
                 <thead>
                     <tr>
@@ -220,7 +229,7 @@
                 </tbody>
             </table>
 
-            <div class="section-title">2. Catatan Penting Harian</div>
+            <div class="section-title">B. Catatan Penting Harian</div>
             <div class="notes-box">
                 @if($log->important_notes)
                     {!! nl2br(e($log->important_notes)) !!}

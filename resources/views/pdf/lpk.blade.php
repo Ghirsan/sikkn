@@ -74,10 +74,20 @@
 </head>
 <body>
 
+    @php
+        $logoPath = public_path('images/logo-undip.png');
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
+    @endphp
+
     {{-- ══════════════════════════════════════════ --}}
     {{-- HALAMAN JUDUL (Cover)                     --}}
     {{-- ══════════════════════════════════════════ --}}
-    <div class="cover-page">
+    <div class="cover-page" style="padding-top: 30px;">
+        @if($logoBase64)
+            <div style="margin-bottom: 20px;">
+                <img src="{{ $logoBase64 }}" style="width: 100px; height: auto;" alt="Logo Universitas Diponegoro">
+            </div>
+        @endif
         <h1>LAPORAN PELAKSANAAN KEGIATAN</h1>
         <h2>KULIAH KERJA NYATA {{ $period->semester->value === 'Ganjil' ? 'TIM I' : 'TIM II' }} TA {{ $period->year }}/{{ $period->year + 1 }}</h2>
 
@@ -581,7 +591,7 @@
             ->flatten()
             ->flatMap(function ($participant) {
                 return $participant->outputs->map(fn($output) => (object) [
-                    'participant_code' => $participant->participant_code,
+                    'participant_code' => $output->output_code ?: ('L' . $participant->participant_code),
                     'output_type' => $output->type?->label() ?? ($output->type ?? '-'),
                     'output_title' => $output->name,
                     'output_url' => $output->url,

@@ -37,6 +37,19 @@
                 <option value="pending">{{ __('Menunggu Tanggapan') }}</option>
                 <option value="approved">{{ __('Ditanggapi') }}</option>
             </flux:select>
+
+            @if($filterStudent && $logs->isNotEmpty())
+                <flux:button
+                    variant="ghost"
+                    size="sm"
+                    icon="printer"
+                    :href="route('mentoring-logs.pdf', $filterStudent)"
+                    target="_blank"
+                    class="w-full sm:w-auto"
+                >
+                    {{ __('Cetak') }}
+                </flux:button>
+            @endif
         </div>
     </div>
 
