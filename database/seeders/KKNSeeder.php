@@ -112,6 +112,8 @@ class KKNSeeder extends Seeder
                 'group_id' => null,
                 'phone' => null,
                 'emergency_phone' => null,
+                'emergency_name' => null,
+                'emergency_relationship' => null,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

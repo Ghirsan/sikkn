@@ -33,6 +33,8 @@ class UserFactory extends Factory
             'role' => UserRole::Mahasiswa,
             'phone' => null,
             'emergency_phone' => null,
+            'emergency_name' => null,
+            'emergency_relationship' => null,
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,

@@ -48,32 +48,49 @@
                                 <div class="text-xs text-neutral-500">{{ $student->fakultas }}</div>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <div class="space-y-1 text-xs">
+                                <div class="space-y-1.5 text-xs">
                                     @if($student->phone)
-                                        <a
-                                            href="{{ $student->whatsappUrl() ?? $student->phone }}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}"
-                                        >
-                                            <img src="{{ asset('whatsapp.svg') }}" alt="" class="block size-5 object-contain">
-                                        </a>
+                                        <div>
+                                            <flux:link
+                                                href="{{ $student->whatsappUrl() ?? $student->phone }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                variant="subtle"
+                                                class="inline-flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300"
+                                                aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}"
+                                            >
+                                                <img src="{{ asset('whatsapp.svg') }}" alt="" class="size-4 shrink-0 object-contain">
+                                                <span>{{ $student->phone }}</span>
+                                            </flux:link>
+                                        </div>
                                     @endif
                                     @if($student->emergency_phone)
-                                        <a  target="_blank" rel="noopener noreferrer" class="block text-amber-600 underline underline-offset-2" aria-label="{{ __('Hubungi kontak darurat :name melalui WhatsApp', ['name' => $student->name]) }}">
-                                            {{ __('Darurat') }}: {{ $student->emergency_phone }}
-                                        </a>
-                                        <a
-                                            href="{{ $student->whatsappUrl($student->emergency_phone) ?? $student->emergency_phone }}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label="{{ __('Hubungi :name melalui WhatsApp', ['name' => $student->name]) }}"
-                                        >
-                                            <img src="{{ asset('whatsapp.svg') }}" alt="" class="block size-5 object-contain">
-                                        </a>
+                                        <div>
+                                            <flux:link
+                                                href="{{ $student->whatsappUrl($student->emergency_phone) ?? $student->emergency_phone }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                variant="subtle"
+                                                class="inline-flex items-center gap-1.5"
+                                                aria-label="{{ __('Hubungi kontak darurat :name melalui WhatsApp', ['name' => $student->name]) }}"
+                                            >
+                                                <img src="{{ asset('whatsapp.svg') }}" alt="" class="size-3.5 shrink-0 object-contain">
+                                                <span>
+                                                    {{ __('Darurat') }}:
+                                                    @if($student->emergency_name)
+                                                        {{ $student->emergency_name }}
+                                                        @if($student->emergency_relationship)
+                                                            ({{ $student->emergency_relationship }})
+                                                        @endif
+                                                        -
+                                                    @endif
+                                                    {{ $student->emergency_phone }}
+                                                </span>
+                                            </flux:link>
+                                        </div>
                                     @endif
                                     @if(! $student->phone && ! $student->emergency_phone)
-                                        <span class="text-neutral-400">-</span>
+                                        <flux:text variant="subtle" class="text-xs">-</flux:text>
                                     @endif
                                 </div>
                             </flux:table.cell>

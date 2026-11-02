@@ -16,6 +16,10 @@ new #[Title('Profile settings')] class extends Component {
     public string $email = '';
     public ?string $phone = null;
     public ?string $emergency_phone = null;
+    public ?string $emergency_name = null;
+    public ?string $emergency_relationship = null;
+    public ?string $emergency_relationship_type = null;
+    public ?string $custom_emergency_relationship = null;
 
     /**
      * Mount the component.
@@ -26,6 +30,36 @@ new #[Title('Profile settings')] class extends Component {
         $this->email = Auth::user()->email;
         $this->phone = Auth::user()->phone;
         $this->emergency_phone = Auth::user()->emergency_phone;
+        $this->emergency_name = Auth::user()->emergency_name;
+        $this->emergency_relationship = Auth::user()->emergency_relationship;
+
+        if (in_array($this->emergency_relationship, \App\Models\User::EMERGENCY_RELATIONSHIPS, true)) {
+            $this->emergency_relationship_type = $this->emergency_relationship;
+            $this->custom_emergency_relationship = null;
+        } elseif ($this->emergency_relationship) {
+            $this->emergency_relationship_type = 'Lainnya';
+            $this->custom_emergency_relationship = $this->emergency_relationship;
+        } else {
+            $this->emergency_relationship_type = null;
+            $this->custom_emergency_relationship = null;
+        }
+    }
+
+    public function updatedEmergencyRelationshipType(?string $value): void
+    {
+        if ($value !== 'Lainnya') {
+            $this->emergency_relationship = $value;
+            $this->custom_emergency_relationship = null;
+        } else {
+            $this->emergency_relationship = trim($this->custom_emergency_relationship ?? '') ?: null;
+        }
+    }
+
+    public function updatedCustomEmergencyRelationship(?string $value): void
+    {
+        if ($this->emergency_relationship_type === 'Lainnya') {
+            $this->emergency_relationship = trim($value ?? '') ?: null;
+        }
     }
 
     /**
@@ -35,10 +69,20 @@ new #[Title('Profile settings')] class extends Component {
     {
         $user = Auth::user();
 
+        if ($user->hasRole(UserRole::Mahasiswa)) {
+            if ($this->emergency_relationship_type === 'Lainnya') {
+                $this->emergency_relationship = trim($this->custom_emergency_relationship ?? '') ?: null;
+            } elseif ($this->emergency_relationship_type) {
+                $this->emergency_relationship = $this->emergency_relationship_type;
+            }
+        }
+
         $rules = $this->profileRules($user->id);
 
-        if (! $user->hasRole(UserRole::Mahasiswa)) {
-            unset($rules['emergency_phone']);
+        if ($user->hasRole(UserRole::Mahasiswa)) {
+            $rules = array_merge($rules, $this->studentEmergencyRules());
+        } else {
+            unset($rules['emergency_phone'], $rules['emergency_name'], $rules['emergency_relationship']);
         }
 
         $validated = $this->validate($rules);
@@ -121,13 +165,53 @@ new #[Title('Profile settings')] class extends Component {
             />
 
             @if (Auth::user()->hasRole(UserRole::Mahasiswa))
-                <x-phone-input
-                    wire:model="emergency_phone"
-                    name="emergency_phone"
-                    :label="__('Emergency phone number')"
-                    country-code="+62"
-                    placeholder="812 3456 7890"
-                />
+                <flux:separator variant="subtle" />
+
+                <div class="space-y-4">
+                    <div>
+                        <flux:heading size="sm">{{ __('Kontak Darurat') }}</flux:heading>
+                        <flux:subheading size="sm">{{ __('Informasi keluarga atau wali yang dapat dihubungi saat situasi darurat di lokasi KKN.') }}</flux:subheading>
+                    </div>
+
+                    <flux:input
+                        wire:model="emergency_name"
+                        name="emergency_name"
+                        :label="__('Nama kontak darurat')"
+                        placeholder="{{ __('Nama lengkap kontak') }}"
+                        required
+                    />
+
+                    <flux:select
+                        wire:model.live="emergency_relationship_type"
+                        name="emergency_relationship_type"
+                        :label="__('Hubungan kontak darurat')"
+                        placeholder="{{ __('Pilih hubungan...') }}"
+                        required
+                    >
+                        @foreach (\App\Models\User::EMERGENCY_RELATIONSHIPS as $relation)
+                            <flux:select.option value="{{ $relation }}">{{ $relation }}</flux:select.option>
+                        @endforeach
+                        <flux:select.option value="Lainnya">{{ __('Lainnya') }}</flux:select.option>
+                    </flux:select>
+
+                    @if ($emergency_relationship_type === 'Lainnya')
+                        <flux:input
+                            wire:model.live="custom_emergency_relationship"
+                            name="custom_emergency_relationship"
+                            :label="__('Sebutkan hubungan')"
+                            placeholder="{{ __('Misal: Ibu Kos, Pacar, Teman') }}"
+                            required
+                        />
+                    @endif
+
+                    <x-phone-input
+                        wire:model="emergency_phone"
+                        name="emergency_phone"
+                        :label="__('Nomor telepon darurat')"
+                        country-code="+62"
+                        placeholder="812 3456 7890"
+                    />
+                </div>
             @endif
 
             <div class="flex items-center gap-4">

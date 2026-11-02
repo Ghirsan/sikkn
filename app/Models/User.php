@@ -19,12 +19,20 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone'])]
+#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone', 'emergency_name', 'emergency_relationship'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+
+    public const EMERGENCY_RELATIONSHIPS = [
+        'Orang Tua',
+        'Wali',
+        'Saudara Kandung',
+        'Suami / Istri',
+        'Kerabat',
+    ];
 
     protected static function booted(): void
     {

@@ -29,6 +29,8 @@ class ProfileUpdateTest extends TestCase
             ->set('name', 'Test User')
             ->set('email', 'test@example.com')
             ->set('phone', '+62 812 3456 7890')
+            ->set('emergency_name', 'Budi Santoso')
+            ->set('emergency_relationship_type', 'Orang Tua')
             ->set('emergency_phone', '0812-1111-2222')
             ->call('updateProfileInformation');
 
@@ -39,8 +41,52 @@ class ProfileUpdateTest extends TestCase
         $this->assertEquals('Test User', $user->name);
         $this->assertEquals('test@example.com', $user->email);
         $this->assertEquals('+62 812 3456 7890', $user->phone);
+        $this->assertEquals('Budi Santoso', $user->emergency_name);
+        $this->assertEquals('Orang Tua', $user->emergency_relationship);
         $this->assertEquals('0812-1111-2222', $user->emergency_phone);
         $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_student_can_set_custom_emergency_relationship(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = Livewire::test('pages::settings.profile')
+            ->set('name', 'Test User')
+            ->set('email', 'test@example.com')
+            ->set('phone', '+62 812 3456 7890')
+            ->set('emergency_name', 'Pak Ahmad')
+            ->set('emergency_relationship_type', 'Lainnya')
+            ->set('custom_emergency_relationship', 'Paman')
+            ->set('emergency_phone', '0812-3333-4444')
+            ->call('updateProfileInformation');
+
+        $response->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertEquals('Pak Ahmad', $user->emergency_name);
+        $this->assertEquals('Paman', $user->emergency_relationship);
+        $this->assertEquals('0812-3333-4444', $user->emergency_phone);
+    }
+
+    public function test_student_profile_requires_emergency_contact_fields(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test('pages::settings.profile')
+            ->set('name', 'Test User')
+            ->set('email', 'test@example.com')
+            ->set('emergency_name', '')
+            ->set('emergency_relationship_type', null)
+            ->set('custom_emergency_relationship', '')
+            ->set('emergency_phone', '')
+            ->call('updateProfileInformation')
+            ->assertHasErrors(['emergency_name', 'emergency_relationship', 'emergency_phone']);
     }
 
     public function test_phone_numbers_must_use_phone_number_characters(): void
@@ -51,6 +97,8 @@ class ProfileUpdateTest extends TestCase
 
         Livewire::test('pages::settings.profile')
             ->set('phone', 'contact-me')
+            ->set('emergency_name', 'Budi Santoso')
+            ->set('emergency_relationship_type', 'Orang Tua')
             ->set('emergency_phone', '0812 3456 7890')
             ->call('updateProfileInformation')
             ->assertHasErrors(['phone']);
@@ -66,7 +114,7 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame('https://wa.me/6281234567890', $user->whatsappUrl('0812 3456 7890'));
     }
 
-    public function test_non_student_profiles_do_not_update_emergency_phone(): void
+    public function test_non_student_profiles_do_not_update_emergency_contact(): void
     {
         $user = User::factory()->dpl()->create();
 
@@ -74,6 +122,8 @@ class ProfileUpdateTest extends TestCase
 
         Livewire::test('pages::settings.profile')
             ->set('phone', '+62 812 3456 7890')
+            ->set('emergency_name', 'Budi Santoso')
+            ->set('emergency_relationship_type', 'Orang Tua')
             ->set('emergency_phone', '0812-1111-2222')
             ->call('updateProfileInformation')
             ->assertHasNoErrors();
@@ -83,11 +133,17 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame(UserRole::Dpl, $user->role);
         $this->assertSame('+62 812 3456 7890', $user->phone);
         $this->assertNull($user->emergency_phone);
+        $this->assertNull($user->emergency_name);
+        $this->assertNull($user->emergency_relationship);
     }
 
     public function test_email_verification_status_is_unchanged_when_email_address_is_unchanged(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'emergency_name' => 'Budi Santoso',
+            'emergency_relationship' => 'Orang Tua',
+            'emergency_phone' => '0812-1111-2222',
+        ]);
 
         $this->actingAs($user);
 
