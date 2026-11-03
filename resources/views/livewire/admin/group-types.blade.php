@@ -5,6 +5,13 @@
         <flux:subheading>{{ __('Kelola referensi jenis kelompok KKN.') }}</flux:subheading>
     </div>
 
+    {{-- Stats --}}
+    <div class="mb-6 grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="tag" color="blue" :label="__('Total Jenis Kelompok')" :value="$stats['total_types']" />
+        <x-stat-card icon="user-group" color="purple" :label="__('Kelompok Terdaftar')" :value="$stats['used_groups']" />
+        <x-stat-card icon="calendar" color="amber" :label="__('Kelompok Periode Aktif')" :value="$stats['active_period_groups']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

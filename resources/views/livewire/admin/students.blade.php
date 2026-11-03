@@ -1,8 +1,12 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Heading --}}
-    <div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
-        <flux:badge color="zinc">{{ $totalStudents }} {{ __('mahasiswa terdaftar') }}</flux:badge>
+    <flux:heading size="lg">{{ __('Daftar Mahasiswa') }}</flux:heading>
+
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="academic-cap" color="blue" :label="__('Total Mahasiswa')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Ditempatkan')" :value="$stats['assigned']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Belum Ditempatkan')" :value="$stats['unassigned']" />
     </div>
 
     {{-- Search bar (justify between) filters, buttons --}}

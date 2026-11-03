@@ -17,6 +17,13 @@
         <flux:heading size="lg">{{ __('Daftar Periode') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="calendar" color="blue" :label="__('Total Periode')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Periode Aktif')" :value="$stats['active']" />
+        <x-stat-card icon="user-group" color="purple" :label="__('Total Kelompok KKN')" :value="$stats['groups']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

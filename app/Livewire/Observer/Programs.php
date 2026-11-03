@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Observer;
 
+use App\Enums\ProgramStatus;
 use App\Enums\UserRole;
 use App\Livewire\Concerns\ScopesObserverQuery;
 use App\Models\ProgramParticipant;
@@ -47,9 +48,27 @@ class Programs extends Component
             $studyPrograms = StudyProgram::where('faculty_id', auth()->user()->faculty_id)->orderBy('name')->get();
         }
 
+        $baseQuery = ProgramParticipant::whereHas('student', function ($q) {
+            $this->applyObserverScope($q, '');
+        });
+
+        $totalPrograms = (clone $baseQuery)->count();
+        $lrkApproved = (clone $baseQuery)->where('status', ProgramStatus::Approved)->count();
+        $lpkApproved = (clone $baseQuery)->where('lpk_status', ProgramStatus::Approved)->count();
+        $pending = (clone $baseQuery)->where(function ($q) {
+            $q->where('status', ProgramStatus::Submitted)
+                ->orWhere('lpk_status', ProgramStatus::Submitted);
+        })->count();
+
         return view('livewire.observer.programs', [
             'participants' => $query->latest()->paginate(10),
             'studyPrograms' => $studyPrograms,
+            'stats' => [
+                'total' => $totalPrograms,
+                'lrk_approved' => $lrkApproved,
+                'lpk_approved' => $lpkApproved,
+                'pending' => $pending,
+            ],
         ]);
     }
 }

@@ -47,9 +47,17 @@ class TeamDocuments extends Component
             ]);
         }
 
+        $stats = [
+            'total' => $groupData->sum('totalPrograms'),
+            'approved' => $groupData->sum('approvedCount'),
+            'pending' => $groupData->sum(fn ($d) => $d->pendingPrograms->count()),
+            'ready_groups' => $groupData->where('lrkReady', true)->count(),
+        ];
+
         return view('livewire.dpl.team-documents', [
             'groupData' => $groupData,
             'allGroups' => $allGroups,
+            'stats' => $stats,
         ]);
     }
 }

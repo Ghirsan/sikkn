@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
 use App\Models\User;
@@ -131,6 +132,11 @@ class Faculties extends Component
 
         return view('livewire.admin.faculties', [
             'faculties' => $faculties,
+            'stats' => [
+                'total_faculties' => Faculty::count(),
+                'total_prodi' => StudyProgram::count(),
+                'total_students' => User::where('role', UserRole::Mahasiswa)->count(),
+            ],
         ]);
     }
 }

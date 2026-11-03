@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
 use App\Models\User;
@@ -146,6 +147,11 @@ class StudyPrograms extends Component
 
         return view('livewire.admin.study-programs', [
             'studyPrograms' => $studyPrograms,
+            'stats' => [
+                'total_prodi' => StudyProgram::count(),
+                'total_faculties' => Faculty::has('studyPrograms')->count(),
+                'total_students' => User::where('role', UserRole::Mahasiswa)->whereNotNull('study_program_id')->count(),
+            ],
         ]);
     }
 }

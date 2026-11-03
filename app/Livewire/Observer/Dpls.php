@@ -41,9 +41,19 @@ class Dpls extends Component
 
         $dpls = $query->latest()->paginate(10);
 
+        $baseQuery = $this->applyObserverScope(User::where('role', UserRole::Dpl));
+        $totalDpls = (clone $baseQuery)->count();
+        $assignedCount = (clone $baseQuery)->whereHas('dplGroups')->count();
+        $unassignedCount = max(0, $totalDpls - $assignedCount);
+
         return view('livewire.observer.dpls', [
             'dpls' => $dpls,
             'studyPrograms' => $studyPrograms,
+            'stats' => [
+                'total' => $totalDpls,
+                'assigned' => $assignedCount,
+                'unassigned' => $unassignedCount,
+            ],
         ]);
     }
 }

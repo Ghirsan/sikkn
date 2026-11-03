@@ -1,4 +1,12 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="document-text" color="blue" :label="__('Total Program Tim')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Program Disetujui')" :value="$stats['approved']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Review')" :value="$stats['pending']" />
+        <x-stat-card icon="document-check" color="purple" :label="__('Tim Siap Cetak')" :value="$stats['ready_groups']" />
+    </div>
+
     @if($allGroups->count() > 1)
         <div class="flex flex-col sm:flex-row sm:justify-end w-full">
             <flux:select wire:model.live="selectedGroupId" size="sm" class="w-full sm:w-48">

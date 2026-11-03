@@ -165,6 +165,12 @@ class LpkDocuments extends Component
             'memberSummary' => $memberSummary,
             'paginatedParticipants' => $paginatedParticipants,
             'isLeader' => $isLeader,
+            'stats' => [
+                'total' => $totalParticipants,
+                'approved' => $lpkApprovedCount,
+                'pending' => max(0, $totalParticipants - $lpkApprovedCount),
+                'progress' => $progressPercent.'%',
+            ],
         ]);
     }
 }

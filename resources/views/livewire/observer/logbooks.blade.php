@@ -4,6 +4,14 @@
         <flux:heading size="lg">{{ __('Logbook Mahasiswa') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="book-open" color="blue" :label="__('Total Entri')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Disetujui')" :value="$stats['approved']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu')" :value="$stats['pending']" />
+        <x-stat-card icon="calculator" color="purple" :label="__('Total Jam Kerja')" :value="$stats['hours']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

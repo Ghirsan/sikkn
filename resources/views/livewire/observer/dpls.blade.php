@@ -4,6 +4,13 @@
         <flux:heading size="lg">{{ __('Daftar Dosen KKN (DPL)') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="user-circle" color="green" :label="__('Total Dosen KKN')" :value="$stats['total']" />
+        <x-stat-card icon="user-group" color="blue" :label="__('Membimbing')" :value="$stats['assigned']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Belum Menugaskan')" :value="$stats['unassigned']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

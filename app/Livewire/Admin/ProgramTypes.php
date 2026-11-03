@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Program;
+use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -123,6 +124,11 @@ class ProgramTypes extends Component
 
         return view('livewire.admin.program-types', [
             'programTypes' => $programTypes,
+            'stats' => [
+                'total_types' => ProgramType::count(),
+                'total_programs' => Program::count(),
+                'total_participants' => ProgramParticipant::count(),
+            ],
         ]);
     }
 }

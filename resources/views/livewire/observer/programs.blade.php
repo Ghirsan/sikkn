@@ -4,6 +4,14 @@
         <flux:heading size="lg">{{ __('Program Kerja Mahasiswa') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="light-bulb" color="blue" :label="__('Total Usulan Program')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('LRK Disetujui')" :value="$stats['lrk_approved']" />
+        <x-stat-card icon="document-check" color="purple" :label="__('LPK Disetujui')" :value="$stats['lpk_approved']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Review')" :value="$stats['pending']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

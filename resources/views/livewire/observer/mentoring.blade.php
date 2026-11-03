@@ -4,6 +4,13 @@
         <flux:heading size="lg">{{ __('Buku Pembimbingan') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="clipboard-document-list" color="purple" :label="__('Total Sesi')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Ditanggapi')" :value="$stats['reviewed']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Menunggu Tanggapan')" :value="$stats['pending']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

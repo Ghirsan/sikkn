@@ -4,6 +4,14 @@
         <flux:heading size="lg">{{ __('Dokumen Tim (LRK & LPK)') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="user-group" color="blue" :label="__('Total Kelompok')" :value="$stats['total']" />
+        <x-stat-card icon="lock-closed" color="green" :label="__('LRK Terkunci')" :value="$stats['lrk_locked']" />
+        <x-stat-card icon="document-check" color="purple" :label="__('LPK Terkunci')" :value="$stats['lpk_locked']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Dalam Proses')" :value="$stats['in_progress']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

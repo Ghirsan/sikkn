@@ -5,6 +5,13 @@
         <flux:subheading>{{ __('Kelola referensi Sustainable Development Goals (SDG).') }}</flux:subheading>
     </div>
 
+    {{-- Stats --}}
+    <div class="mb-6 grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="globe-americas" color="blue" :label="__('Total Pilar SDG')" :value="$stats['total_sdgs']" />
+        <x-stat-card icon="academic-cap" color="green" :label="__('Partisipasi Terkait')" :value="$stats['linked_participants']" />
+        <x-stat-card icon="check-circle" color="purple" :label="__('Pilar Diadopsi')" :value="$stats['active_categories']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

@@ -190,8 +190,16 @@ class Users extends Component
             $query->where('role', $this->filterRole);
         }
 
+        $stats = [
+            'total' => User::count(),
+            'mahasiswa' => User::where('role', UserRole::Mahasiswa)->count(),
+            'dpl' => User::where('role', UserRole::Dpl)->count(),
+            'staff' => User::whereIn('role', [UserRole::P2kkn, UserRole::Prodi, UserRole::Fakultas])->count(),
+        ];
+
         return view('livewire.admin.users', [
             'users' => $query->paginate(10),
+            'stats' => $stats,
         ]);
     }
 }

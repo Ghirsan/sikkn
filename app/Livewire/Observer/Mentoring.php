@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Observer;
 
+use App\Enums\LogStatus;
 use App\Enums\UserRole;
 use App\Livewire\Concerns\ScopesObserverQuery;
 use App\Models\MentoringLog;
@@ -43,9 +44,22 @@ class Mentoring extends Component
             $studyPrograms = StudyProgram::where('faculty_id', auth()->user()->faculty_id)->orderBy('name')->get();
         }
 
+        $baseQuery = MentoringLog::whereHas('student', function ($q) {
+            $this->applyObserverScope($q, '');
+        });
+
+        $totalLogs = (clone $baseQuery)->count();
+        $reviewedLogs = (clone $baseQuery)->where('status', LogStatus::Approved)->count();
+        $pendingLogs = (clone $baseQuery)->where('status', LogStatus::Pending)->count();
+
         return view('livewire.observer.mentoring', [
             'logs' => $query->latest('date')->paginate(10),
             'studyPrograms' => $studyPrograms,
+            'stats' => [
+                'total' => $totalLogs,
+                'reviewed' => $reviewedLogs,
+                'pending' => $pendingLogs,
+            ],
         ]);
     }
 }

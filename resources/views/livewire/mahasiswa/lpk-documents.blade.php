@@ -1,4 +1,11 @@
 <div class="flex h-full w-full flex-1 flex-col gap-6">
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="document-text" color="blue" :label="__('Total Program Tim')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Laporan Disetujui')" :value="$stats['approved']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Belum Disetujui')" :value="$stats['pending']" />
+        <x-stat-card icon="document-check" color="purple" :label="__('Kesiapan LPK')" :value="$stats['progress']" />
+    </div>
 
     {{-- ═══ 1. HERO: PROGRESS & KESIAPAN ═══ --}}
     <flux:card class="!p-6">

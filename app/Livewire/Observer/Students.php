@@ -42,10 +42,20 @@ class Students extends Component
             $studyPrograms = StudyProgram::where('faculty_id', auth()->user()->faculty_id)->orderBy('name')->get();
         }
 
+        $baseQuery = $this->applyObserverScope(User::where('role', UserRole::Mahasiswa));
+        $totalStudents = (clone $baseQuery)->count();
+        $assignedCount = (clone $baseQuery)->whereNotNull('group_id')->count();
+        $unassignedCount = max(0, $totalStudents - $assignedCount);
+
         return view('livewire.observer.students', [
             'students' => $query->latest()->paginate(10),
-            'totalStudents' => $this->applyObserverScope(User::where('role', UserRole::Mahasiswa))->count(),
+            'totalStudents' => $totalStudents,
             'studyPrograms' => $studyPrograms,
+            'stats' => [
+                'total' => $totalStudents,
+                'assigned' => $assignedCount,
+                'unassigned' => $unassignedCount,
+            ],
         ]);
     }
 }

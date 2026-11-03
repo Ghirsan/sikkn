@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Group;
 use App\Models\GroupType;
+use App\Models\Period;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -123,8 +124,15 @@ class GroupTypes extends Component
             ->orderBy('id')
             ->paginate(10);
 
+        $activePeriod = Period::active()->first();
+
         return view('livewire.admin.group-types', [
             'groupTypes' => $groupTypes,
+            'stats' => [
+                'total_types' => GroupType::count(),
+                'used_groups' => Group::whereNotNull('group_type_id')->count(),
+                'active_period_groups' => $activePeriod ? Group::where('period_id', $activePeriod->id)->count() : 0,
+            ],
         ]);
     }
 }

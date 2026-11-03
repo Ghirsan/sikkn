@@ -161,6 +161,17 @@ class Programs extends Component
             ->whereNotIn('id', $joinedIds)
             ->exists();
 
+        $myParticipants = ProgramParticipant::where('student_id', $user->id)->get();
+        $totalCount = $multidisiplinPrograms->count() + $sosmasPrograms->count() + $lainnyaPrograms->count();
+        $approvedCount = $myParticipants->where('status', ProgramStatus::Approved)->count();
+
+        $stats = [
+            'total' => $totalCount,
+            'multidisiplin' => $multidisiplinPrograms->count(),
+            'keilmuan' => $sosmasPrograms->count() + $lainnyaPrograms->count(),
+            'approved' => $approvedCount,
+        ];
+
         return view('livewire.mahasiswa.programs', [
             'multidisiplinPrograms' => $multidisiplinPrograms,
             'sosmasPrograms' => $sosmasPrograms,
@@ -168,6 +179,7 @@ class Programs extends Component
             'isMultidisiplinFilled' => $isMultidisiplinFilled,
             'hasSosmas' => $hasSosmas,
             'hasAvailableMultidisiplin' => $hasAvailableMultidisiplin,
+            'stats' => $stats,
         ]);
     }
 }

@@ -122,11 +122,22 @@ class Students extends Component
         }
 
         $students = $query->latest()->paginate(10);
+        $totalStudents = User::where('role', UserRole::Mahasiswa)->count();
+        $assignedCount = User::where('role', UserRole::Mahasiswa)->whereHas('group', function ($q) {
+            if ($this->periodId) {
+                $q->where('period_id', $this->periodId);
+            }
+        })->count();
 
         return view('livewire.admin.students', [
             'students' => $students,
             'periods' => Period::orderByDesc('start_date')->get(),
             'totalStudents' => $students->total(),
+            'stats' => [
+                'total' => $totalStudents,
+                'assigned' => $assignedCount,
+                'unassigned' => max(0, $totalStudents - $assignedCount),
+            ],
         ]);
     }
 }

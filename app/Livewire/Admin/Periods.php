@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Enums\Semester;
+use App\Models\Group;
 use App\Models\Period;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
@@ -92,10 +93,17 @@ class Periods extends Component
             ->latest()
             ->paginate(10);
         $activePeriod = Period::active()->first();
+        $totalPeriods = Period::count();
+        $totalGroups = Group::count();
 
         return view('livewire.admin.periods', [
             'periods' => $periods,
             'activePeriod' => $activePeriod,
+            'stats' => [
+                'total' => $totalPeriods,
+                'active' => $activePeriod ? $activePeriod->name : __('Tidak Ada'),
+                'groups' => $totalGroups,
+            ],
         ]);
     }
 }

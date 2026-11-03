@@ -5,6 +5,13 @@
         <flux:subheading>{{ __('Kelola data program studi di lingkungan universitas.') }}</flux:subheading>
     </div>
 
+    {{-- Stats --}}
+    <div class="mb-6 grid auto-rows-min gap-4 md:grid-cols-3">
+        <x-stat-card icon="building-library" color="blue" :label="__('Total Program Studi')" :value="$stats['total_prodi']" />
+        <x-stat-card icon="building-office-2" color="purple" :label="__('Fakultas Terafiliasi')" :value="$stats['total_faculties']" />
+        <x-stat-card icon="academic-cap" color="green" :label="__('Mahasiswa Terdaftar')" :value="$stats['total_students']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

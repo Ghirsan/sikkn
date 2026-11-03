@@ -5,6 +5,14 @@
         <flux:subheading>{{ __('Kelola semua pengguna dalam sistem SIKKN.') }}</flux:subheading>
     </div>
 
+    {{-- Stats --}}
+    <div class="mb-6 grid auto-rows-min gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <x-stat-card icon="users" color="neutral" :label="__('Total Pengguna')" :value="$stats['total']" />
+        <x-stat-card icon="academic-cap" color="blue" :label="__('Mahasiswa')" :value="$stats['mahasiswa']" />
+        <x-stat-card icon="user-circle" color="green" :label="__('Dosen KKN')" :value="$stats['dpl']" />
+        <x-stat-card icon="shield-check" color="purple" :label="__('Admin & Observer')" :value="$stats['staff']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

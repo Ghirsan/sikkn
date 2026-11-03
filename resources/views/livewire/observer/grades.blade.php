@@ -4,6 +4,14 @@
         <flux:heading size="lg">{{ __('Penilaian Mahasiswa') }}</flux:heading>
     </div>
 
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="academic-cap" color="blue" :label="__('Total Mahasiswa')" :value="$stats['total']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Sudah Dinilai')" :value="$stats['graded']" />
+        <x-stat-card icon="clock" color="amber" :label="__('Belum Dinilai')" :value="$stats['ungraded']" />
+        <x-stat-card icon="chart-bar" color="purple" :label="__('Rata-rata Nilai')" :value="$stats['average']" />
+    </div>
+
     {{-- Search bar (justify between) filters, buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-72">

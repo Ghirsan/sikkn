@@ -205,6 +205,12 @@ class LrkDocuments extends Component
             'isLeader' => $isLeader,
             'filledReportFields' => $filledReportFields,
             'totalReportFields' => $totalReportFields,
+            'stats' => [
+                'total' => $totalParticipants,
+                'approved' => $approvedCount,
+                'pending' => max(0, $totalParticipants - $approvedCount),
+                'progress' => $progressPercent.'%',
+            ],
         ]);
     }
 }

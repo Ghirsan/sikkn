@@ -1,4 +1,11 @@
 <div class="flex h-full w-full flex-1 flex-col gap-8">
+    {{-- Stats --}}
+    <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <x-stat-card icon="document-text" color="blue" :label="__('Total Program Kerja')" :value="$stats['total']" />
+        <x-stat-card icon="user-group" color="purple" :label="__('Multidisiplin')" :value="$stats['multidisiplin']" />
+        <x-stat-card icon="light-bulb" color="amber" :label="__('Keilmuan / Mandiri')" :value="$stats['keilmuan']" />
+        <x-stat-card icon="check-circle" color="green" :label="__('Disetujui Dosen KKN')" :value="$stats['approved']" />
+    </div>
 
     <div class="w-full">
         <div class="block">

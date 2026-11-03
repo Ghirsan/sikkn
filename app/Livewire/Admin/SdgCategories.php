@@ -122,6 +122,11 @@ class SdgCategories extends Component
 
         return view('livewire.admin.sdg-categories', [
             'sdgCategories' => $sdgCategories,
+            'stats' => [
+                'total_sdgs' => SdgCategory::count(),
+                'linked_participants' => ProgramParticipant::whereNotNull('sdg_category_id')->count(),
+                'active_categories' => SdgCategory::has('programParticipants')->count(),
+            ],
         ]);
     }
 }
