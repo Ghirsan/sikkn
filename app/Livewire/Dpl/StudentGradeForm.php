@@ -145,17 +145,9 @@ class StudentGradeForm extends Component
     }
 
     #[Computed]
-    public function nilaiHuruf()
+    public function nilaiHuruf(): string
     {
-        $na = $this->nilaiAkhir;
-
-        return match (true) {
-            $na >= 80 => 'A',
-            $na >= 70 => 'B',
-            $na >= 60 => 'C',
-            $na >= 50 => 'D',
-            default => 'E',
-        };
+        return Grade::determineGradeLetter($this->nilaiAkhir, $this->student?->nim);
     }
 
     public function saveGrade()

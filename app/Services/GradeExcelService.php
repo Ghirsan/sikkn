@@ -396,6 +396,7 @@ class GradeExcelService
                 ], [
                     'dpl_id' => $dpl->id,
                 ]);
+                $grade->setRelation('student', $student);
                 $grade->dpl_id = $dpl->id;
 
                 $grade->pembekalan = $scores['pembekalan'];

@@ -143,6 +143,64 @@ class Grade extends Model
     }
 
     /**
+     * Extract the student batch year from NIM (digits 7-8).
+     * Defaults to null if NIM is missing or does not have at least 8 digits.
+     */
+    public static function extractYearFromNim(?string $nim): ?int
+    {
+        if (blank($nim)) {
+            return null;
+        }
+
+        $cleanNim = trim($nim);
+        if (strlen($cleanNim) < 8) {
+            return null;
+        }
+
+        $yearDigits = substr($cleanNim, 6, 2);
+        if (! ctype_digit($yearDigits)) {
+            return null;
+        }
+
+        $code = (int) $yearDigits;
+
+        return $code < 50 ? 2000 + $code : 1900 + $code;
+    }
+
+    /**
+     * Determine grade letter based on score and student NIM.
+     * For batch >= 2024 (or when year cannot be determined), the new scale is used:
+     * >= 85: A, 80-84.99: AB, 75-79.99: B, 70-74.99: BC, 60-69.99: C, 40-59.99: D, < 40: E
+     * For legacy batch (< 2024):
+     * >= 80: A, 70-79.99: B, 60-69.99: C, 50-59.99: D, < 50: E
+     */
+    public static function determineGradeLetter(float $score, ?string $nim = null): string
+    {
+        $year = static::extractYearFromNim($nim);
+        $isNewScale = $year === null || $year >= 2024;
+
+        if ($isNewScale) {
+            return match (true) {
+                $score >= 85 => 'A',
+                $score >= 80 => 'AB',
+                $score >= 75 => 'B',
+                $score >= 70 => 'BC',
+                $score >= 60 => 'C',
+                $score >= 40 => 'D',
+                default => 'E',
+            };
+        }
+
+        return match (true) {
+            $score >= 80 => 'A',
+            $score >= 70 => 'B',
+            $score >= 60 => 'C',
+            $score >= 50 => 'D',
+            default => 'E',
+        };
+    }
+
+    /**
      * Calculate and persist the 6 SIAP components, final grade, and letter from aspects and global weights.
      */
     public function calculateGrade(): void
@@ -166,18 +224,17 @@ class Grade extends Model
             2
         );
 
-        $this->grade_letter = match (true) {
-            $this->final_grade >= 80 => 'A',
-            $this->final_grade >= 70 => 'B',
-            $this->final_grade >= 60 => 'C',
-            $this->final_grade >= 50 => 'D',
-            default => 'E',
-        };
+        $nim = $this->student?->nim;
+        if (! $nim && $this->student_id) {
+            $nim = User::where('id', $this->student_id)->value('nim');
+        }
+
+        $this->grade_letter = static::determineGradeLetter($this->final_grade, $nim);
     }
 
     public function isPassing(): bool
     {
-        return $this->final_grade >= 50 && $this->grade_letter !== 'E';
+        return in_array($this->grade_letter, ['A', 'AB', 'B', 'BC', 'C'], true);
     }
 
     public function scopeForDpl(Builder $query, int $dplId): Builder
@@ -192,13 +249,14 @@ class Grade extends Model
 
     public function scopePassed(Builder $query): Builder
     {
-        return $query->where('final_grade', '>=', 50)->where('grade_letter', '!=', 'E');
+        return $query->whereIn('grade_letter', ['A', 'AB', 'B', 'BC', 'C']);
     }
 
     public function scopeFailed(Builder $query): Builder
     {
         return $query->where(function (Builder $q) {
-            $q->where('final_grade', '<', 50)->orWhere('grade_letter', 'E');
+            $q->whereNotIn('grade_letter', ['A', 'AB', 'B', 'BC', 'C'])
+                ->orWhereNull('grade_letter');
         });
     }
 
