@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('logbooks', 'prodi.logbooks.index')->name('prodi.logbooks.index');
         Route::view('mentoring', 'prodi.mentoring.index')->name('prodi.mentoring.index');
         Route::view('grades', 'prodi.grades.index')->name('prodi.grades.index');
+        Route::view('grades/{student}', 'prodi.grades.show')->name('prodi.grades.show');
         Route::view('documents', 'prodi.documents.index')->name('prodi.documents.index');
     });
 
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('logbooks', 'fakultas.logbooks.index')->name('fakultas.logbooks.index');
         Route::view('mentoring', 'fakultas.mentoring.index')->name('fakultas.mentoring.index');
         Route::view('grades', 'fakultas.grades.index')->name('fakultas.grades.index');
+        Route::view('grades/{student}', 'fakultas.grades.show')->name('fakultas.grades.show');
         Route::view('documents', 'fakultas.documents.index')->name('fakultas.documents.index');
     });
 });

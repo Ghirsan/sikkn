@@ -425,7 +425,7 @@ class GradeExcelService
     /**
      * Export Faculty SIAP grades as Excel (.xlsx).
      */
-    public function exportFacultySiapGrades(Collection $students, ?string $facultyName = null): StreamedResponse
+    public function exportFacultySiapGrades(Collection $students, ?string $facultyName = null, ?string $customFilename = null): StreamedResponse
     {
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
@@ -533,8 +533,12 @@ class GradeExcelService
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
         }
 
-        $sanitizedFacultyName = $facultyName ? str_replace([' ', '/', '\\'], '_', $facultyName).'_' : '';
-        $filename = 'Export_Nilai_SIAP_'.$sanitizedFacultyName.now()->format('Ymd_His').'.xlsx';
+        if ($customFilename) {
+            $filename = $customFilename;
+        } else {
+            $sanitizedFacultyName = $facultyName ? str_replace([' ', '/', '\\'], '_', $facultyName).'_' : '';
+            $filename = 'Export_Nilai_SIAP_'.$sanitizedFacultyName.now()->format('Ymd_His').'.xlsx';
+        }
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
@@ -543,5 +547,16 @@ class GradeExcelService
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+    }
+
+    /**
+     * Export a single student's SIAP grades as Excel (.xlsx).
+     */
+    public function exportSingleStudentSiapGrade(User $student): StreamedResponse
+    {
+        $sanitizedName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $student->name);
+        $customFilename = 'Nilai_SIAP_'.$student->nim.'_'.$sanitizedName.'.xlsx';
+
+        return $this->exportFacultySiapGrades(collect([$student]), null, $customFilename);
     }
 }

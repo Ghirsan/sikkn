@@ -38,6 +38,7 @@
                     <flux:table.column>{{ __('Kelompok') }}</flux:table.column>
                     <flux:table.column>{{ __('Nilai Akhir') }}</flux:table.column>
                     <flux:table.column>{{ __('Huruf') }}</flux:table.column>
+                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($students as $student)
@@ -70,6 +71,16 @@
                                 @else
                                     <span class="text-neutral-400">-</span>
                                 @endif
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @php
+                                    $detailRoute = auth()->user()->hasRole(\App\Enums\UserRole::Prodi)
+                                        ? route('prodi.grades.show', $student->id)
+                                        : route('fakultas.grades.show', $student->id);
+                                @endphp
+                                <flux:button size="sm" variant="ghost" icon="eye" href="{{ $detailRoute }}" wire:navigate>
+                                    {{ __('Lihat Nilai') }}
+                                </flux:button>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
