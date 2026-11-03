@@ -242,4 +242,3 @@ class ObserverGradeDetailTest extends TestCase
         $component->assertFileDownloaded('Nilai_SIAP_24060120120001_Budi_Informatika.xlsx');
     }
 }
-
