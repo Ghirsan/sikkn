@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -173,6 +174,40 @@ class Group extends Model
     public function isLpkEditable(): bool
     {
         return ! $this->is_lpk_locked;
+    }
+
+    public function locationMapUrl(): ?string
+    {
+        if (! $this->location_map_path) {
+            return null;
+        }
+
+        if (! filter_var($this->location_map_path, FILTER_VALIDATE_URL)) {
+            return asset('storage/'.$this->location_map_path);
+        }
+
+        try {
+            return app(ExternalImagePreviewUrl::class)->resolve($this->location_map_path);
+        } catch (\InvalidArgumentException) {
+            return $this->location_map_path;
+        }
+    }
+
+    public function surveyDocumentUrl(): ?string
+    {
+        if (! $this->survey_document_path) {
+            return null;
+        }
+
+        if (! filter_var($this->survey_document_path, FILTER_VALIDATE_URL)) {
+            return asset('storage/'.$this->survey_document_path);
+        }
+
+        try {
+            return app(ExternalImagePreviewUrl::class)->resolve($this->survey_document_path);
+        } catch (\InvalidArgumentException) {
+            return $this->survey_document_path;
+        }
     }
 
     public function scopeForPeriod(Builder $query, int $periodId): Builder

@@ -43,18 +43,20 @@
         {{-- Lampiran Dokumentasi Survey --}}
         <div>
             <flux:heading size="md" class="mb-2">{{ __('Lampiran Dokumentasi Survey') }}</flux:heading>
-            <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf keterangan untuk lampiran foto-foto dokumentasi survey lapangan dan unggah gambarnya.') }}</flux:text>
+            <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf keterangan untuk lampiran foto dokumentasi survey lapangan dan sematkan tautan gambarnya.') }}</flux:text>
             
             <div class="flex flex-col gap-4">
                 <flux:textarea wire:model="survey_documentation_text" rows="3" label="{{ __('Keterangan Survey') }}" placeholder="{{ __('Dokumentasi survey dilakukan pada tanggal ... di lokasi ... Kegiatan meliputi ...') }}" />
 
                 <div>
-                    <x-image-upload
-                        modelName="survey_document_image"
-                        :file="$survey_document_image"
-                        :existingPath="$existing_survey_path"
-                        label="Gambar Dokumentasi Survey"
-                        modalName="survey-doc-preview"
+                    <x-image-url-input
+                        model-name="survey_document_url"
+                        :preview-url="$survey_document_preview_url"
+                        check-action="validateSurveyDocument"
+                        verified-name="survey_document_verified"
+                        label="{{ __('Tautan Gambar Dokumentasi Survey') }}"
+                        placeholder="{{ __('https://drive.google.com/file/d/.../view atau https://ibb.co/...') }}"
+                        description="{{ __('Gunakan tautan berbagi Google Drive (akses publik) atau tautan gambar imgbb.') }}"
                     />
                 </div>
             </div>
@@ -65,18 +67,20 @@
         {{-- Lampiran Peta Lokasi --}}
         <div>
             <flux:heading size="md" class="mb-2">{{ __('Lampiran Peta Lokasi') }}</flux:heading>
-            <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf keterangan peta lokasi dan unggah gambar peta.') }}</flux:text>
+            <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf keterangan peta lokasi dan sematkan tautan gambar peta.') }}</flux:text>
 
             <div class="flex flex-col gap-4">
                 <flux:textarea wire:model="location_map_text" rows="3" label="{{ __('Keterangan Peta') }}" placeholder="{{ __('Peta di bawah ini menunjukkan lokasi pelaksanaan KKN yang berada di ...') }}" />
 
                 <div>
-                    <x-image-upload
-                        modelName="location_map_image"
-                        :file="$location_map_image"
-                        :existingPath="$existing_map_path"
-                        label="Gambar Peta Lokasi"
-                        modalName="location-map-preview"
+                    <x-image-url-input
+                        model-name="location_map_url"
+                        :preview-url="$location_map_preview_url"
+                        check-action="validateLocationMap"
+                        verified-name="location_map_verified"
+                        label="{{ __('Tautan Gambar Peta Lokasi') }}"
+                        placeholder="{{ __('https://drive.google.com/file/d/.../view atau https://ibb.co/...') }}"
+                        description="{{ __('Gunakan tautan berbagi Google Drive (akses publik) atau tautan gambar imgbb.') }}"
                     />
                 </div>
             </div>
@@ -85,9 +89,9 @@
         <flux:separator />
 
         {{-- Actions --}}
-        <div class="flex gap-2 justify-end">
-            <flux:button href="{{ route('lrk.index') }}" wire:navigate variant="ghost">{{ __('Batal') }}</flux:button>
-            <flux:button type="submit" variant="primary">{{ __('Simpan Laporan') }}</flux:button>
+        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+            <flux:button href="{{ route('lrk.index') }}" wire:navigate variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+            <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Laporan') }}</flux:button>
         </div>
 
     </form>

@@ -130,4 +130,3 @@ class PdfImageResolver
         return 'data:'.$mime.';base64,'.base64_encode($content);
     }
 }
-
