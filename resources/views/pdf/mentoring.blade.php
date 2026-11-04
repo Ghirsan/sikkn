@@ -6,12 +6,12 @@
     <style>
         @page {
             size: a4 landscape;
-            margin: 15mm 15mm 15mm 15mm;
+            margin: 15mm 20mm 15mm 20mm;
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 10pt;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
             line-height: 1.4;
             color: #000;
             margin: 0;
@@ -20,6 +20,14 @@
 
         .page-break {
             page-break-after: always;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        table {
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .text-center {
@@ -32,31 +40,30 @@
 
         .doc-title {
             text-align: center;
-            font-size: 13pt;
+            font-size: 12pt;
             font-weight: bold;
             margin-bottom: 12px;
-            text-transform: capitalize;
         }
 
         .program-meta {
-            font-size: 10pt;
+            font-size: 11pt;
             margin-bottom: 6px;
         }
 
-        /* ── Info Box Table ── */
+        /* ── Info Box Table (No Borders) ── */
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            border: none;
+            margin-bottom: 8px;
         }
 
         .info-table td {
-            border: 1px solid #000;
-            padding: 6px 10px;
+            border: none;
+            padding: 1px 0;
             vertical-align: top;
-            width: 50%;
-            font-size: 9.5pt;
-            line-height: 1.5;
+            font-size: 11pt;
+            line-height: 1.4;
         }
 
         /* ── Mentoring Logs Table ── */
@@ -69,19 +76,21 @@
 
         .mentoring-table th, .mentoring-table td {
             border: 1px solid #000;
-            padding: 6px 5px;
+            padding: 4px 5px;
             vertical-align: top;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .mentoring-table th {
-            background-color: #d9d9d9;
+            background-color: transparent;
             font-weight: bold;
             text-align: center;
             font-size: 9pt;
+            line-height: 1.25;
         }
 
         .mentoring-table td {
-            font-size: 8.5pt;
+            font-size: 9pt;
             line-height: 1.35;
         }
 
@@ -90,12 +99,6 @@
         }
 
         /* ── Signatures ── */
-        .date-location {
-            text-align: right;
-            margin-bottom: 6px;
-            font-size: 9.5pt;
-        }
-
         .signature-table {
             width: 100%;
             border-collapse: collapse;
@@ -106,21 +109,18 @@
             width: 50%;
             text-align: left;
             vertical-align: top;
-            font-size: 9.5pt;
+            font-size: 11pt;
+            border: none;
             padding-left: 10px;
-        }
-
-        .signature-line {
-            margin: 45px 0 5px 0;
-            border-bottom: 1px solid #000;
-            width: 220px;
+            line-height: 1.35;
         }
     </style>
 </head>
 <body>
     @php
-        $kota = explode(' ', $group->regency ?? '');
-        $kotaName = isset($kota[1]) ? ucfirst(strtolower($kota[1])) : (ucfirst(strtolower($group->regency ?? 'Semarang')) ?: 'Semarang');
+        $rawRegency = trim($group->regency ?? '');
+        $cleanRegency = preg_replace('/^(kabupaten|kota|kab\.|kodya)\s+/i', '', $rawRegency);
+        $kotaName = $cleanRegency ? ucwords(strtolower($cleanRegency)) : 'Semarang';
         $printDate = \Carbon\Carbon::now()->translatedFormat('d F Y');
     @endphp
 
@@ -141,20 +141,52 @@
 
             <table class="info-table">
                 <tr>
-                    <td>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr><td style="border:none; padding:1px 0; width:75px;">Nama</td><td style="border:none; padding:1px 0; width:10px;">:</td><td style="border:none; padding:1px 0;">{{ $student->name }}</td></tr>
-                            <tr><td style="border:none; padding:1px 0;">NIM</td><td style="border:none; padding:1px 0;">:</td><td style="border:none; padding:1px 0;">{{ $student->nim }}</td></tr>
-                            <tr><td style="border:none; padding:1px 0;">Prodi</td><td style="border:none; padding:1px 0;">:</td><td style="border:none; padding:1px 0;">{{ $student->prodi ?? '-' }}</td></tr>
-                            <tr><td style="border:none; padding:1px 0;">Fakultas</td><td style="border:none; padding:1px 0;">:</td><td style="border:none; padding:1px 0;">{{ $student->fakultas ?? '-' }}</td></tr>
+                    <td style="width: 50%; padding-right: 25px;">
+                        <table style="width: 100%; border-collapse: collapse; border: none;">
+                            <tr>
+                                <td style="border: none; padding: 2px 0; width: 70px;">Nama</td>
+                                <td style="border: none; padding: 2px 0; width: 15px; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $student->name }}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px 0;">NIM</td>
+                                <td style="border: none; padding: 2px 0; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $student->nim }}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px 0;">Prodi</td>
+                                <td style="border: none; padding: 2px 0; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $student->prodi ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px 0;">Fakultas</td>
+                                <td style="border: none; padding: 2px 0; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $student->fakultas ?? '-' }}</td>
+                            </tr>
                         </table>
                     </td>
-                    <td>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr><td style="border:none; padding:1px 0; width:85px;">Desa</td><td style="border:none; padding:1px 0; width:10px;">:</td><td style="border:none; padding:1px 0;">{{ $group->village ?? '-' }}</td></tr>
-                            <tr><td style="border:none; padding:1px 0;">Kecamatan</td><td style="border:none; padding:1px 0;">:</td><td style="border:none; padding:1px 0;">{{ $group->district ?? '-' }}</td></tr>
-                            <tr><td style="border:none; padding:1px 0;">Kabupaten</td><td style="border:none; padding:1px 0;">:</td><td style="border:none; padding:1px 0;">{{ $group->regency ?? '-' }}</td></tr>
-                            <tr><td style="border:none; padding:1px 0;">Provinsi</td><td style="border:none; padding:1px 0;">:</td><td style="border:none; padding:1px 0;">{{ $group->province ?? '-' }}</td></tr>
+                    <td style="width: 50%; padding-left: 25px;">
+                        <table style="width: 100%; border-collapse: collapse; border: none;">
+                            <tr>
+                                <td style="border: none; padding: 2px 0; width: 80px;">Desa</td>
+                                <td style="border: none; padding: 2px 0; width: 15px; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $group->village ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px 0;">Kecamatan</td>
+                                <td style="border: none; padding: 2px 0; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $group->district ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px 0;">Kabupaten</td>
+                                <td style="border: none; padding: 2px 0; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $group->regency ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px 0;">Provinsi</td>
+                                <td style="border: none; padding: 2px 0; text-align: center;">:</td>
+                                <td style="border: none; padding: 2px 0;">{{ $group->province ?? '-' }}</td>
+                            </tr>
                         </table>
                     </td>
                 </tr>
@@ -167,14 +199,14 @@
             <table class="mentoring-table">
                 <thead>
                     <tr>
-                        <th style="width: 30px;">No</th>
-                        <th style="width: 75px;">Tanggal</th>
-                        <th style="width: 130px;">Kegiatan</th>
-                        <th>Uraian &amp; Hambatan</th>
-                        <th>Solusi / Saran dari Dosen KKN</th>
-                        <th style="width: 100px;">Kelompok Sasaran</th>
-                        <th style="width: 60px;">Jumlah Mahasiswa</th>
-                        <th style="width: 90px;">Luaran</th>
+                        <th style="width: 3.5%;">No</th>
+                        <th style="width: 8.5%;">Tanggal</th>
+                        <th style="width: 20%;">Kegiatan</th>
+                        <th style="width: 22%;">Uraian &amp; Hambatan</th>
+                        <th style="width: 18%;">Solusi / Saran dari Dosen KKN</th>
+                        <th style="width: 8%;">Kelompok<br>Sasaran</th>
+                        <th style="width: 7.5%;">Jumlah<br>Mahasiswa</th>
+                        <th style="width: 12.5%;">Luaran</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,7 +225,7 @@
                         @endforeach
                     @else
                         {{-- Template baris kosong jika belum ada catatan log --}}
-                        @for($i = 1; $i <= 8; $i++)
+                        @for($i = 1; $i <= 9; $i++)
                             <tr>
                                 <td class="text-center" style="height: 22px;">{{ $i }}</td>
                                 <td>&nbsp;</td>
@@ -209,21 +241,23 @@
                 </tbody>
             </table>
 
-            <div class="date-location">
-                {{ $kotaName }}, {{ $printDate }}
-            </div>
-
             <table class="signature-table">
+                <tr>
+                    <td></td>
+                    <td style="padding-bottom: 6px;">
+                        {{ $kotaName }}, {{ $printDate }}
+                    </td>
+                </tr>
                 <tr>
                     <td>
                         Dosen KKN
-                        <div class="signature-line"></div>
+                        <div style="height: 60px;"></div>
                         <strong>{{ $dpl?->name ?? '____________________________' }}</strong><br>
                         NIP. {{ $dpl?->nip ?? '________________________' }}
                     </td>
                     <td>
                         Pelaksana
-                        <div class="signature-line"></div>
+                        <div style="height: 60px;"></div>
                         <strong>{{ $student->name }}</strong><br>
                         NIM. {{ $student->nim }}
                     </td>
