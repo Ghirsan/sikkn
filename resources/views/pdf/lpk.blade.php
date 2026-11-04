@@ -568,7 +568,12 @@
                     </tr><tr>
                 @endif
                 <td class="text-center" style="width:50%; vertical-align:top;">
-                    <img src="{{ public_path('storage/' . $program->documentation_image_path) }}" alt="Dokumentasi" style="max-width:100%; max-height:220px; border:1px solid #ccc;">
+                    @php
+                        $docImgSrc = app(\App\Services\PdfImageResolver::class)->resolve($program->documentation_image_path, $program->documentation_image_url);
+                    @endphp
+                    @if($docImgSrc)
+                        <img src="{{ $docImgSrc }}" alt="Dokumentasi" style="max-width:100%; max-height:220px; border:1px solid #ccc;">
+                    @endif
                     <p style="font-size:9pt; margin-top:4px;"><strong>{{ $program->participant_code }}</strong><br><em>{{ $program->documentation_caption ?? 'Tanpa keterangan' }}</em></p>
                 </td>
             @endforeach

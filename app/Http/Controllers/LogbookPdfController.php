@@ -59,7 +59,7 @@ class LogbookPdfController extends Controller
         ]);
 
         $pdf->setPaper('a4', 'portrait');
-        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'sans-serif', 'isHtml5ParserEnabled' => true]);
+        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'times-roman', 'isHtml5ParserEnabled' => true]);
 
         return $pdf->download('Logbook_KKN_'.$student->nim.'.pdf');
     }

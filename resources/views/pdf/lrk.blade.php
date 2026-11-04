@@ -556,10 +556,17 @@
     <p>{{ $group->survey_documentation_text ?? 'Masukkan dokumentasi survey pada lampiran ini, pilih foto yang memperlihatkan permasalahan atau potensi sesuai yang dipilih menjadi usulan program, sertakan juga caption foto yang sesuai.' }}</p>
 
     @if($group->survey_document_path)
-        <div class="text-center">
-            <img src="{{ public_path('storage/' . $group->survey_document_path) }}" alt="Dokumentasi Survey" style="max-width:100%; border:1px solid #ccc;">
-            <p style="margin-top:8px;"><em>Dokumentasi Survey {{ $group->village }}, {{ $group->district }}, {{ $group->regency }}</em></p>
-        </div>
+        @php
+            $surveyImg = app(\App\Services\PdfImageResolver::class)->resolve($group->survey_document_path);
+        @endphp
+        @if($surveyImg)
+            <div class="text-center">
+                <img src="{{ $surveyImg }}" alt="Dokumentasi Survey" style="max-width:100%; border:1px solid #ccc;">
+                <p style="margin-top:8px;"><em>Dokumentasi Survey {{ $group->village }}, {{ $group->district }}, {{ $group->regency }}</em></p>
+            </div>
+        @else
+            <p><em>Belum ada dokumentasi survey.</em></p>
+        @endif
     @else
         <p><em>Belum ada dokumentasi survey.</em></p>
     @endif
@@ -573,10 +580,17 @@
     <p>{{ $group->location_map_text ?? 'Gambarkan peta lokasi secara manual dengan keterangan/informasi terkait dengan permasalahan atau potensi yang menjadi usulan program KKN tersebut dilaksanakan baik multidisiplin maupun keilmuan.' }}</p>
 
     @if($group->location_map_path)
-        <div class="text-center">
-            <img src="{{ public_path('storage/' . $group->location_map_path) }}" alt="Peta Lokasi" style="max-width:100%; border:1px solid #ccc;">
-            <p style="margin-top:8px;"><em>Peta Lokasi KKN {{ $group->village }}, {{ $group->district }}, {{ $group->regency }}</em></p>
-        </div>
+        @php
+            $mapImg = app(\App\Services\PdfImageResolver::class)->resolve($group->location_map_path);
+        @endphp
+        @if($mapImg)
+            <div class="text-center">
+                <img src="{{ $mapImg }}" alt="Peta Lokasi" style="max-width:100%; border:1px solid #ccc;">
+                <p style="margin-top:8px;"><em>Peta Lokasi KKN {{ $group->village }}, {{ $group->district }}, {{ $group->regency }}</em></p>
+            </div>
+        @else
+            <p><em>Belum ada peta lokasi.</em></p>
+        @endif
     @else
         <p><em>Belum ada peta lokasi.</em></p>
     @endif
