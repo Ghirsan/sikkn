@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use App\Enums\UserRole;
 use App\Models\MentoringLog;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PdfKitService;
+use Illuminate\Http\Response;
 
 class MentoringLogsPdfController extends Controller
 {
-    public function download(User $student)
+    public function __construct(
+        protected PdfKitService $pdfKitService
+    ) {}
+
+    public function download(User $student): Response
     {
         if ($student->role !== UserRole::Mahasiswa) {
             abort(404, 'User is not a student');
@@ -33,24 +38,81 @@ class MentoringLogsPdfController extends Controller
             ->get();
 
         // Kelompokkan catatan pembimbingan berdasarkan program
-        $groupedLogs = $logs->groupBy('program_id');
+        $groupedLogsRaw = $logs->groupBy('program_id');
 
-        // Jika sama sekali belum ada log, sediakan 1 grup kosong untuk mencetak lembar template
-        if ($groupedLogs->isEmpty()) {
-            $groupedLogs = collect([null => collect()]);
+        if ($groupedLogsRaw->isEmpty()) {
+            $groupedLogsRaw = collect([null => collect()]);
         }
 
-        $pdf = Pdf::loadView('pdf.mentoring', [
-            'student' => $student,
-            'group' => $group,
-            'period' => $period,
-            'dpl' => $dpl,
+        $groupedLogs = [];
+        foreach ($groupedLogsRaw as $progId => $programLogs) {
+            $key = $progId ? (string) $progId : 'default';
+            $first = $programLogs->first();
+
+            $groupedLogs[$key] = $programLogs->map(fn ($l) => [
+                'program_type_name' => $l->program?->programType?->name ?? 'Multidisiplin',
+                'program_title' => $l->program?->title ?? 'Program KKN',
+                'date' => $l->date?->format('Y-m-d'),
+                'topic' => $l->topic,
+                'discussion_summary' => $l->discussion_summary,
+                'dpl_feedback' => $l->dpl_feedback,
+                'target_group' => $l->target_group,
+                'student_count' => $l->student_count ?? 1,
+                'output' => $l->output,
+                'status' => $l->status?->value ?? (string) $l->status,
+            ])->values()->all();
+
+            if (empty($groupedLogs[$key])) {
+                $groupedLogs[$key] = [
+                    [
+                        'program_type_name' => 'Multidisiplin',
+                        'program_title' => 'Program Kerja KKN',
+                        'date' => null,
+                        'topic' => '-',
+                        'discussion_summary' => '-',
+                        'dpl_feedback' => '-',
+                        'target_group' => '-',
+                        'student_count' => 1,
+                        'output' => '-',
+                        'status' => 'pending',
+                    ],
+                ];
+            }
+        }
+
+        $logoPath = public_path('images/logo-undip.png');
+
+        $payload = [
+            'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
+            'student' => [
+                'name' => $student->name,
+                'nim' => $student->nim,
+                'prodi' => $student->studyProgram?->name,
+                'fakultas' => $student->faculty?->name,
+            ],
+            'group' => [
+                'name' => $group->name,
+                'village' => $group->village,
+                'district' => $group->district,
+                'regency' => $group->regency,
+                'province' => $group->province ?? 'Jawa Tengah',
+            ],
+            'period' => [
+                'semester' => $period->semester?->value,
+                'year' => $period->year,
+            ],
+            'dpl' => [
+                'name' => $dpl?->name,
+                'nip' => $dpl?->nip,
+            ],
             'groupedLogs' => $groupedLogs,
-        ]);
+            'assets' => [
+                'logo_path' => file_exists($logoPath) ? $logoPath : null,
+            ],
+        ];
 
-        $pdf->setPaper('a4', 'landscape');
-        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'times-roman', 'isHtml5ParserEnabled' => true]);
+        $pdfBinary = $this->pdfKitService->generate('generate-mentoring.js', $payload);
 
-        return $pdf->download('Buku_Pembimbingan_KKN_'.$student->nim.'.pdf');
+        return $this->pdfKitService->makeResponse($pdfBinary, 'Buku_Pembimbingan_KKN_'.$student->nim.'.pdf');
     }
 }

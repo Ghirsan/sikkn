@@ -112,6 +112,7 @@ class LrkPdfController extends Controller
         $mapImgB64 = $group->location_map_path ? $this->imageResolver->resolve($group->location_map_path) : null;
 
         $payload = [
+            'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
             'assets' => [
                 'logo_path' => file_exists($logoPath) ? $logoPath : null,
                 'survey_image_base64' => $surveyImgB64,

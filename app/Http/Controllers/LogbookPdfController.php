@@ -5,11 +5,18 @@ namespace App\Http\Controllers;
 use App\Enums\UserRole;
 use App\Models\DailyLog;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PdfImageResolver;
+use App\Services\PdfKitService;
+use Illuminate\Http\Response;
 
 class LogbookPdfController extends Controller
 {
-    public function download(User $student)
+    public function __construct(
+        protected PdfKitService $pdfKitService,
+        protected PdfImageResolver $imageResolver
+    ) {}
+
+    public function download(User $student): Response
     {
         // Pastikan user yang dicetak adalah mahasiswa
         if ($student->role !== UserRole::Mahasiswa) {
@@ -38,29 +45,68 @@ class LogbookPdfController extends Controller
         $logsGroupedByWeek = [];
 
         foreach ($logs as $log) {
-            // Hitung minggu ke-berapa
             $dayDiff = $period->start_date->diffInDays($log->date);
-            $weekNumber = floor($dayDiff / 7) + 1;
-
-            // Hitung hari ke-berapa
-            $log->day_number = $dayDiff + 1;
+            $weekNumber = (int) floor($dayDiff / 7) + 1;
+            $dayNumber = $dayDiff + 1;
 
             if (! isset($logsGroupedByWeek[$weekNumber])) {
                 $logsGroupedByWeek[$weekNumber] = [];
             }
-            $logsGroupedByWeek[$weekNumber][] = $log;
+
+            $imageSrc = $log->image_path ? $this->imageResolver->resolve($log->image_path, $log->image_url) : null;
+
+            $logsGroupedByWeek[$weekNumber][] = [
+                'day_number' => $dayNumber,
+                'date' => $log->date?->format('Y-m-d'),
+                'date_formatted' => $log->date?->locale('id')->isoFormat('dddd, D MMMM Y'),
+                'activities' => $log->activities->map(fn ($a) => [
+                    'start_time' => $a->start_time ? substr($a->start_time, 0, 5) : '',
+                    'end_time' => $a->end_time ? substr($a->end_time, 0, 5) : '',
+                    'activity_description' => $a->activity_description,
+                ])->values()->all(),
+                'important_notes' => $log->important_notes,
+                'image_path' => $log->image_path,
+                'image_url' => $log->image_url,
+                'image_base64' => $imageSrc,
+            ];
         }
 
-        $pdf = Pdf::loadView('pdf.logbook', [
-            'student' => $student,
-            'group' => $group,
-            'dpl' => $dpl,
+        $logoPath = public_path('images/logo-undip-logbook.png');
+        if (! file_exists($logoPath)) {
+            $logoPath = public_path('images/logo-undip.png');
+        }
+
+        $payload = [
+            'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
+            'student' => [
+                'name' => $student->name,
+                'nim' => $student->nim,
+                'prodi' => $student->studyProgram?->name,
+                'fakultas' => $student->faculty?->name,
+            ],
+            'group' => [
+                'name' => $group->name,
+                'village' => $group->village,
+                'district' => $group->district,
+                'regency' => $group->regency,
+                'province' => $group->province ?? 'Jawa Tengah',
+            ],
+            'period' => [
+                'semester' => $period->semester?->value,
+                'year' => $period->year,
+            ],
+            'dpl' => [
+                'name' => $dpl?->name,
+                'nip' => $dpl?->nip,
+            ],
             'logsGroupedByWeek' => $logsGroupedByWeek,
-        ]);
+            'assets' => [
+                'logo_path' => file_exists($logoPath) ? $logoPath : null,
+            ],
+        ];
 
-        $pdf->setPaper('a4', 'portrait');
-        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'times-roman', 'isHtml5ParserEnabled' => true]);
+        $pdfBinary = $this->pdfKitService->generate('generate-logbook.js', $payload);
 
-        return $pdf->download('Logbook_KKN_'.$student->nim.'.pdf');
+        return $this->pdfKitService->makeResponse($pdfBinary, 'Logbook_KKN_'.$student->nim.'.pdf');
     }
 }

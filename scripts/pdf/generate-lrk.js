@@ -3,10 +3,11 @@
 /**
  * PDFKit Generator for Laporan Rencana Kegiatan (LRK)
  * Exact format recreated from docs-source/lrk.docx & docs-source/lrk.pdf
+ * - Section 1: Portrait (Cover, Pengesahan, Daftar Isi)
+ * - Section 2: Landscape throughout all remaining chapters (Bab 1, 2, 3, 4, Lampiran 1 & 2)
  */
 
 import fs from 'node:fs';
-import path from 'node:path';
 import PDFDocument from 'pdfkit';
 
 // Parse CLI flags --input=<file> --output=<file>
@@ -37,17 +38,20 @@ const doc = new PDFDocument({
 const writeStream = fs.createWriteStream(outputPath);
 doc.pipe(writeStream);
 
-// Navigation / TOC tracking
+// Navigation / TOC tracking (stores exact 1-indexed page numbers)
 const tocPageMap = {
   pengesahan: 2,
   daftarIsi: 3,
   latarBelakang: 4,
   usulanProgram: 4,
-  rencanaPelaksanaan: 5,
-  luaran: 6,
-  lampiranSurvey: 6,
-  lampiranPeta: 6
+  rencanaPelaksanaan: 8,
+  luaran: 9,
+  lampiranSurvey: 10,
+  lampiranPeta: 10
 };
+
+let tocPageIndex = 2; // 0-indexed page index for DAFTAR ISI
+let tocStartY = 120;
 
 // Page addition helpers
 const addPortraitPage = () => {
@@ -56,6 +60,7 @@ const addPortraitPage = () => {
     layout: 'portrait',
     margins: { top: 45, bottom: 45, left: 40, right: 40 }
   });
+  doc.x = doc.page.margins.left;
 };
 
 const addLandscapePage = () => {
@@ -64,10 +69,12 @@ const addLandscapePage = () => {
     layout: 'landscape',
     margins: { top: 40, bottom: 40, left: 40, right: 40 }
   });
+  doc.x = doc.page.margins.left;
 };
 
 /**
- * Universal table renderer with border strokes, alternating stripes, and repeating headers
+ * Universal table renderer with border strokes, header, and automatic page breaks
+ * Guarantees doc.x is reset to startX at completion so subsequent headings don't squish.
  */
 function drawTable(doc, options) {
   const {
@@ -79,7 +86,6 @@ function drawTable(doc, options) {
     headerFontSize = 8.5,
     headerBg = '#d9d9d9',
     borderColor = '#000000',
-    stripeBg = null,
     bannerTitle = null,
     minRowHeight = 18
   } = options;
@@ -125,7 +131,7 @@ function drawTable(doc, options) {
 
   doc.fontSize(fontSize).font('Helvetica');
 
-  rows.forEach((row, rowIndex) => {
+  rows.forEach((row) => {
     let maxCellH = minRowHeight;
     columns.forEach(col => {
       const text = String(row[col.key] ?? '');
@@ -144,10 +150,6 @@ function drawTable(doc, options) {
       doc.fontSize(fontSize).font('Helvetica');
     }
 
-    if (stripeBg && rowIndex % 2 === 1) {
-      doc.rect(startX, curY, tableWidth, maxCellH).fillColor(stripeBg).fill();
-    }
-
     let curX = startX;
     columns.forEach(col => {
       doc.rect(curX, curY, col.width, maxCellH).strokeColor(borderColor).lineWidth(0.5).stroke();
@@ -164,26 +166,55 @@ function drawTable(doc, options) {
     curY += maxCellH;
   });
 
+  // Reset doc.x to startX and update doc.y
+  doc.x = startX;
   doc.y = curY + 10;
 }
 
 // ============================================================
-// PAGE 1: COVER PAGE (Portrait)
+// SECTION 1: PORTRAIT (PAGES 1 - 3)
 // ============================================================
+
+// ------------------------------------------------------------
+// PAGE 1: COVER PAGE (Portrait)
+// ------------------------------------------------------------
 const group = payload.group || {};
 const period = payload.period || {};
 const students = payload.students || [];
 const dpls = payload.dpls || [];
 const assets = payload.assets || {};
 
-// 1. Undip Logo
+// Helper for formatted Indonesian print date (e.g. "5 November 2026")
+function getPrintDate() {
+  if (payload.printed_at) return payload.printed_at;
+  try {
+    return new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch (e) {
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const now = new Date();
+    return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+}
+
+// 1. Undip Logo (Upsized & Centered)
 if (assets.logo_path && fs.existsSync(assets.logo_path)) {
-  const logoWidth = 85;
+  const logoWidth = 125;
   const logoX = (doc.page.width - logoWidth) / 2;
-  doc.image(assets.logo_path, logoX, 35, { width: logoWidth });
-  doc.y = 135;
+  const logoY = 38;
+  try {
+    const imgObj = doc.openImage(assets.logo_path);
+    const logoHeight = (imgObj.height / imgObj.width) * logoWidth;
+    doc.image(assets.logo_path, logoX, logoY, { width: logoWidth });
+    doc.x = doc.page.margins.left;
+    doc.y = logoY + logoHeight + 18;
+  } catch (e) {
+    doc.image(assets.logo_path, logoX, logoY, { width: logoWidth });
+    doc.x = doc.page.margins.left;
+    doc.y = 195;
+  }
 } else {
-  doc.y = 55;
+  doc.x = doc.page.margins.left;
+  doc.y = 60;
 }
 
 // 2. Main Title
@@ -205,56 +236,58 @@ doc.fontSize(11).font('Helvetica')
    .text(`KELURAHAN/ DESA ${String(group.village || '-').toUpperCase()} KECAMATAN ${String(group.district || '-').toUpperCase()}`, { align: 'center' })
    .text(`KOTA/ KABUPATEN ${String(group.regency || '-').toUpperCase()}`, { align: 'center' });
 
-doc.moveDown(1.8);
+doc.moveDown(1.5);
 doc.fontSize(11).font('Helvetica-Bold').text('Oleh :', { align: 'center' });
 doc.moveDown(0.4);
 
-// Two Column Student Roster on Cover
+// Two Column Student Roster on Cover with dynamic lineHeight to prevent overlap
 const half = Math.ceil(students.length / 2);
 const colLeft = students.slice(0, half);
 const colRight = students.slice(half);
 
 const rosterStartY = doc.y;
 const rosterColW = (doc.page.width - 120) / 2;
+const lineGap = 15;
 
-doc.font('Helvetica').fontSize(9).fillColor('#000000');
+doc.font('Helvetica').fontSize(8.5).fillColor('#000000');
 colLeft.forEach((s, idx) => {
-  doc.text(`${s.name} / ${s.nim}`, 60, rosterStartY + (idx * 16), { width: rosterColW, lineBreak: false });
+  doc.text(`${s.name} / ${s.nim}`, 60, rosterStartY + (idx * lineGap), { width: rosterColW, lineBreak: false });
 });
 
 colRight.forEach((s, idx) => {
-  doc.text(`${s.name} / ${s.nim}`, 60 + rosterColW + 20, rosterStartY + (idx * 16), { width: rosterColW, lineBreak: false });
+  doc.text(`${s.name} / ${s.nim}`, 60 + rosterColW + 20, rosterStartY + (idx * lineGap), { width: rosterColW, lineBreak: false });
 });
 
 const maxLines = Math.max(colLeft.length, colRight.length);
-doc.y = rosterStartY + (maxLines * 16) + 40;
+doc.y = rosterStartY + (maxLines * lineGap) + 30;
 
-// Institutional Footer Block
-doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-   .text('PUSAT PELAYANAN KULIAH KERJA NYATA (P2KKN)', { align: 'center' })
-   .text('LEMBAGA PENELITIAN DAN PENGABDIAN KEPADA MASYARAKAT (LPPM)', { align: 'center' })
-   .text('UNIVERSITAS DIPONEGORO', { align: 'center' })
-   .text('SEMARANG', { align: 'center' })
-   .text(`${period.year || '2025'}`, { align: 'center' });
+// Institutional Footer Block (Centered across entire page width)
+const coverFootY = Math.max(doc.y, doc.page.height - 145);
+doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000');
+doc.text('PUSAT PELAYANAN KULIAH KERJA NYATA (P2KKN)', 0, coverFootY, { width: doc.page.width, align: 'center' });
+doc.text('LEMBAGA PENELITIAN DAN PENGABDIAN KEPADA MASYARAKAT (LPPM)', 0, coverFootY + 16, { width: doc.page.width, align: 'center' });
+doc.text('UNIVERSITAS DIPONEGORO', 0, coverFootY + 32, { width: doc.page.width, align: 'center' });
+doc.text('SEMARANG', 0, coverFootY + 48, { width: doc.page.width, align: 'center' });
+doc.text(`${period.year || '2025'}`, 0, coverFootY + 64, { width: doc.page.width, align: 'center' });
 
-// ============================================================
+// ------------------------------------------------------------
 // PAGE 2: HALAMAN PENGESAHAN (Portrait)
-// ============================================================
+// ------------------------------------------------------------
 addPortraitPage();
 tocPageMap.pengesahan = doc.bufferedPageRange().count;
 
 doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000')
    .text('HALAMAN PENGESAHAN', { align: 'center' });
-doc.moveDown(1.2);
+doc.moveDown(1.0);
 
 const partnerPhrase = group.partner_name ? ` pada ${group.partner_name}` : '';
-doc.fontSize(10.5).font('Helvetica').fillColor('#000000').text(
+doc.fontSize(10).font('Helvetica').fillColor('#000000').text(
   `Tim KKN ${semesterLabel} TA ${academicYear}${partnerPhrase} di Desa ${group.village || '-'} Kecamatan ${group.district || '-'} Kota/Kabupaten ${group.regency || '-'}.`,
-  { align: 'justify', lineGap: 3 }
+  { align: 'justify', lineGap: 2.5 }
 );
-doc.moveDown(1);
+doc.moveDown(0.8);
 
-// Signature table with ample space
+// Signature table with balanced row height (23 pt) so up to 19 students + signatures fit on 1 page!
 const pengesahanCols = [
   { key: 'no', label: 'No', width: 35, align: 'center' },
   { key: 'name', label: 'Nama', width: 200, align: 'left' },
@@ -272,19 +305,17 @@ const pengesahanRows = students.map((s, idx) => ({
 drawTable(doc, {
   columns: pengesahanCols,
   rows: pengesahanRows,
-  minRowHeight: 28, // Height gives room for signature
-  fontSize: 9,
-  headerFontSize: 9.5
+  minRowHeight: 23,
+  fontSize: 8.5,
+  headerFontSize: 9
 });
 
-doc.moveDown(1.2);
-
-// Check if signature blocks fit on same page
-if (doc.y + 115 > doc.page.height - doc.page.margins.bottom) {
+// Check if signature block fits on current page (requires ~110 pt)
+if (doc.y + 110 > doc.page.height - doc.page.margins.bottom) {
   addPortraitPage();
 }
 
-const sigBlockY = doc.y;
+const sigBlockY = doc.y + 10;
 const sigHalfW = (doc.page.width - 80) / 2;
 
 // Left Signer: Dosen KKN
@@ -293,33 +324,34 @@ doc.text('Mengetahui,', 40, sigBlockY);
 doc.text('Dosen KKN,', 40, sigBlockY + 14);
 
 const firstDpl = dpls[0] || {};
-doc.fontSize(9.5).font('Helvetica-Bold').text(firstDpl.name || 'Nama Dosen KKN', 40, sigBlockY + 70);
-doc.font('Helvetica').fontSize(9).text(`NIP. ${firstDpl.nip || '____________________'}`, 40, sigBlockY + 85);
+doc.fontSize(9.5).font('Helvetica-Bold').text(firstDpl.name || 'Nama Dosen KKN', 40, sigBlockY + 68);
+doc.font('Helvetica').fontSize(9).text(`NIP. ${firstDpl.nip || '____________________'}`, 40, sigBlockY + 82);
 
 // Right Signer: Kepala Desa
 const rightSigX = 40 + sigHalfW;
-const kadesDate = `Semarang, ________________ ${period.year ? period.year + 1 : '2026'}`;
+const kadesDate = `${group.regency || 'Semarang'}, ${getPrintDate()}`;
 doc.fontSize(9.5).font('Helvetica').text(kadesDate, rightSigX, sigBlockY);
 doc.text('Kepala Desa,', rightSigX, sigBlockY + 14);
-doc.fontSize(9.5).font('Helvetica-Bold').text(group.village_head || 'Nama dan Stempel', rightSigX, sigBlockY + 70);
+doc.fontSize(9.5).font('Helvetica-Bold').text(group.village_head || 'Nama dan Stempel', rightSigX, sigBlockY + 68);
 
-// ============================================================
+// ------------------------------------------------------------
 // PAGE 3: DAFTAR ISI (Portrait)
-// ============================================================
+// ------------------------------------------------------------
 addPortraitPage();
+tocPageIndex = doc.bufferedPageRange().count - 1;
 tocPageMap.daftarIsi = doc.bufferedPageRange().count;
 
 doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000').text('DAFTAR ISI', { align: 'center' });
 doc.moveDown(1.5);
+tocStartY = doc.y;
 
 // Dotted Leader helper function for TOC
-function renderTocLine(title, targetPage, isSub = false) {
-  const startX = isSub ? 60 : 40;
+function renderTocLine(title, targetPage, curY) {
+  const startX = 40;
   const endX = doc.page.width - 40;
-  const lineY = doc.y;
 
   doc.fontSize(10).font('Helvetica').fillColor('#000000')
-     .text(title, startX, lineY, { continued: false });
+     .text(title, startX, curY, { continued: false });
 
   const titleW = doc.widthOfString(title);
   const pageNumStr = String(targetPage);
@@ -335,52 +367,52 @@ function renderTocLine(title, targetPage, isSub = false) {
     for (let d = 0; d < dotCount; d++) dotStr += ' .';
 
     doc.fontSize(9).fillColor('#6b7280')
-       .text(dotStr, dotsStart, lineY, { lineBreak: false });
+       .text(dotStr, dotsStart, curY, { lineBreak: false });
   }
 
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-     .text(pageNumStr, endX - pageNumW, lineY);
+     .text(pageNumStr, endX - pageNumW, curY);
 
-  doc.y = lineY + 22;
+  return curY + 22;
 }
 
-renderTocLine('HALAMAN PENGESAHAN', 2);
-renderTocLine('DAFTAR ISI', 3);
-renderTocLine('1. LATAR BELAKANG', 4);
-renderTocLine('2. USULAN RENCANA PROGRAM', 4);
-renderTocLine('2.1 Multidisiplin', 4, true);
-renderTocLine('2.2 Sosial Kemasyarakatan', 4, true);
-renderTocLine('2.3 Program Lainnya', 4, true);
-renderTocLine('3. RENCANA PELAKSANAAN', 5);
-renderTocLine('4. JENIS-JENIS LUARAN', 6);
-renderTocLine('LAMPIRAN 1 DOKUMENTASI SURVEY', 6);
-renderTocLine('LAMPIRAN 2 PETA LOKASI', 6);
-
 // ============================================================
-// PAGE 4+: BAB 1 LATAR BELAKANG & BAB 2 USULAN PROGRAM (SWITCH TO LANDSCAPE)
+// SECTION 2: LANDSCAPE THROUGHOUT ALL REMAINING CHAPTERS
+// (Matching docs-source/lrk.pdf & #01 Template docx)
 // ============================================================
 addLandscapePage();
 tocPageMap.latarBelakang = doc.bufferedPageRange().count;
+tocPageMap.usulanProgram = doc.bufferedPageRange().count;
 
-// 1. LATAR BELAKANG
-doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('1. LATAR BELAKANG');
+const landMarginLeft = doc.page.margins.left; // 40
+const landContentW = doc.page.width - 80;     // 761.89
+
+// ------------------------------------------------------------
+// BAB 1: LATAR BELAKANG & BAB 2: USULAN RENCANA PROGRAM
+// ------------------------------------------------------------
+doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
+   .text('1. LATAR BELAKANG', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
   group.background || 'Jelaskan kondisi lokasi KKN, yang meliputi: permasalahan dan potensi yang ditemukan pada saat proses observasi dan prioritas dalam pemilihan permasalahan. (500 kata)',
-  { align: 'justify', lineGap: 3 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, align: 'justify', lineGap: 3 }
 );
 doc.moveDown(1.2);
 
-// 2. USULAN RENCANA PROGRAM
-tocPageMap.usulanProgram = doc.bufferedPageRange().count;
-doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('2. USULAN RENCANA PROGRAM');
+doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
+   .text('2. USULAN RENCANA PROGRAM', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 
 // 2.1 MULTIDISIPLIN
-doc.fontSize(11).font('Helvetica-Bold').text('2.1 MULTIDISIPLIN');
+doc.fontSize(11).font('Helvetica-Bold')
+   .text('2.1 MULTIDISIPLIN', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_multidisiplin_text || 'Tulis usulan program multidisiplin yang disesuaikan dengan permasalahan dan potensi yang telah dijabarkan sebelumnya. Usulan program multidisiplin adalah setiap mahasiswa terlibat dalam 3 multidisiplin.',
-  { lineGap: 2 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, lineGap: 2 }
 );
 doc.moveDown(0.6);
 
@@ -415,7 +447,8 @@ const mdBySeq = {
 const md1List = mdBySeq[1].length > 0 ? mdBySeq[1] : allMultidisiplin.slice(0, Math.ceil(allMultidisiplin.length / 2));
 const md1Title = md1List[0]?.program_title || 'Peningkatan Ketahanan Pangan Masyarakat Desa';
 
-doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text('Tabel 1. Rencana Multidisiplin 1');
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+   .text('Tabel 1. Rencana Multidisiplin 1', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const md1Rows = md1List.map((p, idx) => ({
@@ -438,14 +471,15 @@ drawTable(doc, {
 
 // Render Multidisiplin 2
 doc.moveDown(0.8);
-if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
+if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
 const md2List = mdBySeq[2].length > 0 ? mdBySeq[2] : allMultidisiplin.slice(Math.ceil(allMultidisiplin.length / 2));
 const md2Title = md2List[0]?.program_title || 'Pengentasan Kemiskinan Masyarakat Desa';
 
-doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text('Tabel 2. Rencana Multidisiplin 2');
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+   .text('Tabel 2. Rencana Multidisiplin 2', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const md2Rows = md2List.map((p, idx) => ({
@@ -466,16 +500,15 @@ drawTable(doc, {
   headerFontSize: 8
 });
 
-// Render Multidisiplin 3 (Video Profil)
-doc.moveDown(0.8);
-if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
-  addLandscapePage();
-}
+// Page break before Multidisiplin 3 (Video Profil) matching template
+addLandscapePage();
 
+// Render Multidisiplin 3 (Video Profil)
 const md3List = mdBySeq[3].length > 0 ? mdBySeq[3] : [];
 const md3Title = md3List[0]?.program_title || `Video Profil di Desa ${group.village || '-'} Kecamatan ${group.district || '-'}`;
 
-doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text('Tabel 3. Rencana Multidisiplin 3');
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+   .text('Tabel 3. Rencana Multidisiplin 3', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const md3Rows = (md3List.length > 0 ? md3List : students.slice(0, 4)).map((p, idx) => ({
@@ -495,22 +528,37 @@ drawTable(doc, {
 
 // Video Storyboard & Script
 doc.moveDown(0.5);
-doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000').text('Rencana Story Board :');
-doc.font('Helvetica').text(group.storyboard_text || '- Pengambilan video sambutan Kepala Desa\n- Dokumentasi potensi alam, budaya, dan UMKM desa');
+doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+   .text('Rencana Story Board :', landMarginLeft, doc.y);
+doc.font('Helvetica').text(
+  group.storyboard_text || '- Pengambilan video sambutan Kepala Desa\n- Dokumentasi potensi alam, budaya, dan UMKM desa',
+  landMarginLeft,
+  doc.y,
+  { width: landContentW }
+);
 doc.moveDown(0.4);
-doc.font('Helvetica-Bold').text('Rencana Skrip Video :');
-doc.font('Helvetica').text(group.video_script_text || '- Voice over mengenalkan profil desa, fasilitas umum, dan potensi pariwisata\n- Penutup dengan ucapan terima kasih');
 
-// 2.2 SOSIAL KEMASYARAKATAN
-doc.moveDown(1.2);
-if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
-  addLandscapePage();
-}
+doc.font('Helvetica-Bold').text('Rencana Skrip Video :', landMarginLeft, doc.y);
+doc.font('Helvetica').text(
+  group.video_script_text || '- Voice over mengenalkan profil desa, fasilitas umum, dan potensi pariwisata\n- Penutup dengan ucapan terima kasih',
+  landMarginLeft,
+  doc.y,
+  { width: landContentW }
+);
 
-doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000').text('2.2 Sosial Kemasyarakatan');
+// Page break before 2.2 Sosial Kemasyarakatan matching template
+addLandscapePage();
+
+// ------------------------------------------------------------
+// 2.2 SOSIAL KEMASYARAKATAN & 2.3 PROGRAM LAINNYA
+// ------------------------------------------------------------
+doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
+   .text('2.2 Sosial Kemasyarakatan', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_sosmas_text || 'Tulis usulan program sosial kemasyarakatan yang disesuaikan dengan permasalahan dan potensi yang telah dijabarkan sebelumnya. Usulan program sosial kemasyarakatan adalah setiap mahasiswa terlibat dalam 1 program sosial kemasyarakatan.',
-  { lineGap: 2 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, lineGap: 2 }
 );
 doc.moveDown(0.5);
 
@@ -527,7 +575,8 @@ const sosmasCols = [
 ];
 
 // Tabel 4. Saintek
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)');
+doc.fontSize(9.5).font('Helvetica-Bold')
+   .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const saintekRows = (saintekList.length > 0 ? saintekList : sosmasAll.slice(0, 3)).map((p, idx) => ({
@@ -552,7 +601,8 @@ if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)');
+doc.fontSize(9.5).font('Helvetica-Bold')
+   .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const soshumRows = (soshumList.length > 0 ? soshumList : sosmasAll.slice(3)).map((p, idx) => ({
@@ -573,19 +623,23 @@ drawTable(doc, {
 
 // 2.3 PROGRAM LAINNYA
 doc.moveDown(0.8);
-if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
+if (doc.y + 80 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
-doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000').text('2.3 Program Lainnya');
+doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
+   .text('2.3 Program Lainnya', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_lainnya_text || 'Tulis usulan program lainnya yang disesuaikan dengan wilayah. Usulan program lainnya tidak ada batasan jumlah maupun jenis.',
-  { lineGap: 2 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, lineGap: 2 }
 );
 doc.moveDown(0.5);
 
 const lainnyaList = payload.lainnya || [];
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 6. Rencana Program Lainnya');
+doc.fontSize(9.5).font('Helvetica-Bold')
+   .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const lainnyaRows = (lainnyaList.length > 0 ? lainnyaList : []).map((p, idx) => ({
@@ -604,26 +658,31 @@ if (lainnyaRows.length > 0) {
     headerFontSize: 8
   });
 } else {
-  doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563').text('Belum ada usulan program lainnya.');
+  doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563')
+     .text('Belum ada usulan program lainnya.', landMarginLeft, doc.y);
   doc.moveDown(1);
 }
 
-// ============================================================
-// PAGE: BAB 3 RENCANA PELAKSANAAN (Landscape)
-// ============================================================
+// ------------------------------------------------------------
+// BAB 3: RENCANA PELAKSANAAN & BAB 4: JENIS LUARAN (Landscape)
+// ------------------------------------------------------------
 addLandscapePage();
 tocPageMap.rencanaPelaksanaan = doc.bufferedPageRange().count;
 
-doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('3. RENCANA PELAKSANAAN');
+doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
+   .text('3. RENCANA PELAKSANAAN', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   'Tetapkan rencana pelaksanaan baik yang bersifat umum maupun rencana pelaksanaan setiap program.',
-  { lineGap: 2 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, lineGap: 2 }
 );
 doc.moveDown(0.6);
 
 // Tabel 7. Rencana Umum Kegiatan (Mingguan)
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 7. Rencana Umum Kegiatan');
+doc.fontSize(9.5).font('Helvetica-Bold')
+   .text('Tabel 7. Rencana Umum Kegiatan', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const schedCols = [
@@ -655,11 +714,12 @@ drawTable(doc, {
 
 // Tabel 8. Rencana Usulan Program (Kalender Berjalan)
 doc.moveDown(0.8);
-if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+if (doc.y + 140 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 8. Rencana Usulan Program (sesuai kalender berjalan)');
+doc.fontSize(9.5).font('Helvetica-Bold')
+   .text('Tabel 8. Rencana Usulan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const calendar = payload.calendar || {};
@@ -680,7 +740,7 @@ calY += 18;
 
 calendarWeeks.forEach(weekKey => {
   const days = calendar[weekKey] || [];
-  const cellH = 46;
+  const cellH = 40;
 
   if (calY + cellH > doc.page.height - doc.page.margins.bottom) {
     addLandscapePage();
@@ -707,48 +767,60 @@ calendarWeeks.forEach(weekKey => {
        .text(String(dayData.day), curX + 4, calY + 3);
 
     // Bullet items
-    let itemY = calY + 14;
+    let itemY = calY + 13;
     doc.fontSize(6.5).font('Helvetica').fillColor('#1f2937');
     (dayData.events || []).slice(0, 2).forEach(ev => {
       doc.text(`* ${ev.title}`, curX + 4, itemY, { width: dayColW - 8, lineBreak: false, ellipsis: true });
-      itemY += 8.5;
+      itemY += 8;
     });
 
     (dayData.programs || []).slice(0, 2).forEach(pr => {
       doc.font('Helvetica-Bold').text(`* ${pr.code}`, curX + 4, itemY, { width: dayColW - 8, lineBreak: false });
-      itemY += 8.5;
+      itemY += 8;
     });
   });
 
   calY += cellH;
 });
 
+// Check if legend fits on same page
+if (calY + 50 > doc.page.height - doc.page.margins.bottom) {
+  addLandscapePage();
+  calY = doc.page.margins.top;
+}
+
+doc.x = landMarginLeft;
 doc.y = calY + 8;
 
 // Keterangan / Legend
-doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000').text('Keterangan :');
+doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
+   .text('Keterangan :', landMarginLeft, doc.y);
 doc.font('Helvetica').fontSize(8);
-doc.text('* M1MA : Multidisiplin 1 Mahasiswa A');
-doc.text('* SK1MA : Sosial Kemasyarakatan 1 Mahasiswa A');
-doc.text('* L1MA : Lainnya 1 Mahasiswa A');
+doc.text('* M1MA : Multidisiplin 1 Mahasiswa A', landMarginLeft, doc.y);
+doc.text('* SK1MA : Sosial Kemasyarakatan 1 Mahasiswa A', landMarginLeft, doc.y);
+doc.text('* L1MA : Lainnya 1 Mahasiswa A', landMarginLeft, doc.y);
 
-// ============================================================
-// PAGE: BAB 4 & LAMPIRAN (SWITCH BACK TO PORTRAIT)
-// ============================================================
-addPortraitPage();
+// ------------------------------------------------------------
+// BAB 4: JENIS-JENIS LUARAN (Landscape - matching docs-source/lrk.pdf)
+// ------------------------------------------------------------
+doc.moveDown(1.2);
+if (doc.y + 140 > doc.page.height - doc.page.margins.bottom) {
+  addLandscapePage();
+}
 tocPageMap.luaran = doc.bufferedPageRange().count;
 
-// 4. JENIS-JENIS LUARAN
-doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000').text('4. JENIS-JENIS LUARAN');
-doc.moveDown(0.5);
+doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
+   .text('4. JENIS-JENIS LUARAN', landMarginLeft, doc.y);
+doc.moveDown(0.4);
 
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 9. Jenis-jenis Luaran');
+doc.fontSize(9.5).font('Helvetica-Bold')
+   .text('Tabel 9. Jenis-jenis Luaran', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const luaranCols = [
   { key: 'no', label: 'No', width: 35, align: 'center' },
-  { key: 'jenis', label: 'Jenis Luaran', width: 345, align: 'left' },
-  { key: 'sifat', label: 'Sifat', width: 135, align: 'center' }
+  { key: 'jenis', label: 'Jenis Luaran', width: 550, align: 'left' },
+  { key: 'sifat', label: 'Sifat', width: 176, align: 'center' }
 ];
 
 const luaranRows = [
@@ -765,112 +837,129 @@ drawTable(doc, {
   headerFontSize: 9
 });
 
-// LAMPIRAN 1 DOKUMENTASI SURVEY
-doc.moveDown(1.5);
+// ------------------------------------------------------------
+// LAMPIRAN 1 & 2 (Landscape - matching docs-source/lrk.pdf)
+// ------------------------------------------------------------
+addLandscapePage();
 tocPageMap.lampiranSurvey = doc.bufferedPageRange().count;
+tocPageMap.lampiranPeta = doc.bufferedPageRange().count;
 
-doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('LAMPIRAN 1 DOKUMENTASI SURVEY');
+// LAMPIRAN 1 DOKUMENTASI SURVEY
+doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
+   .text('LAMPIRAN 1 DOKUMENTASI SURVEY', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
   group.survey_documentation_text || 'Masukkan dokumentasi survey pada lampiran ini, pilih foto yang memperlihatkan permasalahan atau potensi sesuai yang dipilih menjadi usulan program, sertakan juga caption foto yang sesuai. Urutkan berdasarkan urutan penyampaian usulan program dalam dokumen ini.',
-  { align: 'justify', lineGap: 2.5 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, align: 'justify', lineGap: 2.5 }
 );
 
 if (assets.survey_image_base64 && assets.survey_image_base64.includes('base64,')) {
   try {
     const b64Data = assets.survey_image_base64.split('base64,')[1];
     const imgBuf = Buffer.from(b64Data, 'base64');
-    doc.moveDown(0.8);
-    const imgW = 320;
-    const imgX = (doc.page.width - imgW) / 2;
-    doc.image(imgBuf, imgX, doc.y, { width: imgW });
-    doc.moveDown(0.4);
-    doc.fontSize(8.5).font('Helvetica-Oblique').text(`Dokumentasi Survey Desa ${group.village || '-'}`, { align: 'center' });
+    const imgObj = doc.openImage(imgBuf);
+
+    const maxW = 420;
+    const maxH = 200;
+    let renderW = imgObj.width;
+    let renderH = imgObj.height;
+
+    if (renderW > maxW) {
+      renderH = (renderH * maxW) / renderW;
+      renderW = maxW;
+    }
+    if (renderH > maxH) {
+      renderH = (renderH * maxH) / renderH;
+      renderH = maxH;
+    }
+
+    if (doc.y + renderH + 30 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
+
+    doc.moveDown(0.5);
+    const imgX = landMarginLeft + (landContentW - renderW) / 2;
+    doc.image(imgObj, imgX, doc.y, { width: renderW, height: renderH });
+    doc.y += renderH + 5;
+
+    doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#374151')
+       .text(`Dokumentasi Survey Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
+    doc.y += 14;
   } catch (e) {
-    // Graceful skip if corrupt image
+    // Graceful skip
   }
 }
 
-// LAMPIRAN 2 PETA LOKASI
-doc.moveDown(1.5);
+// LAMPIRAN 2 PETA LOKASI (Landscape page matching template)
+addLandscapePage();
 tocPageMap.lampiranPeta = doc.bufferedPageRange().count;
 
-doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('LAMPIRAN 2 PETA LOKASI');
+doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
+   .text('LAMPIRAN 2 PETA LOKASI', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
   group.location_map_text || 'Gambarkan peta lokasi secara manual dengan keterangan/informasi terkait dengan permasalahan atau potensi yang menjadi usulan program KKN tersebut dilaksanakan baik multidisiplin maupun keilmuan.',
-  { align: 'justify', lineGap: 2.5 }
+  landMarginLeft,
+  doc.y,
+  { width: landContentW, align: 'justify', lineGap: 2.5 }
 );
 
 if (assets.map_image_base64 && assets.map_image_base64.includes('base64,')) {
   try {
     const b64Data = assets.map_image_base64.split('base64,')[1];
     const imgBuf = Buffer.from(b64Data, 'base64');
-    doc.moveDown(0.8);
-    const imgW = 320;
-    const imgX = (doc.page.width - imgW) / 2;
-    doc.image(imgBuf, imgX, doc.y, { width: imgW });
-    doc.moveDown(0.4);
-    doc.fontSize(8.5).font('Helvetica-Oblique').text(`Peta Lokasi KKN Desa ${group.village || '-'}`, { align: 'center' });
+    const imgObj = doc.openImage(imgBuf);
+
+    const maxW = 420;
+    const maxH = 200;
+    let renderW = imgObj.width;
+    let renderH = imgObj.height;
+
+    if (renderW > maxW) {
+      renderH = (renderH * maxW) / renderW;
+      renderW = maxW;
+    }
+    if (renderH > maxH) {
+      renderH = (renderH * maxH) / renderH;
+      renderH = maxH;
+    }
+
+    if (doc.y + renderH + 30 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
+
+    doc.moveDown(0.5);
+    const imgX = landMarginLeft + (landContentW - renderW) / 2;
+    doc.image(imgObj, imgX, doc.y, { width: renderW, height: renderH });
+    doc.y += renderH + 5;
+
+    doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#374151')
+       .text(`Peta Lokasi KKN Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
+    doc.y += 14;
   } catch (e) {
-    // Graceful skip if corrupt image
+    // Graceful skip
   }
 }
 
 // ============================================================
-// TWO-PASS NUMBERING & DYNAMIC FOOTERS
+// TWO-PASS: DYNAMIC TABLE OF CONTENTS (Exact entries matching docs-source/lrk.pdf)
 // ============================================================
 const range = doc.bufferedPageRange();
-for (let i = range.start; i < range.start + range.count; i++) {
-  doc.switchToPage(i);
-  const { width, height } = doc.page;
-  const contentW = width - 80;
 
-  // Temporarily zero margins to prevent PDFKit from triggering auto-page-break
-  const oldTop = doc.page.margins.top;
-  const oldBottom = doc.page.margins.bottom;
-  doc.page.margins.top = 0;
-  doc.page.margins.bottom = 0;
+doc.switchToPage(tocPageIndex);
+let curTocY = tocStartY;
 
-  // Running Header (pages after cover)
-  if (i > 0) {
-    doc.fontSize(7.5).font('Helvetica').fillColor('#64748b')
-       .text('KULIAH KERJA NYATA UNIVERSITAS DIPONEGORO - LAPORAN RENCANA KEGIATAN', 40, 22, {
-         width: contentW,
-         align: 'left',
-         lineBreak: false
-       });
-
-    doc.strokeColor('#cbd5e1').lineWidth(0.5)
-       .moveTo(40, 34)
-       .lineTo(width - 40, 34)
-       .stroke();
-  }
-
-  // Running Footer
-  const footerY = height - 28;
-  doc.strokeColor('#cbd5e1').lineWidth(0.5)
-     .moveTo(40, footerY - 6)
-     .lineTo(width - 40, footerY - 6)
-     .stroke();
-
-  doc.fontSize(8).font('Helvetica').fillColor('#64748b')
-     .text(`Kelompok: ${group.name || '-'} | Desa ${group.village || '-'}`, 40, footerY, {
-       width: contentW / 2,
-       align: 'left',
-       lineBreak: false
-     });
-
-  doc.text(`Halaman ${i + 1} dari ${range.count}`, 40, footerY, {
-    width: contentW,
-    align: 'right',
-    lineBreak: false
-  });
-
-  // Restore margins
-  doc.page.margins.top = oldTop;
-  doc.page.margins.bottom = oldBottom;
-}
+// 8 Standard Chapters from docs-source/lrk.pdf Page 3
+curTocY = renderTocLine('HALAMAN PENGESAHAN', tocPageMap.pengesahan, curTocY);
+curTocY = renderTocLine('DAFTAR ISI', tocPageMap.daftarIsi, curTocY);
+curTocY = renderTocLine('1. LATAR BELAKANG', tocPageMap.latarBelakang, curTocY);
+curTocY = renderTocLine('2. USULAN RENCANA PROGRAM', tocPageMap.usulanProgram, curTocY);
+curTocY = renderTocLine('3. RENCANA PELAKSANAAN', tocPageMap.rencanaPelaksanaan, curTocY);
+curTocY = renderTocLine('4. JENIS-JENIS LUARAN', tocPageMap.luaran, curTocY);
+curTocY = renderTocLine('LAMPIRAN 1 DOKUMENTASI SURVEY', tocPageMap.lampiranSurvey, curTocY);
+curTocY = renderTocLine('LAMPIRAN 2 PETA LOKASI', tocPageMap.lampiranPeta, curTocY);
 
 doc.end();
 

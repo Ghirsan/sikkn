@@ -4,19 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProgramStatus;
 use App\Models\Group;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PdfImageResolver;
+use App\Services\PdfKitService;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 
 class LpkPdfController extends Controller
 {
-    public function download(Group $group)
+    public function __construct(
+        protected PdfKitService $pdfKitService,
+        protected PdfImageResolver $imageResolver
+    ) {}
+
+    public function download(Group $group): Response
     {
         $group->load([
             'period',
             'dpls',
-            'students',
+            'students.studyProgram',
+            'students.faculty',
             'programs.programType',
-            'programs.participants.student',
+            'programs.participants.student.studyProgram',
+            'programs.participants.student.faculty',
             'programs.participants.outputs',
             'programs.participants.sdgCategory',
             'scheduleEvents',
@@ -24,7 +33,7 @@ class LpkPdfController extends Controller
 
         $period = $group->period;
 
-        // Build calendar
+        // Build calendar structure
         $calendar = [];
         if ($period && $period->start_date && $period->end_date) {
             $startDate = $period->start_date->copy()->startOfWeek(Carbon::MONDAY);
@@ -54,11 +63,14 @@ class LpkPdfController extends Controller
                 $dateStr = $currentDate->format('Y-m-d');
 
                 $calendar[$week][] = [
-                    'date' => $currentDate->copy(),
+                    'date' => $currentDate->format('Y-m-d'),
                     'day' => $currentDate->day,
                     'in_period' => $currentDate->between($period->start_date, $period->end_date),
-                    'events' => $eventsByDate[$dateStr] ?? collect(),
-                    'programs' => $programsByDate[$dateStr] ?? [],
+                    'events' => ($eventsByDate[$dateStr] ?? collect())->map(fn ($e) => ['title' => $e->title])->values()->all(),
+                    'programs' => collect($programsByDate[$dateStr] ?? [])->map(fn ($p) => [
+                        'code' => $p->participant_code ?? '',
+                        'title' => $p->participant_title ?: ($p->program?->title ?? ''),
+                    ])->values()->all(),
                 ];
                 $currentDate = $currentDate->addDay();
             }
@@ -75,21 +87,102 @@ class LpkPdfController extends Controller
             }
         }
 
-        $pdf = Pdf::loadView('pdf.lpk', [
-            'group' => $group,
-            'period' => $period,
-            'dpls' => $group->dpls,
-            'students' => $group->students,
-            'multidisiplin' => $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'multidisiplin'),
-            'sosialKemasyarakatan' => $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'sosial_kemasyarakatan'),
-            'lainnya' => $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'lainnya'),
-            'scheduleEvents' => $group->scheduleEvents->sortBy('date'),
+        $multidisiplin = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'multidisiplin')->values();
+        $sosialKemasyarakatan = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'sosial_kemasyarakatan')->values();
+        $lainnya = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'lainnya')->values();
+
+        $logoPath = public_path('images/logo-undip.png');
+
+        // Extract outputs
+        $outputs = collect();
+        foreach ($approvedParticipants as $participant) {
+            foreach ($participant->outputs as $out) {
+                $outputs->push([
+                    'code' => $participant->participant_code ?: 'LUARAN',
+                    'program_title' => $participant->participant_title ?: ($participant->program?->title ?? '-'),
+                    'student_name' => $participant->student?->name ?? '-',
+                    'type' => $out->output_type ?? 'Dokumen / Media',
+                    'url' => $out->url ?? '-',
+                ]);
+            }
+        }
+
+        $payload = [
+            'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
+            'assets' => [
+                'logo_path' => file_exists($logoPath) ? $logoPath : null,
+            ],
+            'group' => [
+                'name' => $group->name,
+                'village' => $group->village,
+                'district' => $group->district,
+                'regency' => $group->regency,
+                'partner_name' => $group->partner_name,
+                'village_head' => $group->village_head,
+                'background' => $group->background,
+                'lpk_background' => $group->lpk_background ?? $group->background,
+            ],
+            'period' => [
+                'semester' => $period?->semester?->value,
+                'year' => $period?->year,
+            ],
+            'dpls' => $group->dpls->map(fn ($d) => [
+                'name' => $d->name,
+                'nip' => $d->nip,
+            ])->values()->all(),
+            'students' => $group->students->map(fn ($s) => [
+                'name' => $s->name,
+                'nim' => $s->nim,
+                'prodi' => $s->studyProgram?->name,
+                'fakultas' => $s->faculty?->name,
+            ])->values()->all(),
+            'multidisiplin' => $multidisiplin->map(fn ($p) => [
+                'sequence' => $p->program?->sequence ?? 1,
+                'is_video_profile' => $p->program ? $p->program->isVideoProfile() : false,
+                'program_title' => $p->program?->title,
+                'participant_title' => $p->participant_title,
+                'student_name' => $p->student?->name,
+                'student_nim' => $p->student?->nim,
+                'student_fakultas' => $p->student?->faculty?->name,
+                'student_prodi' => $p->student?->studyProgram?->name,
+                'execution_date' => $p->execution_date?->format('d/m/Y'),
+                'achievement' => $p->achievement,
+                'obstacle' => $p->obstacle,
+                'solution' => $p->solution,
+                'role' => $p->role_in_program,
+                'description' => $p->responsibility,
+                'output_code' => $p->participant_code,
+            ])->values()->all(),
+            'sosialKemasyarakatan' => $sosialKemasyarakatan->map(fn ($p) => [
+                'program_title' => $p->program?->title,
+                'participant_title' => $p->participant_title,
+                'student_name' => $p->student?->name,
+                'student_nim' => $p->student?->nim,
+                'student_fakultas' => $p->student?->faculty?->name,
+                'student_prodi' => $p->student?->studyProgram?->name,
+                'execution_date' => $p->execution_date?->format('d/m/Y'),
+                'role' => $p->role_in_program,
+                'description' => $p->responsibility,
+                'output_code' => $p->participant_code,
+            ])->values()->all(),
+            'lainnya' => $lainnya->map(fn ($p) => [
+                'program_title' => $p->program?->title,
+                'participant_title' => $p->participant_title,
+                'student_name' => $p->student?->name,
+                'student_nim' => $p->student?->nim,
+                'student_fakultas' => $p->student?->faculty?->name,
+                'student_prodi' => $p->student?->studyProgram?->name,
+                'execution_date' => $p->execution_date?->format('d/m/Y'),
+                'role' => $p->role_in_program,
+                'description' => $p->responsibility,
+                'output_code' => $p->participant_code,
+            ])->values()->all(),
             'calendar' => $calendar,
-        ]);
+            'outputs' => $outputs->values()->all(),
+        ];
 
-        $pdf->setPaper('a4', 'landscape');
-        $pdf->setOption(['dpi' => 96, 'defaultFont' => 'sans-serif', 'isHtml5ParserEnabled' => true]);
+        $pdfBinary = $this->pdfKitService->generate('generate-lpk.js', $payload);
 
-        return $pdf->download('LPK_KKN_'.$group->name.'.pdf');
+        return $this->pdfKitService->makeResponse($pdfBinary, 'LPK_KKN_'.$group->name.'.pdf');
     }
 }
