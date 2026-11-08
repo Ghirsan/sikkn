@@ -114,6 +114,19 @@ class LpkPdfController extends Controller
             }
         }
 
+        // Extract documentation
+        $documentation = collect();
+        foreach ($approvedParticipants as $participant) {
+            if ($participant->documentation_image_path || $participant->documentation_caption) {
+                $documentation->push([
+                    'title' => $participant->participant_title ?: ($participant->program?->title ?? 'Dokumentasi Program'),
+                    'student_name' => $participant->student?->name ?? '-',
+                    'caption' => $participant->documentation_caption,
+                    'image_url' => $participant->documentation_image_path,
+                ]);
+            }
+        }
+
         $payload = [
             'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
             'assets' => [
@@ -170,6 +183,7 @@ class LpkPdfController extends Controller
                 'execution_date' => $p->execution_date?->format('d/m/Y'),
                 'role' => $p->role_in_program,
                 'description' => $p->responsibility,
+                'achievement' => $p->achievement,
                 'output_code' => $p->participant_code,
             ])->values()->all(),
             'lainnya' => $lainnya->map(fn ($p) => [
@@ -182,10 +196,12 @@ class LpkPdfController extends Controller
                 'execution_date' => $p->execution_date?->format('d/m/Y'),
                 'role' => $p->role_in_program,
                 'description' => $p->responsibility,
+                'achievement' => $p->achievement,
                 'output_code' => $p->participant_code,
             ])->values()->all(),
             'calendar' => $calendar,
             'outputs' => $outputs->values()->all(),
+            'documentation' => $documentation->values()->all(),
         ];
 
         $pdfBinary = $this->pdfKitService->generate('generate-lpk.js', $payload);

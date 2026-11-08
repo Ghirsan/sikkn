@@ -32,7 +32,7 @@ class Programs extends Component
             return null;
         }
 
-        return Program::with('participants')->find($this->selectedProgramId);
+        return Program::with(['participants', 'student'])->find($this->selectedProgramId);
     }
 
     #[Computed]
@@ -135,7 +135,7 @@ class Programs extends Component
 
         // All Group Programs
         $allPrograms = Program::where('group_id', $user->group_id)
-            ->with(['programType', 'participants' => function ($q) use ($user) {
+            ->with(['programType', 'student', 'participants' => function ($q) use ($user) {
                 $q->where('student_id', $user->id);
             }])
             ->get();
@@ -144,8 +144,13 @@ class Programs extends Component
             return $prog->participants->isNotEmpty();
         });
 
-        $sosmasPrograms = $allPrograms->where('programType.code', 'sosial_kemasyarakatan')->where('student_id', $user->id);
-        $lainnyaPrograms = $allPrograms->where('programType.code', 'lainnya')->where('student_id', $user->id);
+        $sosmasPrograms = $allPrograms->where('programType.code', 'sosial_kemasyarakatan')->filter(function ($prog) use ($user) {
+            return $prog->participants->isNotEmpty() || $prog->student_id === $user->id;
+        });
+
+        $lainnyaPrograms = $allPrograms->where('programType.code', 'lainnya')->filter(function ($prog) use ($user) {
+            return $prog->participants->isNotEmpty() || $prog->student_id === $user->id;
+        });
 
         $isMultidisiplinFilled = $multidisiplinPrograms->count() >= 2;
         if ($isMultidisiplinFilled) {

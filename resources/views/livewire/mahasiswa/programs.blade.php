@@ -79,7 +79,7 @@
                                                     <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                                 @endif
                                             @endif
-                                        @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && $myRole->execution_date && now()->startOfDay()->gte($myRole->execution_date) && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
+                                        @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
                                             <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Laporan') }}</flux:button>
                                             @if($myRole->lpk_status === \App\Enums\ProgramStatus::Draft && $myRole->hasFilledLpk())
                                                 <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="primary" size="sm" icon="paper-airplane">{{ __('Ajukan') }}</flux:button>
@@ -126,7 +126,17 @@
                                     <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $program->getProgramCodeFor($myRole?->student_id) }}</span>
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                        @if($program->student_id && $program->student_id === Auth::id())
+                                            <flux:badge size="sm" color="blue" inset="top bottom">{{ __('Penggagas') }}</flux:badge>
+                                        @elseif($program->student_id)
+                                            <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Anggota') }}</flux:badge>
+                                        @endif
+                                    </div>
+                                    @if($program->student_id && $program->student_id !== Auth::id())
+                                        <div class="text-xs text-neutral-500 mt-0.5">{{ __('Penggagas: ') . ($program->student?->name ?? 'Rekan Tim') }}</div>
+                                    @endif
                                     @if($myRole && $myRole->execution_date)
                                         <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($myRole->execution_date)->format('d M Y') }}</div>
                                     @endif
@@ -155,7 +165,7 @@
                                                 <flux:button wire:click="confirmSubmitLrk({{ $myRole->id }})" variant="primary" size="sm" icon="paper-airplane">{{ __('Ajukan') }}</flux:button>
                                                 <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                             @endif
-                                        @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && $myRole->execution_date && now()->startOfDay()->gte($myRole->execution_date) && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
+                                        @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
                                             <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Laporan') }}</flux:button>
                                             @if($myRole->lpk_status === \App\Enums\ProgramStatus::Draft && $myRole->hasFilledLpk())
                                                 <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="primary" size="sm" icon="paper-airplane">{{ __('Ajukan') }}</flux:button>
@@ -202,7 +212,17 @@
                                     <span class="text-sm font-semibold text-neutral-600 dark:text-neutral-400">{{ $program->getProgramCodeFor($myRole?->student_id) }}</span>
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-medium text-neutral-900 dark:text-white">{{ $program->title }}</span>
+                                        @if($program->student_id && $program->student_id === Auth::id())
+                                            <flux:badge size="sm" color="blue" inset="top bottom">{{ __('Penggagas') }}</flux:badge>
+                                        @elseif($program->student_id)
+                                            <flux:badge size="sm" color="zinc" inset="top bottom">{{ __('Anggota') }}</flux:badge>
+                                        @endif
+                                    </div>
+                                    @if($program->student_id && $program->student_id !== Auth::id())
+                                        <div class="text-xs text-neutral-500 mt-0.5">{{ __('Penggagas: ') . ($program->student?->name ?? 'Rekan Tim') }}</div>
+                                    @endif
                                     @if($myRole && $myRole->execution_date)
                                         <div class="text-xs text-neutral-500 mt-1">{{ \Carbon\Carbon::parse($myRole->execution_date)->format('d M Y') }}</div>
                                     @endif
@@ -229,11 +249,9 @@
                                             <flux:button href="{{ route('programs.form', ['action' => 'edit', 'programId' => $program->id, 'participantId' => $myRole->id ?? null]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Edit') }}</flux:button>
                                             @if($myRole && $myRole->status === \App\Enums\ProgramStatus::Draft)
                                                 <flux:button wire:click="confirmSubmitLrk({{ $myRole->id }})" variant="primary" size="sm" icon="paper-airplane">{{ __('Ajukan') }}</flux:button>
-                                                @if($program->student_id === Auth::id())
-                                                    <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
-                                                @endif
+                                                <flux:button wire:click="confirmDelete({{ $myRole->id }})" icon="trash" variant="danger" size="sm">{{ __('Hapus') }}</flux:button>
                                             @endif
-                                        @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && $myRole->execution_date && now()->startOfDay()->gte($myRole->execution_date) && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
+                                        @elseif($myRole->status === \App\Enums\ProgramStatus::Approved && ($myRole->lpk_status === \App\Enums\ProgramStatus::Draft || $myRole->lpk_status === \App\Enums\ProgramStatus::NeedsRevision))
                                             <flux:button href="{{ route('programs.form', ['action' => 'lpk', 'participantId' => $myRole->id]) }}" wire:navigate variant="ghost" size="sm" icon="pencil-square">{{ __('Isi Laporan') }}</flux:button>
                                             @if($myRole->lpk_status === \App\Enums\ProgramStatus::Draft && $myRole->hasFilledLpk())
                                                 <flux:button wire:click="confirmSubmitLpk({{ $myRole->id }})" variant="primary" size="sm" icon="paper-airplane">{{ __('Ajukan') }}</flux:button>
@@ -319,8 +337,20 @@
         <div class="space-y-6">
             @if($this->selectedProgram)
                 <div>
-                    <flux:heading size="lg">{{ $this->selectedProgram->title ?: __('(Belum ada judul)') }}</flux:heading>
-                    <flux:text class="mt-1">{{ $this->selectedProgram->programType?->name }}</flux:text>
+                    <div class="flex items-center gap-2">
+                        <flux:heading size="lg">{{ $this->selectedProgram->title ?: __('(Belum ada judul)') }}</flux:heading>
+                        @if($this->selectedProgram->student_id && $this->selectedProgram->student_id === Auth::id())
+                            <flux:badge size="sm" color="blue">{{ __('Penggagas') }}</flux:badge>
+                        @elseif($this->selectedProgram->student_id)
+                            <flux:badge size="sm" color="zinc">{{ __('Anggota') }}</flux:badge>
+                        @endif
+                    </div>
+                    <flux:text class="mt-1">
+                        {{ $this->selectedProgram->programType?->name }}
+                        @if($this->selectedProgram->student_id && $this->selectedProgram->student_id !== Auth::id())
+                            <span class="text-xs text-zinc-500"> &bull; {{ __('Penggagas: ') . ($this->selectedProgram->student?->name ?? 'Rekan Tim') }}</span>
+                        @endif
+                    </flux:text>
                 </div>
 
                 <div class="space-y-6">

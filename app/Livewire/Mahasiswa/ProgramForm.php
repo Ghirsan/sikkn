@@ -133,11 +133,15 @@ class ProgramForm extends Component
                 $this->formMode = 'create_individual';
                 $this->creationMode = 'new';
                 $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
+                $userRumpun = $user->rumpun();
                 $this->availableGroupPrograms = Program::with(['student.faculty', 'student.studyProgram', 'participants.student'])
                     ->where('group_id', $user->group_id)
                     ->whereType($this->type)
                     ->whereNotIn('id', $joinedIds)
-                    ->get();
+                    ->get()
+                    ->when($this->type === 'sosial_kemasyarakatan', function ($collection) use ($userRumpun) {
+                        return $collection->filter(fn ($prog) => $prog->student?->rumpun() === $userRumpun)->values();
+                    });
             }
         } elseif ($this->action === 'edit' && $this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
@@ -413,6 +417,13 @@ class ProgramForm extends Component
                     'sdg_category' => 'required|integer|between:1,17',
                 ], [
                     'programId.required' => 'Pilih program tim yang ingin diikuti.',
+                ]);
+            } elseif ($this->action === 'edit' && ! $this->isInitiator) {
+                $this->validate([
+                    'role_in_program' => 'required|string|max:255',
+                    'responsibility' => 'required|string',
+                    'execution_date' => 'required|date',
+                    'sdg_category' => 'required|integer|between:1,17',
                 ]);
             } else {
                 $this->validate([

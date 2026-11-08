@@ -43,32 +43,41 @@
                 @endforeach
             </flux:select>
         @elseif($formMode === 'create_individual')
-            @if($action === 'create' && count($availableGroupPrograms) > 0)
-                <div class="space-y-3">
-                    <flux:label>{{ __('Bentuk Pengajuan Program') }}</flux:label>
+            @if($action === 'create')
+                @if(count($availableGroupPrograms) > 0)
+                    <div class="space-y-3">
+                        <flux:label>{{ __('Bentuk Pengajuan Program') }}</flux:label>
 
-                    <flux:radio.group wire:model.live="creationMode" variant="cards" class="max-sm:flex-col">
-                        <flux:radio
-                            value="new"
-                            label="{{ __('Usulan Baru (Penggagas)') }}"
-                            description="{{ __('Membuat usulan tema program baru untuk Anda dan tim.') }}"
-                        />
-                        <flux:radio
-                            value="join"
-                            label="{{ __('Gabung Program Tim (Anggota)') }}"
-                            description="{{ __('Bergabung ke program yang digagas rekan sekelompok.') }}"
-                        />
-                    </flux:radio.group>
-                </div>
+                        <flux:radio.group wire:model.live="creationMode" variant="cards" class="max-sm:flex-col">
+                            <flux:radio
+                                value="new"
+                                label="{{ __('Usulan Baru (Penggagas)') }}"
+                                description="{{ __('Membuat usulan tema program baru untuk Anda dan tim.') }}"
+                            />
+                            <flux:radio
+                                value="join"
+                                label="{{ __('Gabung Program Tim (Anggota)') }}"
+                                description="{{ __('Bergabung ke program yang digagas rekan sekelompok.') }}"
+                            />
+                        </flux:radio.group>
+                    </div>
 
-                @if($creationMode === 'join')
-                    <flux:select wire:model.live="programId" label="{{ __('Pilih Program Kerja Tim') }}" placeholder="{{ __('Pilih program yang akan diikuti...') }}">
-                        @foreach($availableGroupPrograms as $prog)
-                            <flux:select.option value="{{ $prog->id }}">
-                                {{ $prog->title }} (Penggagas: {{ $prog->student?->name ?? 'Tim' }})
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
+                    @if($creationMode === 'join')
+                        <flux:select wire:model.live="programId" label="{{ __('Pilih Program Kerja Tim') }}" placeholder="{{ __('Pilih program yang akan diikuti...') }}">
+                            @foreach($availableGroupPrograms as $prog)
+                                <flux:select.option value="{{ $prog->id }}">
+                                    {{ $prog->title }} (Penggagas: {{ $prog->student?->name ?? 'Tim' }})
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    @endif
+                @else
+                    <div class="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-lg text-sm text-zinc-600 dark:text-zinc-400">
+                        <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ __('Pengajuan Mandiri / Penggagas') }}</span>
+                        <p class="mt-0.5 text-xs text-zinc-500">
+                            {{ __('Belum ada usulan program tim yang dapat diikuti (atau semua usulan telah Anda ikuti). Silakan ajukan usulan program baru sebagai penggagas.') }}
+                        </p>
+                    </div>
                 @endif
             @endif
 

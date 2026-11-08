@@ -190,6 +190,94 @@ class ProgramsTest extends TestCase
         $this->assertDatabaseHas('programs', ['id' => $program->id, 'student_id' => $student2->id]);
     }
 
+    public function test_student_joining_sosmas_program_is_counted_and_displayed_as_anggota(): void
+    {
+        $student1 = $this->createStudentWithGroup();
+        $student1->update(['name' => 'Budi Santoso']);
+        $group = $student1->group;
+
+        $student2 = User::factory()->mahasiswa()->create([
+            'name' => 'Andi Wijaya',
+            'group_id' => $group->id,
+        ]);
+
+        $program = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $student1->id,
+            'title' => 'Edukasi Lingkungan Bersih',
+            'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->first()->id,
+        ]);
+
+        ProgramParticipant::create([
+            'program_id' => $program->id,
+            'student_id' => $student1->id,
+            'status' => ProgramStatus::Draft,
+        ]);
+
+        $p2 = ProgramParticipant::create([
+            'program_id' => $program->id,
+            'student_id' => $student2->id,
+            'role_in_program' => 'Fasilitator',
+            'status' => ProgramStatus::Draft,
+        ]);
+
+        Livewire::actingAs($student2)
+            ->test(Programs::class)
+            ->assertSee('Edukasi Lingkungan Bersih')
+            ->assertSee('Anggota')
+            ->assertSee('Penggagas: Budi Santoso')
+            ->assertViewHas('hasSosmas', true)
+            ->assertViewHas('stats', function ($stats) {
+                return $stats['total'] === 1 && $stats['keilmuan'] === 1;
+            });
+    }
+
+    public function test_anggota_of_sosmas_can_fill_and_submit_lpk(): void
+    {
+        $student1 = $this->createStudentWithGroup();
+        $group = $student1->group;
+
+        $student2 = User::factory()->mahasiswa()->create([
+            'name' => 'Andi Wijaya',
+            'group_id' => $group->id,
+        ]);
+
+        $program = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $student1->id,
+            'title' => 'Edukasi Lingkungan Bersih',
+            'program_type_id' => ProgramType::where('code', 'sosial_kemasyarakatan')->first()->id,
+        ]);
+
+        $p2 = ProgramParticipant::create([
+            'program_id' => $program->id,
+            'student_id' => $student2->id,
+            'role_in_program' => 'Fasilitator',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Draft,
+            'execution_date' => now()->addDays(5)->format('Y-m-d'),
+        ]);
+
+        // Anggota can see "Isi Laporan" even if execution date is in the future
+        Livewire::actingAs($student2)
+            ->test(Programs::class)
+            ->assertSee('Isi Laporan');
+
+        // Once filled LPK, "Ajukan" button appears and anggota can submit LPK
+        $p2->update([
+            'achievement' => 'Kegiatan berhasil diselenggarakan dengan 50 peserta',
+            'documentation_image_path' => 'https://drive.google.com/file/d/test123/view',
+        ]);
+
+        Livewire::actingAs($student2)
+            ->test(Programs::class)
+            ->assertSee('Ajukan')
+            ->set('participantToSubmit', $p2->id)
+            ->call('submitLpk');
+
+        $this->assertEquals(ProgramStatus::Submitted, $p2->fresh()->lpk_status);
+    }
+
     private function createStudentWithGroup(): User
     {
         $period = Period::create([

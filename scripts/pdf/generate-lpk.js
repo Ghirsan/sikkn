@@ -528,7 +528,7 @@ const skRows = sosialKemasyarakatan.map((p, idx) => ({
   no: `${idx + 1}.`,
   pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
   peran: p.role || 'Koordinator Pelaksana',
-  deskripsi: `${p.participant_title || p.program_title || '-'}\nPelaksanaan: ${p.execution_date ?? '-'}\nHasil: Program terselenggara dengan sukses dan antusiasme tinggi dari warga masyarakat.`
+  deskripsi: `${p.participant_title || p.program_title || '-'}\nPelaksanaan: ${p.execution_date ?? '-'}\nHasil: ${p.achievement || 'Program terselenggara dengan sukses dan antusiasme tinggi dari warga masyarakat.'}`
 }));
 
 doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 4. Program Sosial Kemasyarakatan');
@@ -561,7 +561,7 @@ const lainnyaRows = lainnya.map((p, idx) => ({
   no: `${idx + 1}.`,
   pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
   peran: p.role || 'Pelaksana',
-  deskripsi: `${p.participant_title || p.program_title || '-'}\nHasil: Memberikan pendampingan bimbingan belajar anak-anak sekolah dasar di posko KKN.`
+  deskripsi: `${p.participant_title || p.program_title || '-'}\nHasil: ${p.achievement || 'Memberikan pendampingan bimbingan belajar anak-anak sekolah dasar di posko KKN.'}`
 }));
 
 doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 5. Program Lainnya');

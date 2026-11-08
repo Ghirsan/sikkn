@@ -306,6 +306,12 @@ class ProgramFormTest extends TestCase
         $this->assertNotNull($p2);
         $this->assertEquals('SK1-AW', $p2->participant_code);
         $this->assertEquals(2, $program->participants()->count());
+
+        // 3. After Student 2 joined, opening create form again shows callout because no more programs to join
+        Livewire::actingAs($student2)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'sosial_kemasyarakatan'])
+            ->assertCount('availableGroupPrograms', 0)
+            ->assertSee('Belum ada usulan program tim yang dapat diikuti');
     }
 
     private function createApprovedParticipant(): array
