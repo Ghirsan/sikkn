@@ -345,4 +345,41 @@ class PdfGenerationTest extends TestCase
         $response = $this->actingAs($dpl)->get(route('mentoring-logs.pdf', $dpl));
         $response->assertNotFound();
     }
+
+    public function test_lrk_pdf_renders_correctly_with_long_legend_names_and_titles(): void
+    {
+        [$period, $group, $dpl, $student] = $this->setupTestData();
+
+        $longNameStudent = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+            'name' => 'Raden Mas Muhammad Fakhri Abdurrahman Kusumaningrat Danubroto',
+        ]);
+
+        $mdType = ProgramType::firstOrCreate(
+            ['code' => 'multidisiplin'],
+            ['name' => 'Multidisiplin', 'is_active' => true]
+        );
+
+        $prog = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $longNameStudent->id,
+            'title' => 'Optimalisasi Digitalisasi dan Tata Kelola Sampah Berbasis Aplikasi Mobile serta Pemanfaatan Energi Terbarukan untuk Masyarakat Desa',
+            'program_type_id' => $mdType->id,
+        ]);
+
+        ProgramParticipant::create([
+            'program_id' => $prog->id,
+            'student_id' => $longNameStudent->id,
+            'participant_code' => 'M1-RMFA',
+            'status' => ProgramStatus::Approved,
+            'role_in_program' => 'Koordinator Lapangan',
+            'responsibility' => 'Perencanaan dan pelaksanaan menyeluruh',
+        ]);
+
+        $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertNotEmpty($response->getContent());
+    }
 }

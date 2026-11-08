@@ -99,7 +99,7 @@ function drawTable(doc, options) {
     doc.rect(startX, curY, tableWidth, bannerH).fillColor('#e5e7eb').fill();
     doc.rect(startX, curY, tableWidth, bannerH).strokeColor(borderColor).lineWidth(0.75).stroke();
     doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
-       .text(bannerTitle, startX + 6, curY + 6, { width: tableWidth - 12 });
+      .text(bannerTitle, startX + 6, curY + 6, { width: tableWidth - 12 });
     curY += bannerH;
   };
 
@@ -219,7 +219,7 @@ if (assets.logo_path && fs.existsSync(assets.logo_path)) {
 
 // 2. Main Title
 doc.fontSize(15).font('Helvetica-Bold').fillColor('#000000')
-   .text('LAPORAN RENCANA KEGIATAN', { align: 'center' });
+  .text('LAPORAN RENCANA KEGIATAN', { align: 'center' });
 
 const semesterLabel = period.semester === 'Ganjil' ? 'TIM I' : 'TIM II';
 const academicYear = `${period.year || 2025}/${(period.year || 2025) + 1}`;
@@ -233,8 +233,8 @@ if (group.partner_name) {
 
 doc.moveDown(1.2);
 doc.fontSize(11).font('Helvetica')
-   .text(`KELURAHAN/ DESA ${String(group.village || '-').toUpperCase()} KECAMATAN ${String(group.district || '-').toUpperCase()}`, { align: 'center' })
-   .text(`KOTA/ KABUPATEN ${String(group.regency || '-').toUpperCase()}`, { align: 'center' });
+  .text(`KELURAHAN/ DESA ${String(group.village || '-').toUpperCase()} KECAMATAN ${String(group.district || '-').toUpperCase()}`, { align: 'center' })
+  .text(`KOTA/ KABUPATEN ${String(group.regency || '-').toUpperCase()}`, { align: 'center' });
 
 doc.moveDown(1.5);
 doc.fontSize(11).font('Helvetica-Bold').text('Oleh :', { align: 'center' });
@@ -277,7 +277,7 @@ addPortraitPage();
 tocPageMap.pengesahan = doc.bufferedPageRange().count;
 
 doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000')
-   .text('HALAMAN PENGESAHAN', { align: 'center' });
+  .text('HALAMAN PENGESAHAN', { align: 'center' });
 doc.moveDown(1.0);
 
 const partnerPhrase = group.partner_name ? ` pada ${group.partner_name}` : '';
@@ -351,7 +351,7 @@ function renderTocLine(title, targetPage, curY) {
   const endX = doc.page.width - 40;
 
   doc.fontSize(10).font('Helvetica').fillColor('#000000')
-     .text(title, startX, curY, { continued: false });
+    .text(title, startX, curY, { continued: false });
 
   const titleW = doc.widthOfString(title);
   const pageNumStr = String(targetPage);
@@ -367,11 +367,11 @@ function renderTocLine(title, targetPage, curY) {
     for (let d = 0; d < dotCount; d++) dotStr += ' .';
 
     doc.fontSize(9).fillColor('#6b7280')
-       .text(dotStr, dotsStart, curY, { lineBreak: false });
+      .text(dotStr, dotsStart, curY, { lineBreak: false });
   }
 
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-     .text(pageNumStr, endX - pageNumW, curY);
+    .text(pageNumStr, endX - pageNumW, curY);
 
   return curY + 22;
 }
@@ -391,7 +391,7 @@ const landContentW = doc.page.width - 80;     // 761.89
 // BAB 1: LATAR BELAKANG & BAB 2: USULAN RENCANA PROGRAM
 // ------------------------------------------------------------
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
-   .text('1. LATAR BELAKANG', landMarginLeft, doc.y);
+  .text('1. LATAR BELAKANG', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
   group.background || 'Jelaskan kondisi lokasi KKN, yang meliputi: permasalahan dan potensi yang ditemukan pada saat proses observasi dan prioritas dalam pemilihan permasalahan. (500 kata)',
@@ -402,12 +402,12 @@ doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
 doc.moveDown(1.2);
 
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
-   .text('2. USULAN RENCANA PROGRAM', landMarginLeft, doc.y);
+  .text('2. USULAN RENCANA PROGRAM', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 
 // 2.1 MULTIDISIPLIN
 doc.fontSize(11).font('Helvetica-Bold')
-   .text('2.1 MULTIDISIPLIN', landMarginLeft, doc.y);
+  .text('2.1 MULTIDISIPLIN', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_multidisiplin_text || 'Tulis usulan program multidisiplin yang disesuaikan dengan permasalahan dan potensi yang telah dijabarkan sebelumnya. Usulan program multidisiplin adalah setiap mahasiswa terlibat dalam 3 multidisiplin.',
   landMarginLeft,
@@ -448,7 +448,7 @@ const md1List = mdBySeq[1].length > 0 ? mdBySeq[1] : allMultidisiplin.slice(0, M
 const md1Title = md1List[0]?.program_title || 'Peningkatan Ketahanan Pangan Masyarakat Desa';
 
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Tabel 1. Rencana Multidisiplin 1', landMarginLeft, doc.y);
+  .text('Tabel 1. Rencana Multidisiplin 1', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const md1Rows = md1List.map((p, idx) => ({
@@ -479,7 +479,7 @@ const md2List = mdBySeq[2].length > 0 ? mdBySeq[2] : allMultidisiplin.slice(Math
 const md2Title = md2List[0]?.program_title || 'Pengentasan Kemiskinan Masyarakat Desa';
 
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Tabel 2. Rencana Multidisiplin 2', landMarginLeft, doc.y);
+  .text('Tabel 2. Rencana Multidisiplin 2', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const md2Rows = md2List.map((p, idx) => ({
@@ -508,7 +508,7 @@ const md3List = mdBySeq[3].length > 0 ? mdBySeq[3] : [];
 const md3Title = md3List[0]?.program_title || `Video Profil di Desa ${group.village || '-'} Kecamatan ${group.district || '-'}`;
 
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Tabel 3. Rencana Multidisiplin 3', landMarginLeft, doc.y);
+  .text('Tabel 3. Rencana Multidisiplin 3', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const md3Rows = (md3List.length > 0 ? md3List : students.slice(0, 4)).map((p, idx) => ({
@@ -529,7 +529,7 @@ drawTable(doc, {
 // Video Storyboard & Script (Multidisiplin 3)
 doc.moveDown(0.5);
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Rencana Story Board :', landMarginLeft, doc.y);
+  .text('Rencana Story Board :', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const sbScenes = group.storyboard_scenes || [];
@@ -567,7 +567,7 @@ if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
 }
 
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Rencana Skrip Video :', landMarginLeft, doc.y);
+  .text('Rencana Skrip Video :', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const vsScenes = group.video_script_scenes || [];
@@ -604,7 +604,7 @@ addLandscapePage();
 // 2.2 SOSIAL KEMASYARAKATAN & 2.3 PROGRAM LAINNYA
 // ------------------------------------------------------------
 doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
-   .text('2.2 Sosial Kemasyarakatan', landMarginLeft, doc.y);
+  .text('2.2 Sosial Kemasyarakatan', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_sosmas_text || 'Tulis usulan program sosial kemasyarakatan yang disesuaikan dengan permasalahan dan potensi yang telah dijabarkan sebelumnya. Usulan program sosial kemasyarakatan adalah setiap mahasiswa terlibat dalam 1 program sosial kemasyarakatan.',
   landMarginLeft,
@@ -655,10 +655,10 @@ const saintekGroups = groupPrograms(saintekList);
 
 if (saintekGroups.length === 0) {
   doc.fontSize(9.5).font('Helvetica-Bold')
-     .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
+    .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
-     .text('(Belum ada usulan program sosial kemasyarakatan rumpun Saintek)', landMarginLeft, doc.y);
+    .text('(Belum ada usulan program sosial kemasyarakatan rumpun Saintek)', landMarginLeft, doc.y);
   doc.moveDown(0.8);
 } else {
   saintekGroups.forEach((groupItem, gIdx) => {
@@ -671,7 +671,7 @@ if (saintekGroups.length === 0) {
       : 'Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)';
 
     doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-       .text(tableLabel, landMarginLeft, doc.y);
+      .text(tableLabel, landMarginLeft, doc.y);
     doc.moveDown(0.3);
 
     const rows = groupItem.participants.map((p, idx) => ({
@@ -702,10 +702,10 @@ if (soshumGroups.length === 0) {
     addLandscapePage();
   }
   doc.fontSize(9.5).font('Helvetica-Bold')
-     .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
+    .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
-     .text('(Belum ada usulan program sosial kemasyarakatan rumpun Soshum)', landMarginLeft, doc.y);
+    .text('(Belum ada usulan program sosial kemasyarakatan rumpun Soshum)', landMarginLeft, doc.y);
   doc.moveDown(0.8);
 } else {
   soshumGroups.forEach((groupItem, gIdx) => {
@@ -718,7 +718,7 @@ if (soshumGroups.length === 0) {
       : 'Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)';
 
     doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-       .text(tableLabel, landMarginLeft, doc.y);
+      .text(tableLabel, landMarginLeft, doc.y);
     doc.moveDown(0.3);
 
     const rows = groupItem.participants.map((p, idx) => ({
@@ -748,7 +748,7 @@ if (doc.y + 80 > doc.page.height - doc.page.margins.bottom) {
 }
 
 doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
-   .text('2.3 Program Lainnya', landMarginLeft, doc.y);
+  .text('2.3 Program Lainnya', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_lainnya_text || 'Tulis usulan program lainnya yang disesuaikan dengan wilayah. Usulan program lainnya tidak ada batasan jumlah maupun jenis.',
   landMarginLeft,
@@ -762,10 +762,10 @@ const lainnyaGroups = groupPrograms(lainnyaList);
 
 if (lainnyaGroups.length === 0) {
   doc.fontSize(9.5).font('Helvetica-Bold')
-     .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
+    .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563')
-     .text('Belum ada usulan program lainnya.', landMarginLeft, doc.y);
+    .text('Belum ada usulan program lainnya.', landMarginLeft, doc.y);
   doc.moveDown(1);
 } else {
   lainnyaGroups.forEach((groupItem, gIdx) => {
@@ -778,7 +778,7 @@ if (lainnyaGroups.length === 0) {
       : 'Tabel 6. Rencana Program Lainnya';
 
     doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-       .text(tableLabel, landMarginLeft, doc.y);
+      .text(tableLabel, landMarginLeft, doc.y);
     doc.moveDown(0.3);
 
     const rows = groupItem.participants.map((p, idx) => ({
@@ -808,7 +808,7 @@ addLandscapePage();
 tocPageMap.rencanaPelaksanaan = doc.bufferedPageRange().count;
 
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
-   .text('3. RENCANA PELAKSANAAN', landMarginLeft, doc.y);
+  .text('3. RENCANA PELAKSANAAN', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   'Tetapkan rencana pelaksanaan baik yang bersifat umum maupun rencana pelaksanaan setiap program.',
@@ -820,7 +820,7 @@ doc.moveDown(0.6);
 
 // Tabel 7. Rencana Umum Kegiatan (Mingguan)
 doc.fontSize(9.5).font('Helvetica-Bold')
-   .text('Tabel 7. Rencana Umum Kegiatan', landMarginLeft, doc.y);
+  .text('Tabel 7. Rencana Umum Kegiatan', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const schedCols = [
@@ -837,22 +837,22 @@ const schedCols = [
 const rawSched = group.macro_schedules || [];
 const schedRows = (Array.isArray(rawSched) && rawSched.length > 0)
   ? rawSched.map((item, idx) => ({
-      no: `${idx + 1}.`,
-      kegiatan: item.kegiatan || '-',
-      m1: item.m1 ? 'v' : '',
-      m2: item.m2 ? 'v' : '',
-      m3: item.m3 ? 'v' : '',
-      m4: item.m4 ? 'v' : '',
-      m5: item.m5 ? 'v' : '',
-      m6: item.m6 ? 'v' : ''
-    }))
+    no: `${idx + 1}.`,
+    kegiatan: item.kegiatan || '-',
+    m1: item.m1 ? 'v' : '',
+    m2: item.m2 ? 'v' : '',
+    m3: item.m3 ? 'v' : '',
+    m4: item.m4 ? 'v' : '',
+    m5: item.m5 ? 'v' : '',
+    m6: item.m6 ? 'v' : ''
+  }))
   : [
-      { no: '1.', kegiatan: 'Survey Pendahuluan', m1: 'v', m2: '', m3: '', m4: '', m5: '', m6: '' },
-      { no: '2.', kegiatan: 'Penyusunan Proposal / LRK', m1: 'v', m2: 'v', m3: '', m4: '', m5: '', m6: '' },
-      { no: '3.', kegiatan: 'Pelaksanaan Program Kegiatan KKN', m1: '', m2: 'v', m3: 'v', m4: 'v', m5: 'v', m6: '' },
-      { no: '4.', kegiatan: 'Pelaporan & Penyusunan LPK', m1: '', m2: '', m3: '', m4: '', m5: 'v', m6: 'v' },
-      { no: '5.', kegiatan: 'Monev & Gelar Karya', m1: '', m2: '', m3: '', m4: 'v', m5: 'v', m6: '' }
-    ];
+    { no: '1.', kegiatan: 'Survey Pendahuluan', m1: 'v', m2: '', m3: '', m4: '', m5: '', m6: '' },
+    { no: '2.', kegiatan: 'Penyusunan Proposal / LRK', m1: 'v', m2: 'v', m3: '', m4: '', m5: '', m6: '' },
+    { no: '3.', kegiatan: 'Pelaksanaan Program Kegiatan KKN', m1: '', m2: 'v', m3: 'v', m4: 'v', m5: 'v', m6: '' },
+    { no: '4.', kegiatan: 'Pelaporan & Penyusunan LPK', m1: '', m2: '', m3: '', m4: '', m5: 'v', m6: 'v' },
+    { no: '5.', kegiatan: 'Monev & Gelar Karya', m1: '', m2: '', m3: '', m4: 'v', m5: 'v', m6: '' }
+  ];
 
 drawTable(doc, {
   columns: schedCols,
@@ -869,7 +869,7 @@ if (doc.y + 140 > doc.page.height - doc.page.margins.bottom) {
 }
 
 doc.fontSize(9.5).font('Helvetica-Bold')
-   .text('Tabel 8. Rencana Usulan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
+  .text('Tabel 8. Rencana Usulan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const calendar = payload.calendar || {};
@@ -890,7 +890,7 @@ calY += 18;
 
 calendarWeeks.forEach(weekKey => {
   const days = calendar[weekKey] || [];
-  
+
   let maxItems = 1;
   days.forEach(d => {
     const totalItems = (d.events || []).length + (d.programs || []).length;
@@ -921,7 +921,7 @@ calendarWeeks.forEach(weekKey => {
 
     // Day number
     doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
-       .text(String(dayData.day), curX + 4, calY + 3);
+      .text(String(dayData.day), curX + 4, calY + 3);
 
     // Bullet items
     let itemY = calY + 13;
@@ -942,9 +942,48 @@ calendarWeeks.forEach(weekKey => {
 
 // Dynamic Legend
 const legendItems = payload.legend || [];
-const legendLinesCount = legendItems.length > 0 ? Math.ceil(legendItems.length / 2) * 11 + 25 : 40;
 
-if (calY + legendLinesCount > doc.page.height - doc.page.margins.bottom) {
+const codeW = 46;
+const colonW = 6;
+const descW = 315;
+
+const col1X = landMarginLeft;
+const colon1X = col1X + codeW;
+const desc1X = col1X + 52;
+
+const col2X = 428;
+const colon2X = col2X + codeW;
+const desc2X = col2X + 52;
+
+const legendHalf = Math.ceil(legendItems.length / 2);
+const leftItems = legendItems.slice(0, legendHalf);
+const rightItems = legendItems.slice(legendHalf);
+
+// Calculate exact expected legend height
+let estLeftH = 0;
+doc.fontSize(7.5).font('Helvetica');
+leftItems.forEach(item => {
+  const student = item.student_name || '-';
+  const type = item.type_label || 'Program';
+  const title = item.program_title ? ` - ${item.program_title}` : '';
+  const descContent = `${student} (${type}${title})`;
+  const rawH = doc.heightOfString(descContent, { width: descW });
+  estLeftH += (rawH > 10 ? 18 : 9) + 2.5;
+});
+
+let estRightH = 0;
+rightItems.forEach(item => {
+  const student = item.student_name || '-';
+  const type = item.type_label || 'Program';
+  const title = item.program_title ? ` - ${item.program_title}` : '';
+  const descContent = `${student} (${type}${title})`;
+  const rawH = doc.heightOfString(descContent, { width: descW });
+  estRightH += (rawH > 10 ? 18 : 9) + 2.5;
+});
+
+const totalLegendH = legendItems.length > 0 ? Math.max(estLeftH, estRightH) + 26 : 40;
+
+if (calY + totalLegendH > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
   calY = doc.page.margins.top;
 }
@@ -954,36 +993,61 @@ doc.y = calY + 8;
 
 // Keterangan / Legend
 doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Keterangan / Legenda Kode Program :', landMarginLeft, doc.y);
-doc.moveDown(0.2);
+  .text('Keterangan / Legenda Kode Program :', landMarginLeft, doc.y);
+doc.moveDown(0.3);
 
 if (legendItems.length > 0) {
-  doc.fontSize(7.5).font('Helvetica').fillColor('#1f2937');
-  const half = Math.ceil(legendItems.length / 2);
-  const leftItems = legendItems.slice(0, half);
-  const rightItems = legendItems.slice(half);
-
+  doc.fontSize(7.5);
   const startLegY = doc.y;
-  let curLegY = startLegY;
-  const col1X = landMarginLeft;
-  const col2X = landMarginLeft + 380;
 
+  let curYLeft = startLegY;
   leftItems.forEach(item => {
-    doc.font('Helvetica-Bold').text(`* ${item.code}`, col1X, curLegY, { continued: true, width: 370 });
-    doc.font('Helvetica').text(` : ${item.student_name} (${item.type_label} - ${item.program_title})`, { width: 370, lineBreak: false, ellipsis: true });
-    curLegY += 10;
+    const student = item.student_name || '-';
+    const type = item.type_label || 'Program';
+    const title = item.program_title ? ` - ${item.program_title}` : '';
+    const descContent = `${student} (${type}${title})`;
+
+    const rawH = doc.font('Helvetica').heightOfString(descContent, { width: descW });
+    const itemH = rawH > 10 ? 18 : 9;
+
+    doc.font('Helvetica-Bold').fillColor('#1f2937')
+      .text(`* ${item.code}`, col1X, curYLeft, { width: codeW, lineBreak: false });
+
+    doc.font('Helvetica').fillColor('#1f2937')
+      .text(':', colon1X, curYLeft, { width: colonW, lineBreak: false });
+
+    doc.font('Helvetica').fillColor('#1f2937')
+      .text(descContent, desc1X, curYLeft, { width: descW, height: 18, ellipsis: true });
+
+    curYLeft += itemH + 2.5;
   });
 
-  curLegY = startLegY;
+  let curYRight = startLegY;
   rightItems.forEach(item => {
-    doc.font('Helvetica-Bold').text(`* ${item.code}`, col2X, curLegY, { continued: true, width: 370 });
-    doc.font('Helvetica').text(` : ${item.student_name} (${item.type_label} - ${item.program_title})`, { width: 370, lineBreak: false, ellipsis: true });
-    curLegY += 10;
+    const student = item.student_name || '-';
+    const type = item.type_label || 'Program';
+    const title = item.program_title ? ` - ${item.program_title}` : '';
+    const descContent = `${student} (${type}${title})`;
+
+    const rawH = doc.font('Helvetica').heightOfString(descContent, { width: descW });
+    const itemH = rawH > 10 ? 18 : 9;
+
+    doc.font('Helvetica-Bold').fillColor('#1f2937')
+      .text(`* ${item.code}`, col2X, curYRight, { width: codeW, lineBreak: false });
+
+    doc.font('Helvetica').fillColor('#1f2937')
+      .text(':', colon2X, curYRight, { width: colonW, lineBreak: false });
+
+    doc.font('Helvetica').fillColor('#1f2937')
+      .text(descContent, desc2X, curYRight, { width: descW, height: 18, ellipsis: true });
+
+    curYRight += itemH + 2.5;
   });
 
-  doc.y = Math.max(startLegY + (leftItems.length * 10), startLegY + (rightItems.length * 10));
+  doc.x = landMarginLeft;
+  doc.y = Math.max(curYLeft, curYRight) + 6;
 } else {
-  doc.font('Helvetica').fontSize(8);
+  doc.font('Helvetica').fontSize(8).fillColor('#1f2937');
   doc.text('* M : Multidisiplin (contoh: M1-BS untuk Multidisiplin 1 - Budi Santoso)', landMarginLeft, doc.y);
   doc.text('* SK : Sosial Kemasyarakatan (contoh: SK1-BS untuk Sosmas 1 - Budi Santoso)', landMarginLeft, doc.y);
   doc.text('* L : Program Lainnya (contoh: L1-BS untuk Lainnya 1 - Budi Santoso)', landMarginLeft, doc.y);
@@ -999,11 +1063,11 @@ if (doc.y + 140 > doc.page.height - doc.page.margins.bottom) {
 tocPageMap.luaran = doc.bufferedPageRange().count;
 
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
-   .text('4. JENIS-JENIS LUARAN', landMarginLeft, doc.y);
+  .text('4. JENIS-JENIS LUARAN', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 
 doc.fontSize(9.5).font('Helvetica-Bold')
-   .text('Tabel 9. Jenis-jenis Luaran', landMarginLeft, doc.y);
+  .text('Tabel 9. Jenis-jenis Luaran', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const luaranCols = [
@@ -1035,7 +1099,7 @@ tocPageMap.lampiranPeta = doc.bufferedPageRange().count;
 
 // LAMPIRAN 1 DOKUMENTASI SURVEY
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
-   .text('LAMPIRAN 1 DOKUMENTASI SURVEY', landMarginLeft, doc.y);
+  .text('LAMPIRAN 1 DOKUMENTASI SURVEY', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
   group.survey_documentation_text || 'Masukkan dokumentasi survey pada lampiran ini, pilih foto yang memperlihatkan permasalahan atau potensi sesuai yang dipilih menjadi usulan program, sertakan juga caption foto yang sesuai. Urutkan berdasarkan urutan penyampaian usulan program dalam dokumen ini.',
@@ -1066,7 +1130,7 @@ if (assets.survey_image_base64 && assets.survey_image_base64.includes('base64,')
     doc.y += renderH + 6;
 
     doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#374151')
-       .text(`Dokumentasi Survey Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
+      .text(`Dokumentasi Survey Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
     doc.y += 14;
   } catch (e) {
     // Graceful skip
@@ -1078,7 +1142,7 @@ addLandscapePage();
 tocPageMap.lampiranPeta = doc.bufferedPageRange().count;
 
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
-   .text('LAMPIRAN 2 PETA LOKASI', landMarginLeft, doc.y);
+  .text('LAMPIRAN 2 PETA LOKASI', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
   group.location_map_text || 'Gambarkan peta lokasi secara manual dengan keterangan/informasi terkait dengan permasalahan atau potensi yang menjadi usulan program KKN tersebut dilaksanakan baik multidisiplin maupun keilmuan.',
@@ -1109,7 +1173,7 @@ if (assets.map_image_base64 && assets.map_image_base64.includes('base64,')) {
     doc.y += renderH + 6;
 
     doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#374151')
-       .text(`Peta Lokasi KKN Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
+      .text(`Peta Lokasi KKN Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
     doc.y += 14;
   } catch (e) {
     // Graceful skip
