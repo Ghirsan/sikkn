@@ -96,6 +96,10 @@ class ProgramParticipant extends Model
             return null;
         }
 
+        if (! $program->relationLoaded('programType')) {
+            $program->load('programType');
+        }
+
         $student = $participant->student ?? User::find($participant->student_id);
         $initials = static::extractInitials($student?->name);
 
@@ -106,11 +110,13 @@ class ProgramParticipant extends Model
             default => 'X',
         };
 
-        // Count existing participants for this student + type to determine sequence
-        $existingCount = static::whereHas('program', function ($q) use ($program) {
+        $groupId = $program->group_id;
+
+        // Count existing participants for this student + type within the same group to determine sequence
+        $existingCount = static::whereHas('program', function ($q) use ($program, $groupId) {
             $q->whereType($program->programType?->code);
-            if ($program->programType?->code === 'multidisiplin') {
-                $q->where('group_id', $program->group_id);
+            if ($groupId) {
+                $q->where('group_id', $groupId);
             }
         })
             ->where('student_id', $participant->student_id)
@@ -119,11 +125,15 @@ class ProgramParticipant extends Model
 
         $sequence = $existingCount + 1;
 
-        // Ensure uniqueness by checking for existing codes
+        // Ensure uniqueness by checking for existing codes within the same group (group_id)
         $baseCode = "{$typePrefix}{$sequence}-{$initials}";
         $disambiguator = 2;
         $code = $baseCode;
-        while (static::where('participant_code', $code)->where('id', '!=', $participant->id ?? 0)->exists()) {
+        while (static::whereHas('program', function ($q) use ($groupId) {
+            if ($groupId) {
+                $q->where('group_id', $groupId);
+            }
+        })->where('participant_code', $code)->where('id', '!=', $participant->id ?? 0)->exists()) {
             $code = "{$typePrefix}{$sequence}-{$initials}{$disambiguator}";
             $disambiguator++;
         }

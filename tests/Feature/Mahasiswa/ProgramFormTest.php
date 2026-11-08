@@ -314,6 +314,77 @@ class ProgramFormTest extends TestCase
             ->assertSee('Belum ada usulan program tim yang dapat diikuti');
     }
 
+    public function test_participant_code_uniqueness_is_scoped_per_group(): void
+    {
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-12-31',
+        ]);
+        $group1 = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 1',
+        ]);
+        $group2 = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 2',
+        ]);
+
+        $sosmasType = ProgramType::where('code', 'sosial_kemasyarakatan')->first();
+
+        // Group 1, Student 1: Budi Santoso (Initials: BS)
+        $student1G1 = User::factory()->mahasiswa()->create([
+            'name' => 'Budi Santoso',
+            'group_id' => $group1->id,
+        ]);
+        $prog1G1 = Program::create([
+            'group_id' => $group1->id,
+            'student_id' => $student1G1->id,
+            'title' => 'Program Sosmas G1 A',
+            'program_type_id' => $sosmasType->id,
+        ]);
+        $part1G1 = ProgramParticipant::create([
+            'program_id' => $prog1G1->id,
+            'student_id' => $student1G1->id,
+        ]);
+        $this->assertEquals('SK1-BS', $part1G1->participant_code);
+
+        // Group 1, Student 2: Bambang Sugiantoro (Initials: BS) -> same group, should get disambiguated
+        $student2G1 = User::factory()->mahasiswa()->create([
+            'name' => 'Bambang Sugiantoro',
+            'group_id' => $group1->id,
+        ]);
+        $prog2G1 = Program::create([
+            'group_id' => $group1->id,
+            'student_id' => $student2G1->id,
+            'title' => 'Program Sosmas G1 B',
+            'program_type_id' => $sosmasType->id,
+        ]);
+        $part2G1 = ProgramParticipant::create([
+            'program_id' => $prog2G1->id,
+            'student_id' => $student2G1->id,
+        ]);
+        $this->assertEquals('SK1-BS2', $part2G1->participant_code);
+
+        // Group 2, Student 1: Budi Setiawan (Initials: BS) -> different group, should get SK1-BS (NOT SK1-BS3)
+        $student1G2 = User::factory()->mahasiswa()->create([
+            'name' => 'Budi Setiawan',
+            'group_id' => $group2->id,
+        ]);
+        $prog1G2 = Program::create([
+            'group_id' => $group2->id,
+            'student_id' => $student1G2->id,
+            'title' => 'Program Sosmas G2 A',
+            'program_type_id' => $sosmasType->id,
+        ]);
+        $part1G2 = ProgramParticipant::create([
+            'program_id' => $prog1G2->id,
+            'student_id' => $student1G2->id,
+        ]);
+        $this->assertEquals('SK1-BS', $part1G2->participant_code);
+    }
+
     private function createApprovedParticipant(): array
     {
         $period = Period::create([
