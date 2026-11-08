@@ -16,8 +16,15 @@ class LrkPdfController extends Controller
         protected PdfImageResolver $imageResolver
     ) {}
 
-    public function download(Group $group): Response
+    public function preview(Group $group): Response
     {
+        return $this->download($group, inline: true);
+    }
+
+    public function download(Group $group, ?bool $inline = null): Response
+    {
+        $inline = $inline ?? ! request()->boolean('download');
+
         $group->load([
             'period',
             'dpls',
@@ -198,6 +205,6 @@ class LrkPdfController extends Controller
 
         $pdfBinary = $this->pdfKitService->generate('generate-lrk.js', $payload);
 
-        return $this->pdfKitService->makeResponse($pdfBinary, 'LRK_KKN_'.$group->name.'.pdf');
+        return $this->pdfKitService->makeResponse($pdfBinary, 'LRK_KKN_'.$group->name.'.pdf', inline: $inline);
     }
 }

@@ -86,7 +86,7 @@ class PdfKitService
      * @param  string  $filename  Filename presented to user
      * @param  bool  $inline  Whether to display inline in browser or download
      */
-    public function makeResponse(string $pdfBinary, string $filename, bool $inline = false): Response
+    public function makeResponse(string $pdfBinary, string $filename, bool $inline = true): Response
     {
         $disposition = $inline ? 'inline' : 'attachment';
 

@@ -7,8 +7,8 @@
     {{-- Stats --}}
     <div class="grid auto-rows-min gap-4 sm:grid-cols-2 md:grid-cols-4">
         <x-stat-card icon="user-group" color="blue" :label="__('Total Kelompok')" :value="$stats['total']" />
-        <x-stat-card icon="lock-closed" color="green" :label="__('LRK Terkunci')" :value="$stats['lrk_locked']" />
-        <x-stat-card icon="document-check" color="purple" :label="__('LPK Terkunci')" :value="$stats['lpk_locked']" />
+        <x-stat-card icon="check-badge" color="green" :label="__('LRK Difinalisasi')" :value="$stats['lrk_locked']" />
+        <x-stat-card icon="document-check" color="purple" :label="__('LPK Difinalisasi')" :value="$stats['lpk_locked']" />
         <x-stat-card icon="clock" color="amber" :label="__('Dalam Proses')" :value="$stats['in_progress']" />
     </div>
 

@@ -14,8 +14,8 @@
                 <div class="flex items-center gap-2 mb-2">
                     <flux:icon.document-check variant="mini" class="text-green-500" />
                     <flux:heading size="lg">{{ __('Kesiapan LPK') }}</flux:heading>
-                    <flux:badge :color="$allLpkApproved ? 'green' : 'zinc'" size="sm">
-                        {{ $allLpkApproved ? __('Siap Cetak') : __('Belum Siap') }}
+                    <flux:badge :color="$group?->is_lpk_locked ? 'green' : ($allLpkApproved ? 'blue' : 'zinc')" size="sm">
+                        {{ $group?->is_lpk_locked ? __('Final') : ($allLpkApproved ? __('Siap Difinalisasi') : __('Belum Siap')) }}
                     </flux:badge>
                 </div>
                 <flux:text class="text-sm">
@@ -27,24 +27,38 @@
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                @if($allLpkApproved && $group)
-                    <flux:button href="{{ route('lpk.pdf', $group) }}" target="_blank" icon="document-arrow-down" variant="primary" size="sm" class="w-full sm:w-auto">
+                @if($group?->is_lpk_locked)
+                    <flux:button href="{{ route('lpk.pdf', $group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
                         {{ __('Cetak PDF') }}
+                    </flux:button>
+                @elseif($group)
+                    <flux:button href="{{ route('lpk.preview', $group) }}" target="_blank" icon="arrow-top-right-on-square" variant="subtle" size="sm" class="w-full sm:w-auto">
+                        {{ __('Pratinjau PDF') }}
                     </flux:button>
                 @endif
             </div>
         </div>
     </flux:card>
 
-    @if(!$allLrkApproved)
+    @if($group?->is_lpk_locked)
+        <flux:callout variant="success" icon="check-badge">
+            <flux:callout.heading>{{ __('Dokumen LPK Telah Difinalisasi') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('Dokumen LPK telah difinalisasi dan dapat dicetak secara resmi.') }}</flux:callout.text>
+        </flux:callout>
+    @elseif(!$allLrkApproved)
         <flux:callout variant="danger" icon="exclamation-triangle">
             <flux:callout.heading>{{ __('LRK Belum Selesai') }}</flux:callout.heading>
             <flux:callout.text>{{ __('LPK hanya bisa dicetak jika seluruh rencana program kerja (LRK) telah disetujui Dosen KKN terlebih dahulu.') }}</flux:callout.text>
         </flux:callout>
     @elseif(!$allLpkApproved)
         <flux:callout variant="warning" icon="information-circle">
-            <flux:callout.heading>{{ __('PDF LPK Belum Siap') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('Tombol cetak akan aktif setelah seluruh laporan pelaksanaan program disetujui Dosen KKN.') }}</flux:callout.text>
+            <flux:callout.heading>{{ __('LPK Sedang Dalam Penyusunan') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('Gunakan tombol Pratinjau PDF untuk meninjau draf dokumen. Tombol cetak resmi akan aktif setelah seluruh laporan pelaksanaan program disetujui Dosen KKN.') }}</flux:callout.text>
+        </flux:callout>
+    @else
+        <flux:callout variant="info" icon="information-circle">
+            <flux:callout.heading>{{ __('LPK Siap Difinalisasi') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('Seluruh laporan pelaksanaan program telah disetujui Dosen KKN. Dokumen siap dicetak setelah difinalisasi.') }}</flux:callout.text>
         </flux:callout>
     @endif
 

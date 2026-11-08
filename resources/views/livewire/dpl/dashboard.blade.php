@@ -273,17 +273,17 @@
                                 <div class="flex items-center gap-2">
                                     <span>{{ __('LRK:') }}</span>
                                     @if($g->is_lrk_locked)
-                                        <flux:badge color="green" size="sm">{{ __('Terkunci') }}</flux:badge>
+                                        <flux:badge color="green" size="sm">{{ __('Difinalisasi') }}</flux:badge>
                                     @else
-                                        <flux:badge color="zinc" size="sm">{{ __('Terbuka') }}</flux:badge>
+                                        <flux:badge color="zinc" size="sm">{{ __('Draf') }}</flux:badge>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span>{{ __('LPK:') }}</span>
                                     @if($g->is_lpk_locked)
-                                        <flux:badge color="green" size="sm">{{ __('Terkunci') }}</flux:badge>
+                                        <flux:badge color="green" size="sm">{{ __('Difinalisasi') }}</flux:badge>
                                     @else
-                                        <flux:badge color="zinc" size="sm">{{ __('Terbuka') }}</flux:badge>
+                                        <flux:badge color="zinc" size="sm">{{ __('Draf') }}</flux:badge>
                                     @endif
                                 </div>
                                 <div class="text-zinc-500">

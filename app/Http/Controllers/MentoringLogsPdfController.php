@@ -14,8 +14,10 @@ class MentoringLogsPdfController extends Controller
         protected PdfKitService $pdfKitService
     ) {}
 
-    public function download(User $student): Response
+    public function download(User $student, ?bool $inline = null): Response
     {
+        $inline = $inline ?? ! request()->boolean('download');
+
         if ($student->role !== UserRole::Mahasiswa) {
             abort(404, 'User is not a student');
         }
@@ -113,6 +115,6 @@ class MentoringLogsPdfController extends Controller
 
         $pdfBinary = $this->pdfKitService->generate('generate-mentoring.js', $payload);
 
-        return $this->pdfKitService->makeResponse($pdfBinary, 'Buku_Pembimbingan_KKN_'.$student->nim.'.pdf');
+        return $this->pdfKitService->makeResponse($pdfBinary, 'Buku_Pembimbingan_KKN_'.$student->nim.'.pdf', inline: $inline);
     }
 }

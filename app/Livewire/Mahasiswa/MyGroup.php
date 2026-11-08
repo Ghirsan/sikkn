@@ -31,8 +31,8 @@ class MyGroup extends Component
             'memberCount' => $members->count(),
             'dplCount' => $dpls->count(),
             'programCount' => $programs->count(),
-            'lrkStatus' => $group?->is_lrk_locked ? 'Terkunci' : 'Terbuka',
-            'lpkStatus' => $group?->is_lpk_locked ? 'Terkunci' : 'Terbuka',
+            'lrkStatus' => $group?->is_lrk_locked ? 'Difinalisasi' : 'Draf',
+            'lpkStatus' => $group?->is_lpk_locked ? 'Difinalisasi' : 'Draf',
         ];
 
         return view('livewire.mahasiswa.my-group', [

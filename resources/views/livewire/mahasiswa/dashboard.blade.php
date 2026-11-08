@@ -171,9 +171,9 @@
                     <div class="mt-1 flex items-center gap-2">
                         <flux:text variant="strong" class="text-base">{{ __('LRK:') }}</flux:text>
                         @if($group?->is_lrk_locked)
-                            <flux:badge color="green" size="sm">{{ __('Terkunci') }}</flux:badge>
+                            <flux:badge color="green" size="sm">{{ __('Difinalisasi') }}</flux:badge>
                         @else
-                            <flux:badge color="zinc" size="sm">{{ __('Terbuka') }}</flux:badge>
+                            <flux:badge color="zinc" size="sm">{{ __('Draf') }}</flux:badge>
                         @endif
                     </div>
                 </div>
@@ -185,9 +185,9 @@
                 <div class="flex items-center gap-2">
                     <flux:text variant="strong">{{ __('LPK:') }}</flux:text>
                     @if($group?->is_lpk_locked)
-                        <flux:badge color="green" size="sm">{{ __('Terkunci') }}</flux:badge>
+                        <flux:badge color="green" size="sm">{{ __('Difinalisasi') }}</flux:badge>
                     @else
-                        <flux:badge color="zinc" size="sm">{{ __('Terbuka') }}</flux:badge>
+                        <flux:badge color="zinc" size="sm">{{ __('Draf') }}</flux:badge>
                     @endif
                 </div>
                 @if($group)

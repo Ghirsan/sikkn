@@ -39,14 +39,14 @@
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
                         <flux:text variant="subtle">{{ __('Status LRK') }}</flux:text>
                         <flux:badge size="sm" :color="$group->is_lrk_locked ? 'green' : 'amber'">
-                            <flux:icon :name="$group->is_lrk_locked ? 'lock-closed' : 'lock-open'" variant="micro" class="mr-1" />
+                            <flux:icon :name="$group->is_lrk_locked ? 'check-circle' : 'pencil'" variant="micro" class="mr-1" />
                             {{ $stats['lrkStatus'] }}
                         </flux:badge>
                     </div>
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
                         <flux:text variant="subtle">{{ __('Status LPK') }}</flux:text>
                         <flux:badge size="sm" :color="$group->is_lpk_locked ? 'green' : 'amber'">
-                            <flux:icon :name="$group->is_lpk_locked ? 'lock-closed' : 'lock-open'" variant="micro" class="mr-1" />
+                            <flux:icon :name="$group->is_lpk_locked ? 'check-circle' : 'pencil'" variant="micro" class="mr-1" />
                             {{ $stats['lpkStatus'] }}
                         </flux:badge>
                     </div>

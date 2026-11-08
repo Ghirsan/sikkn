@@ -42,20 +42,26 @@
                             <flux:text class="text-xs">{{ __('Laporan Rencana Kegiatan') }}</flux:text>
                         </div>
                     </div>
-                    @if($data->lrkReady)
-                        <flux:badge size="sm" color="green">{{ __('Siap Cetak') }}</flux:badge>
+                    @if($data->isLrkLocked)
+                        <flux:badge size="sm" color="green">{{ __('Final') }}</flux:badge>
+                    @elseif($data->lrkReady)
+                        <flux:badge size="sm" color="blue">{{ __('Siap Difinalisasi') }}</flux:badge>
                     @else
                         <flux:badge size="sm" color="zinc">{{ __('Belum Siap') }}</flux:badge>
                     @endif
                 </div>
                 @if($data->isLrkLocked)
-                    <flux:callout variant="success" icon="lock-closed" class="mb-3">
-                        <flux:callout.text>{{ __('LRK telah dikunci dan tidak dapat diedit.') }}</flux:callout.text>
+                    <flux:callout variant="success" icon="check-badge" class="mb-3">
+                        <flux:callout.text>{{ __('LRK telah difinalisasi dan siap dicetak.') }}</flux:callout.text>
                     </flux:callout>
                 @endif
-                @if($data->lrkReady)
-                    <flux:button :href="route('lrk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="arrow-down-tray" class="w-full justify-center">
-                        {{ __('Download LRK PDF') }}
+                @if($data->isLrkLocked)
+                    <flux:button :href="route('lrk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="printer" class="w-full justify-center">
+                        {{ __('Cetak LRK PDF') }}
+                    </flux:button>
+                @else
+                    <flux:button :href="route('lrk.preview', $data->group)" target="_blank" variant="subtle" size="sm" icon="arrow-top-right-on-square" class="w-full justify-center">
+                        {{ __('Pratinjau LRK PDF') }}
                     </flux:button>
                 @endif
             </flux:card>
@@ -71,17 +77,21 @@
                         </div>
                     </div>
                     @if($data->isLpkLocked)
-                        <flux:badge size="sm" color="green">{{ __('Siap Cetak') }}</flux:badge>
+                        <flux:badge size="sm" color="green">{{ __('Final') }}</flux:badge>
                     @else
                         <flux:badge size="sm" color="zinc">{{ __('Belum Siap') }}</flux:badge>
                     @endif
                 </div>
                 @if($data->isLpkLocked)
-                    <flux:callout variant="success" icon="lock-closed" class="mb-3">
-                        <flux:callout.text>{{ __('LPK telah dikunci dan tidak dapat diedit.') }}</flux:callout.text>
+                    <flux:callout variant="success" icon="check-badge" class="mb-3">
+                        <flux:callout.text>{{ __('LPK telah difinalisasi dan siap dicetak.') }}</flux:callout.text>
                     </flux:callout>
-                    <flux:button :href="route('lpk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="arrow-down-tray" class="w-full justify-center">
-                        {{ __('Download LPK PDF') }}
+                    <flux:button :href="route('lpk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="printer" class="w-full justify-center">
+                        {{ __('Cetak LPK PDF') }}
+                    </flux:button>
+                @else
+                    <flux:button :href="route('lpk.preview', $data->group)" target="_blank" variant="subtle" size="sm" icon="arrow-top-right-on-square" class="w-full justify-center">
+                        {{ __('Pratinjau LPK PDF') }}
                     </flux:button>
                 @endif
             </flux:card>

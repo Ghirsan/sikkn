@@ -2,10 +2,16 @@
 
 namespace Tests\Feature\Mahasiswa;
 
+use App\Enums\ProgramStatus;
 use App\Enums\Semester;
+use App\Livewire\Mahasiswa\LpkDocuments;
+use App\Livewire\Mahasiswa\LrkDocuments;
 use App\Livewire\Mahasiswa\LrkForm;
 use App\Models\Group;
 use App\Models\Period;
+use App\Models\Program;
+use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -179,6 +185,195 @@ class LrkFormTest extends TestCase
 
         $this->assertNull($group->refresh()->locationMapUrl());
         $this->assertNull($group->surveyDocumentUrl());
+    }
+
+    public function test_lrk_form_preview_action_persists_data_and_sets_preview_url(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->set('background', 'Latar belakang diperbarui untuk pratinjau.')
+            ->set('storyboard_text', 'Storyboard scene baru.')
+            ->call('preview')
+            ->assertHasNoErrors()
+            ->assertSet('previewUrl', function ($url) use ($group) {
+                return ! empty($url) && str_contains($url, route('lrk.preview', $group));
+            });
+
+        $this->assertDatabaseHas('groups', [
+            'id' => $group->id,
+            'background' => 'Latar belakang diperbarui untuk pratinjau.',
+            'storyboard_text' => 'Storyboard scene baru.',
+        ]);
+    }
+
+    public function test_lrk_preview_endpoint_returns_inline_pdf_disposition(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        $response = $this->actingAs($leader)->get(route('lrk.preview', $group));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
+    }
+
+    public function test_lrk_pdf_endpoint_defaults_to_inline_and_supports_download_query_parameter(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        // Default: inline preview
+        $previewResponse = $this->actingAs($leader)->get(route('lrk.pdf', $group));
+        $previewResponse->assertOk();
+        $this->assertStringContainsString('inline', (string) $previewResponse->headers->get('content-disposition'));
+
+        // With download=1: attachment
+        $downloadResponse = $this->actingAs($leader)->get(route('lrk.pdf', [$group, 'download' => 1]));
+        $downloadResponse->assertOk();
+        $this->assertStringContainsString('attachment', (string) $downloadResponse->headers->get('content-disposition'));
+    }
+
+    public function test_lrk_form_cannot_finalize_when_document_not_ready(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertSet('isReady', false)
+            ->assertSet('isFinalized', false)
+            ->call('finalize');
+
+        $this->assertFalse($group->refresh()->is_lrk_locked);
+    }
+
+    public function test_lrk_form_can_finalize_and_unfinalize_when_ready(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        $mdType = ProgramType::firstOrCreate(['code' => 'multidisiplin'], ['name' => 'Multidisiplin', 'is_active' => true]);
+        $sosmasType = ProgramType::firstOrCreate(['code' => 'sosial_kemasyarakatan'], ['name' => 'Sosial Kemasyarakatan', 'is_active' => true]);
+        $lainnyaType = ProgramType::firstOrCreate(['code' => 'lainnya'], ['name' => 'Lainnya', 'is_active' => true]);
+
+        // Remove the extra member so only leader is in group
+        $group->students()->where('id', '!=', $leader->id)->update(['group_id' => null]);
+
+        foreach ([$mdType, $mdType, $sosmasType, $lainnyaType] as $type) {
+            $p = Program::create([
+                'group_id' => $group->id,
+                'student_id' => $leader->id,
+                'title' => 'Program '.$type->code,
+                'program_type_id' => $type->id,
+            ]);
+            ProgramParticipant::create([
+                'program_id' => $p->id,
+                'student_id' => $leader->id,
+                'status' => ProgramStatus::Approved,
+            ]);
+        }
+
+        $this->assertTrue($group->refresh()->isLrkReady());
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertSet('isReady', true)
+            ->assertSet('isFinalized', false)
+            ->assertSeeHtml('confirm-finalize-modal')
+            ->assertSee(__('Finalisasi LRK'))
+            ->assertSee(__('Finalisasi Dokumen LRK?'))
+            ->call('finalize')
+            ->assertSet('isFinalized', true);
+
+        $this->assertTrue($group->refresh()->is_lrk_locked);
+
+        // Can unfinalize
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertSet('isFinalized', true)
+            ->assertSeeHtml('confirm-unfinalize-modal')
+            ->assertSee(__('Ubah Kembali'))
+            ->assertSee(__('Ubah Kembali Dokumen LRK?'))
+            ->assertSee(__('Cetak PDF'))
+            ->call('unfinalize')
+            ->assertSet('isFinalized', false);
+
+        $this->assertFalse($group->refresh()->is_lrk_locked);
+    }
+
+    public function test_lrk_documents_switches_preview_to_print_when_ready_and_finalized(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        // Not finalized: shows Pratinjau PDF, not Cetak PDF
+        Livewire::actingAs($leader)
+            ->test(LrkDocuments::class)
+            ->assertSee(__('Pratinjau PDF'))
+            ->assertDontSee(__('Cetak PDF'));
+
+        // Lock group and approve all programs
+        $mdType = ProgramType::firstOrCreate(['code' => 'multidisiplin'], ['name' => 'Multidisiplin', 'is_active' => true]);
+        $sosmasType = ProgramType::firstOrCreate(['code' => 'sosial_kemasyarakatan'], ['name' => 'Sosial Kemasyarakatan', 'is_active' => true]);
+        $lainnyaType = ProgramType::firstOrCreate(['code' => 'lainnya'], ['name' => 'Lainnya', 'is_active' => true]);
+
+        $group->students()->where('id', '!=', $leader->id)->update(['group_id' => null]);
+
+        foreach ([$mdType, $mdType, $sosmasType, $lainnyaType] as $type) {
+            $p = Program::create([
+                'group_id' => $group->id,
+                'student_id' => $leader->id,
+                'title' => 'Program '.$type->code,
+                'program_type_id' => $type->id,
+            ]);
+            ProgramParticipant::create([
+                'program_id' => $p->id,
+                'student_id' => $leader->id,
+                'status' => ProgramStatus::Approved,
+            ]);
+        }
+
+        $group->update(['is_lrk_locked' => true]);
+
+        // Ready and Finalized: Preview changes to Print
+        Livewire::actingAs($leader->fresh())
+            ->test(LrkDocuments::class)
+            ->assertSee(__('Cetak PDF'))
+            ->assertDontSee(__('Pratinjau PDF'));
+    }
+
+    public function test_lpk_documents_switches_preview_to_print_when_ready_and_finalized(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        // Not finalized: shows Pratinjau PDF, not Cetak PDF
+        Livewire::actingAs($leader)
+            ->test(LpkDocuments::class)
+            ->assertSee(__('Pratinjau PDF'))
+            ->assertDontSee(__('Cetak PDF'));
+
+        // Lock group and approve all programs
+        $mdType = ProgramType::firstOrCreate(['code' => 'multidisiplin'], ['name' => 'Multidisiplin', 'is_active' => true]);
+        $group->students()->where('id', '!=', $leader->id)->update(['group_id' => null]);
+
+        $p = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $leader->id,
+            'title' => 'Program LPK Test',
+            'program_type_id' => $mdType->id,
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $p->id,
+            'student_id' => $leader->id,
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+        ]);
+
+        $group->update(['is_lpk_locked' => true]);
+
+        // Ready and Finalized: Preview changes to Print
+        Livewire::actingAs($leader->fresh())
+            ->test(LpkDocuments::class)
+            ->assertSee(__('Cetak PDF'))
+            ->assertDontSee(__('Pratinjau PDF'));
     }
 
     private function createGroupWithLeaderAndMember(): array

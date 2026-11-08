@@ -46,6 +46,12 @@ class LrkForm extends Component
 
     public ?string $existing_survey_path = null;
 
+    public ?string $previewUrl = null;
+
+    public bool $isReady = false;
+
+    public bool $isFinalized = false;
+
     public function mount()
     {
         $user = Auth::user();
@@ -54,6 +60,9 @@ class LrkForm extends Component
         if (! $group || $group->student_leader_id !== $user->id) {
             abort(403);
         }
+
+        $this->isReady = $group->isLrkReady();
+        $this->isFinalized = $group->isLrkFinalized();
 
         $this->background = $group->background ?? '';
         $this->program_multidisiplin_text = $group->program_multidisiplin_text ?? '';
@@ -169,7 +178,7 @@ class LrkForm extends Component
         }
     }
 
-    public function save()
+    protected function persistData(): void
     {
         $this->validate([
             'background' => 'nullable|string',
@@ -234,8 +243,65 @@ class LrkForm extends Component
         }
 
         $group->update($data);
+    }
+
+    public function save(): void
+    {
+        $this->persistData();
 
         Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data laporan LRK berhasil disimpan.');
+    }
+
+    public function preview(): void
+    {
+        $this->persistData();
+
+        $group = Auth::user()->group;
+        $url = route('lrk.preview', ['group' => $group, 'v' => now()->timestamp]);
+        $this->previewUrl = $url;
+
+        $this->js("window.open('{$url}', '_blank')");
+
+        Flux::toast(variant: 'info', heading: 'Pratinjau PDF', text: 'Data tersimpan dan membuka dokumen di halaman baru.');
+    }
+
+    public function finalize(): void
+    {
+        $group = Auth::user()->group;
+
+        if (! $group || $group->student_leader_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (! $group->isLrkReady()) {
+            Flux::modal('confirm-finalize-modal')->close();
+            Flux::toast(variant: 'danger', heading: 'Belum Siap', text: 'Dokumen LRK belum dapat difinalisasi karena belum seluruh rencana program disetujui.');
+
+            return;
+        }
+
+        $this->persistData();
+
+        $group->update(['is_lrk_locked' => true]);
+        $this->isFinalized = true;
+
+        Flux::modal('confirm-finalize-modal')->close();
+        Flux::toast(variant: 'success', heading: 'LRK Berhasil Difinalisasi', text: 'Dokumen LRK telah difinalisasi dan siap dicetak.');
+    }
+
+    public function unfinalize(): void
+    {
+        $group = Auth::user()->group;
+
+        if (! $group || $group->student_leader_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $group->update(['is_lrk_locked' => false]);
+        $this->isFinalized = false;
+
+        Flux::modal('confirm-unfinalize-modal')->close();
+        Flux::toast(variant: 'info', heading: 'Finalisasi Dibatalkan', text: 'Dokumen LRK dapat diedit kembali.');
     }
 
     public function render()

@@ -124,6 +124,7 @@ class PdfGenerationTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
         $this->assertNotEmpty($response->getContent());
     }
 
@@ -135,6 +136,19 @@ class PdfGenerationTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
+        $this->assertNotEmpty($response->getContent());
+    }
+
+    public function test_authenticated_user_can_preview_lpk_pdf(): void
+    {
+        [$period, $group, $dpl, $student] = $this->setupTestData();
+
+        $response = $this->actingAs($student)->get(route('lpk.preview', $group));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
         $this->assertNotEmpty($response->getContent());
     }
 
@@ -146,6 +160,7 @@ class PdfGenerationTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
         $this->assertNotEmpty($response->getContent());
     }
 
@@ -157,6 +172,7 @@ class PdfGenerationTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
         $this->assertNotEmpty($response->getContent());
     }
 

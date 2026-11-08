@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProgramStatus;
 use App\Enums\UserRole;
 use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Builder;
@@ -174,6 +175,63 @@ class Group extends Model
     public function isLpkEditable(): bool
     {
         return ! $this->is_lpk_locked;
+    }
+
+    public function isLrkFinalized(): bool
+    {
+        return (bool) $this->is_lrk_locked;
+    }
+
+    public function isLpkFinalized(): bool
+    {
+        return (bool) $this->is_lpk_locked;
+    }
+
+    public function isLrkReady(): bool
+    {
+        $participants = ProgramParticipant::whereHas('program', fn ($q) => $q->where('group_id', $this->id))
+            ->with('program.programType')
+            ->get();
+
+        $total = $participants->count();
+        if ($total === 0) {
+            return false;
+        }
+
+        $approved = $participants->where('status', ProgramStatus::Approved)->count();
+        if ($approved !== $total) {
+            return false;
+        }
+
+        $students = $this->students;
+        foreach ($students as $student) {
+            $studentParticipants = $participants->where('student_id', $student->id);
+            $hasSosmas = $studentParticipants->contains(fn ($p) => $p->program?->programType?->code === 'sosial_kemasyarakatan');
+            $hasLainnya = $studentParticipants->contains(fn ($p) => $p->program?->programType?->code === 'lainnya');
+            $multidisiplinCount = $studentParticipants->filter(fn ($p) => $p->program?->programType?->code === 'multidisiplin')->count();
+
+            if (! ($hasSosmas && $hasLainnya && $multidisiplinCount >= 2)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isLpkReady(): bool
+    {
+        $participants = ProgramParticipant::whereHas('program', fn ($q) => $q->where('group_id', $this->id))
+            ->get();
+
+        $total = $participants->count();
+        if ($total === 0) {
+            return false;
+        }
+
+        $lrkApproved = $participants->where('status', ProgramStatus::Approved)->count();
+        $lpkApproved = $participants->where('lpk_status', ProgramStatus::Approved)->count();
+
+        return $lrkApproved === $total && $lpkApproved === $total;
     }
 
     public function locationMapUrl(): ?string

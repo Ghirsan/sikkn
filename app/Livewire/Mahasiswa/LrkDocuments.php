@@ -87,7 +87,7 @@ class LrkDocuments extends Component
         $group = $user->group;
 
         // All participants in this group's programs
-        $participants = $group ? ProgramParticipant::with(['program', 'student'])
+        $participants = $group ? ProgramParticipant::with(['program.programType', 'student'])
             ->whereHas('program', function ($q) use ($group) {
                 $q->where('group_id', $group->id);
             })->get() : collect();
