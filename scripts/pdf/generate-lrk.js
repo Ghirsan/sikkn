@@ -614,6 +614,31 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 doc.moveDown(0.5);
 
 const sosmasAll = payload.sosialKemasyarakatan || [];
+
+function groupPrograms(items) {
+  const map = new Map();
+  for (const item of items) {
+    const key = item.program_id ? `id_${item.program_id}` : (item.program_title || 'Untitled');
+    if (!map.has(key)) {
+      map.set(key, {
+        id: item.program_id,
+        title: item.program_title || 'Program Tanpa Judul',
+        participants: []
+      });
+    }
+    map.get(key).participants.push(item);
+  }
+  // Sort participants so initiator comes first
+  for (const group of map.values()) {
+    group.participants.sort((a, b) => {
+      if (a.is_initiator && !b.is_initiator) return -1;
+      if (!a.is_initiator && b.is_initiator) return 1;
+      return (a.student_name || '').localeCompare(b.student_name || '');
+    });
+  }
+  return Array.from(map.values());
+}
+
 const saintekList = sosmasAll.filter(p => p.is_saintek);
 const soshumList = sosmasAll.filter(p => !p.is_saintek);
 
@@ -625,54 +650,96 @@ const sosmasCols = [
   { key: 'sdg', label: 'Kategori SDG', width: 121, align: 'left' }
 ];
 
-// Tabel 4. Saintek
-doc.fontSize(9.5).font('Helvetica-Bold')
-   .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
-doc.moveDown(0.3);
+// Tabel 4. Saintek (grouped by program)
+const saintekGroups = groupPrograms(saintekList);
 
-const saintekTitle = (saintekList[0] && saintekList[0].program_title) ? saintekList[0].program_title : 'Peningkatan Sanitasi & Lingkungan';
-const saintekRows = (saintekList.length > 0 ? saintekList : sosmasAll.slice(0, 3)).map((p, idx) => ({
-  no: `${idx + 1}.`,
-  pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
-  peran: p.role_in_program || 'Anggota Pelaksana',
-  tanggungjawab: p.responsibility || 'Sosialisasi pengolahan limbah dan sanitasi warga',
-  sdg: p.sdg_category || '-'
-}));
+if (saintekGroups.length === 0) {
+  doc.fontSize(9.5).font('Helvetica-Bold')
+     .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
+  doc.moveDown(0.3);
+  doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
+     .text('(Belum ada usulan program sosial kemasyarakatan rumpun Saintek)', landMarginLeft, doc.y);
+  doc.moveDown(0.8);
+} else {
+  saintekGroups.forEach((groupItem, gIdx) => {
+    if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
 
-drawTable(doc, {
-  columns: sosmasCols,
-  rows: saintekRows,
-  bannerTitle: `Program Sosial Kemasyarakatan Kelompok (Saintek) : ${saintekTitle}`,
-  fontSize: 7.5,
-  headerFontSize: 8
-});
+    const tableLabel = saintekGroups.length > 1
+      ? `Tabel 4.${gIdx + 1}. Rencana Sosial Kemasyarakatan Saintek : ${groupItem.title}`
+      : 'Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)';
 
-// Tabel 5. Soshum
-doc.moveDown(0.8);
-if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
-  addLandscapePage();
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+       .text(tableLabel, landMarginLeft, doc.y);
+    doc.moveDown(0.3);
+
+    const rows = groupItem.participants.map((p, idx) => ({
+      no: `${idx + 1}.`,
+      pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
+      peran: p.role_in_program || (p.is_initiator ? 'Penggagas' : 'Anggota Pelaksana'),
+      tanggungjawab: p.responsibility || 'Sosialisasi dan edukasi masyarakat',
+      sdg: p.sdg_category || '-'
+    }));
+
+    drawTable(doc, {
+      columns: sosmasCols,
+      rows: rows,
+      bannerTitle: `Program Sosial Kemasyarakatan Kelompok (Saintek) : ${groupItem.title}`,
+      fontSize: 7.5,
+      headerFontSize: 8
+    });
+
+    doc.moveDown(0.8);
+  });
 }
 
-doc.fontSize(9.5).font('Helvetica-Bold')
-   .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
-doc.moveDown(0.3);
+// Tabel 5. Soshum (grouped by program)
+const soshumGroups = groupPrograms(soshumList);
 
-const soshumTitle = (soshumList[0] && soshumList[0].program_title) ? soshumList[0].program_title : 'Pembinaan Administrasi & Tata Kelola';
-const soshumRows = (soshumList.length > 0 ? soshumList : sosmasAll.slice(3)).map((p, idx) => ({
-  no: `${idx + 1}.`,
-  pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
-  peran: p.role_in_program || 'Anggota Pelaksana',
-  tanggungjawab: p.responsibility || 'Pemberdayaan administrasi kearsipan desa dan edukasi hukum',
-  sdg: p.sdg_category || '-'
-}));
+if (soshumGroups.length === 0) {
+  if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
+    addLandscapePage();
+  }
+  doc.fontSize(9.5).font('Helvetica-Bold')
+     .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
+  doc.moveDown(0.3);
+  doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
+     .text('(Belum ada usulan program sosial kemasyarakatan rumpun Soshum)', landMarginLeft, doc.y);
+  doc.moveDown(0.8);
+} else {
+  soshumGroups.forEach((groupItem, gIdx) => {
+    if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
 
-drawTable(doc, {
-  columns: sosmasCols,
-  rows: soshumRows,
-  bannerTitle: `Program Sosial Kemasyarakatan Kelompok (Soshum) : ${soshumTitle}`,
-  fontSize: 7.5,
-  headerFontSize: 8
-});
+    const tableLabel = soshumGroups.length > 1
+      ? `Tabel 5.${gIdx + 1}. Rencana Sosial Kemasyarakatan Soshum : ${groupItem.title}`
+      : 'Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)';
+
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+       .text(tableLabel, landMarginLeft, doc.y);
+    doc.moveDown(0.3);
+
+    const rows = groupItem.participants.map((p, idx) => ({
+      no: `${idx + 1}.`,
+      pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
+      peran: p.role_in_program || (p.is_initiator ? 'Penggagas' : 'Anggota Pelaksana'),
+      tanggungjawab: p.responsibility || 'Pemberdayaan masyarakat dan pendampingan tata kelola',
+      sdg: p.sdg_category || '-'
+    }));
+
+    drawTable(doc, {
+      columns: sosmasCols,
+      rows: rows,
+      bannerTitle: `Program Sosial Kemasyarakatan Kelompok (Soshum) : ${groupItem.title}`,
+      fontSize: 7.5,
+      headerFontSize: 8
+    });
+
+    doc.moveDown(0.8);
+  });
+}
 
 // 2.3 PROGRAM LAINNYA
 doc.moveDown(0.8);
@@ -691,31 +758,47 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 doc.moveDown(0.5);
 
 const lainnyaList = payload.lainnya || [];
-doc.fontSize(9.5).font('Helvetica-Bold')
-   .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
-doc.moveDown(0.3);
+const lainnyaGroups = groupPrograms(lainnyaList);
 
-const lainnyaTitle = (lainnyaList[0] && lainnyaList[0].program_title) ? lainnyaList[0].program_title : 'Kegiatan Pendukung Lapangan';
-const lainnyaRows = (lainnyaList.length > 0 ? lainnyaList : []).map((p, idx) => ({
-  no: `${idx + 1}.`,
-  pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
-  peran: p.role_in_program || 'Pendamping',
-  tanggungjawab: p.responsibility || 'Membantu kegiatan kemasyarakatan dan posyandu',
-  sdg: p.sdg_category || '-'
-}));
-
-if (lainnyaRows.length > 0) {
-  drawTable(doc, {
-    columns: sosmasCols,
-    rows: lainnyaRows,
-    bannerTitle: `Program Lainnya Kelompok : ${lainnyaTitle}`,
-    fontSize: 7.5,
-    headerFontSize: 8
-  });
-} else {
+if (lainnyaGroups.length === 0) {
+  doc.fontSize(9.5).font('Helvetica-Bold')
+     .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
+  doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563')
      .text('Belum ada usulan program lainnya.', landMarginLeft, doc.y);
   doc.moveDown(1);
+} else {
+  lainnyaGroups.forEach((groupItem, gIdx) => {
+    if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
+
+    const tableLabel = lainnyaGroups.length > 1
+      ? `Tabel 6.${gIdx + 1}. Rencana Program Lainnya : ${groupItem.title}`
+      : 'Tabel 6. Rencana Program Lainnya';
+
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+       .text(tableLabel, landMarginLeft, doc.y);
+    doc.moveDown(0.3);
+
+    const rows = groupItem.participants.map((p, idx) => ({
+      no: `${idx + 1}.`,
+      pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
+      peran: p.role_in_program || (p.is_initiator ? 'Penggagas' : 'Pendamping'),
+      tanggungjawab: p.responsibility || 'Membantu kegiatan kemasyarakatan dan posyandu',
+      sdg: p.sdg_category || '-'
+    }));
+
+    drawTable(doc, {
+      columns: sosmasCols,
+      rows: rows,
+      bannerTitle: `Program Lainnya Kelompok : ${groupItem.title}`,
+      fontSize: 7.5,
+      headerFontSize: 8
+    });
+
+    doc.moveDown(0.8);
+  });
 }
 
 // ------------------------------------------------------------

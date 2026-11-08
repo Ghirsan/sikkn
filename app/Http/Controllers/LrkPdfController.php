@@ -198,8 +198,9 @@ class LrkPdfController extends Controller
                 'participant_code' => $p->participant_code,
             ])->values()->all(),
             'sosialKemasyarakatan' => $sosialKemasyarakatan->map(fn ($p) => [
-                'is_saintek' => $isSaintek($p->student),
+                'program_id' => $p->program_id,
                 'program_title' => $p->program?->title,
+                'is_saintek' => $isSaintek($p->student),
                 'student_name' => $p->student?->name,
                 'student_nim' => $p->student?->nim,
                 'student_fakultas' => $p->student?->faculty?->name,
@@ -208,8 +209,10 @@ class LrkPdfController extends Controller
                 'responsibility' => $p->responsibility,
                 'sdg_category' => $p->sdgCategory?->label(),
                 'participant_code' => $p->participant_code,
+                'is_initiator' => ($p->program?->student_id === $p->student_id),
             ])->values()->all(),
             'lainnya' => $lainnya->map(fn ($p) => [
+                'program_id' => $p->program_id,
                 'program_title' => $p->program?->title,
                 'student_name' => $p->student?->name,
                 'student_nim' => $p->student?->nim,
@@ -219,6 +222,7 @@ class LrkPdfController extends Controller
                 'responsibility' => $p->responsibility,
                 'sdg_category' => $p->sdgCategory?->label(),
                 'participant_code' => $p->participant_code,
+                'is_initiator' => ($p->program?->student_id === $p->student_id),
             ])->values()->all(),
             'scheduleEvents' => $group->scheduleEvents->sortBy('date')->map(fn ($e) => [
                 'title' => $e->title,

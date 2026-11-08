@@ -523,25 +523,69 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 );
 doc.moveDown(0.5);
 
+function groupPrograms(items) {
+  const map = new Map();
+  for (const item of items) {
+    const key = item.program_id ? `id_${item.program_id}` : (item.program_title || 'Untitled');
+    if (!map.has(key)) {
+      map.set(key, {
+        id: item.program_id,
+        title: item.program_title || 'Program Tanpa Judul',
+        participants: []
+      });
+    }
+    map.get(key).participants.push(item);
+  }
+  for (const group of map.values()) {
+    group.participants.sort((a, b) => {
+      if (a.is_initiator && !b.is_initiator) return -1;
+      if (!a.is_initiator && b.is_initiator) return 1;
+      return (a.student_name || '').localeCompare(b.student_name || '');
+    });
+  }
+  return Array.from(map.values());
+}
+
 const sosialKemasyarakatan = payload.sosialKemasyarakatan || [];
-const skRows = sosialKemasyarakatan.map((p, idx) => ({
-  no: `${idx + 1}.`,
-  pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
-  peran: p.role || 'Koordinator Pelaksana',
-  deskripsi: `${p.participant_title || p.program_title || '-'}\nPelaksanaan: ${p.execution_date ?? '-'}\nHasil: ${p.achievement || 'Program terselenggara dengan sukses dan antusiasme tinggi dari warga masyarakat.'}`
-}));
+const skGroups = groupPrograms(sosialKemasyarakatan);
 
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 4. Program Sosial Kemasyarakatan');
-doc.moveDown(0.3);
+if (skGroups.length === 0) {
+  doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 4. Program Sosial Kemasyarakatan');
+  doc.moveDown(0.3);
+  doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
+     .text('(Belum ada pelaksanaan program sosial kemasyarakatan)', doc.page.margins.left, doc.y);
+  doc.moveDown(0.8);
+} else {
+  skGroups.forEach((groupItem, gIdx) => {
+    if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
 
-drawTable(doc, {
-  columns: lpkRoleCols,
-  rows: skRows.length > 0 ? skRows : [
-    { no: '1.', pelaksana: 'Mahasiswa KKN / 2101001 / FT / Informatika', peran: 'Ketua Pelaksana', deskripsi: 'Penyelenggaraan kerja bakti massal dan sosialisasi kebersihan lingkungan di Balai RW 02.' }
-  ],
-  fontSize: 7.5,
-  headerFontSize: 8
-});
+    const tableLabel = skGroups.length > 1
+      ? `Tabel 4.${gIdx + 1}. Program Sosial Kemasyarakatan : ${groupItem.title}`
+      : 'Tabel 4. Program Sosial Kemasyarakatan';
+
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text(tableLabel);
+    doc.moveDown(0.3);
+
+    const rows = groupItem.participants.map((p, idx) => ({
+      no: `${idx + 1}.`,
+      pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
+      peran: p.role || (p.is_initiator ? 'Penggagas' : 'Koordinator Pelaksana'),
+      deskripsi: `${p.participant_title || p.program_title || '-'}\nPelaksanaan: ${p.execution_date ?? '-'}\nHasil: ${p.achievement || 'Program terselenggara dengan sukses dan antusiasme tinggi dari warga masyarakat.'}`
+    }));
+
+    drawTable(doc, {
+      columns: lpkRoleCols,
+      rows: rows,
+      bannerTitle: `Program Sosial Kemasyarakatan Kelompok : ${groupItem.title}`,
+      fontSize: 7.5,
+      headerFontSize: 8
+    });
+
+    doc.moveDown(0.8);
+  });
+}
 
 // 2.3 PROGRAM LAINNYA
 doc.moveDown(1);
@@ -557,24 +601,45 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 doc.moveDown(0.5);
 
 const lainnya = payload.lainnya || [];
-const lainnyaRows = lainnya.map((p, idx) => ({
-  no: `${idx + 1}.`,
-  pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
-  peran: p.role || 'Pelaksana',
-  deskripsi: `${p.participant_title || p.program_title || '-'}\nHasil: ${p.achievement || 'Memberikan pendampingan bimbingan belajar anak-anak sekolah dasar di posko KKN.'}`
-}));
+const lainnyaGroups = groupPrograms(lainnya);
 
-doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 5. Program Lainnya');
-doc.moveDown(0.3);
+if (lainnyaGroups.length === 0) {
+  doc.fontSize(9.5).font('Helvetica-Bold').text('Tabel 5. Program Lainnya');
+  doc.moveDown(0.3);
+  doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
+     .text('Belum ada pelaksanaan program lainnya.', doc.page.margins.left, doc.y);
+  doc.moveDown(0.8);
+} else {
+  lainnyaGroups.forEach((groupItem, gIdx) => {
+    if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+    }
 
-drawTable(doc, {
-  columns: lpkRoleCols,
-  rows: lainnyaRows.length > 0 ? lainnyaRows : [
-    { no: '1.', pelaksana: 'Mahasiswa KKN / 2101001 / FT / Informatika', peran: 'Tutor', deskripsi: 'Bimbingan belajar komputer dan matematika untuk siswa SD setiap sore di posko KKN.' }
-  ],
-  fontSize: 7.5,
-  headerFontSize: 8
-});
+    const tableLabel = lainnyaGroups.length > 1
+      ? `Tabel 5.${gIdx + 1}. Program Lainnya : ${groupItem.title}`
+      : 'Tabel 5. Program Lainnya';
+
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000').text(tableLabel);
+    doc.moveDown(0.3);
+
+    const rows = groupItem.participants.map((p, idx) => ({
+      no: `${idx + 1}.`,
+      pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
+      peran: p.role || (p.is_initiator ? 'Penggagas' : 'Pelaksana'),
+      deskripsi: `${p.participant_title || p.program_title || '-'}\nHasil: ${p.achievement || 'Memberikan pendampingan bimbingan belajar anak-anak sekolah dasar di posko KKN.'}`
+    }));
+
+    drawTable(doc, {
+      columns: lpkRoleCols,
+      rows: rows,
+      bannerTitle: `Program Lainnya Kelompok : ${groupItem.title}`,
+      fontSize: 7.5,
+      headerFontSize: 8
+    });
+
+    doc.moveDown(0.8);
+  });
+}
 
 // ============================================================
 // 3. REALISASI JADWAL PELAKSANAAN (Landscape Table)

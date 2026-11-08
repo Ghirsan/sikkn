@@ -176,6 +176,160 @@ class PdfGenerationTest extends TestCase
         $this->assertNotEmpty($response->getContent());
     }
 
+    public function test_authenticated_user_can_download_lrk_pdf_with_multiple_grouped_sosmas_and_lainnya(): void
+    {
+        [$period, $group, $dpl, $student] = $this->setupTestData();
+
+        $sosmasType = ProgramType::firstOrCreate(
+            ['code' => 'sosial_kemasyarakatan'],
+            ['name' => 'Sosial Kemasyarakatan', 'is_active' => true]
+        );
+        $lainnyaType = ProgramType::firstOrCreate(
+            ['code' => 'lainnya'],
+            ['name' => 'Lainnya', 'is_active' => true]
+        );
+
+        $studentSaintekMember = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+            'nim' => '21120120140002',
+            'name' => 'Saintek Member',
+        ]);
+        $studentSoshumInitiator = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+            'nim' => '11000120140001',
+            'name' => 'Soshum Initiator',
+        ]);
+        $studentLainnyaInitiator = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+            'nim' => '21120120140003',
+            'name' => 'Lainnya Initiator',
+        ]);
+
+        // Sosmas 1 (Saintek) - Initiator: $student, Member: $studentSaintekMember
+        $sosmasProg1 = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $student->id,
+            'title' => 'Edukasi Pengolahan Sampah Organik',
+            'program_type_id' => $sosmasType->id,
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $sosmasProg1->id,
+            'student_id' => $student->id,
+            'participant_code' => 'S1P1',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'role_in_program' => 'Penggagas',
+            'responsibility' => 'Perencanaan dan materi',
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $sosmasProg1->id,
+            'student_id' => $studentSaintekMember->id,
+            'participant_code' => 'S1P2',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'role_in_program' => 'Anggota',
+            'responsibility' => 'Logistik dan demonstrasi',
+        ]);
+
+        // Sosmas 2 (Soshum) - Initiator: $studentSoshumInitiator
+        $sosmasProg2 = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $studentSoshumInitiator->id,
+            'title' => 'Penyuluhan Hukum Pertanahan Warga',
+            'program_type_id' => $sosmasType->id,
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $sosmasProg2->id,
+            'student_id' => $studentSoshumInitiator->id,
+            'participant_code' => 'S2P1',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'role_in_program' => 'Penggagas',
+            'responsibility' => 'Penyusunan materi dan pemaparan',
+        ]);
+
+        // Lainnya 1 - Initiator: $studentLainnyaInitiator, Member: $student
+        $lainnyaProg1 = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $studentLainnyaInitiator->id,
+            'title' => 'Bakti Sosial Kerja Bakti Lingkungan',
+            'program_type_id' => $lainnyaType->id,
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $lainnyaProg1->id,
+            'student_id' => $studentLainnyaInitiator->id,
+            'participant_code' => 'L1P1',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'role_in_program' => 'Penggagas',
+            'responsibility' => 'Koordinasi warga',
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $lainnyaProg1->id,
+            'student_id' => $student->id,
+            'participant_code' => 'L1P2',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'role_in_program' => 'Anggota',
+            'responsibility' => 'Bantuan teknis lapangan',
+        ]);
+
+        $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertNotEmpty($response->getContent());
+    }
+
+    public function test_authenticated_user_can_download_lpk_pdf_with_multiple_grouped_sosmas_and_lainnya(): void
+    {
+        [$period, $group, $dpl, $student] = $this->setupTestData();
+
+        $sosmasType = ProgramType::firstOrCreate(
+            ['code' => 'sosial_kemasyarakatan'],
+            ['name' => 'Sosial Kemasyarakatan', 'is_active' => true]
+        );
+        $lainnyaType = ProgramType::firstOrCreate(
+            ['code' => 'lainnya'],
+            ['name' => 'Lainnya', 'is_active' => true]
+        );
+
+        $studentSaintekMember = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+            'nim' => '21120120140002',
+            'name' => 'Saintek Member',
+        ]);
+
+        $sosmasProg1 = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $student->id,
+            'title' => 'Edukasi Pengolahan Sampah Organik',
+            'program_type_id' => $sosmasType->id,
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $sosmasProg1->id,
+            'student_id' => $student->id,
+            'participant_code' => 'S1P1',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'achievement' => '100% warga RT 01 memahami pemilahan sampah organik.',
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $sosmasProg1->id,
+            'student_id' => $studentSaintekMember->id,
+            'participant_code' => 'S1P2',
+            'status' => ProgramStatus::Approved,
+            'lpk_status' => ProgramStatus::Approved,
+            'achievement' => 'Membantu pembuatan 10 unit komposter skala rumah tangga.',
+        ]);
+
+        $response = $this->actingAs($student)->get(route('lpk.pdf', $group));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertNotEmpty($response->getContent());
+    }
+
     public function test_cannot_download_logbook_for_non_student(): void
     {
         [$period, $group, $dpl] = $this->setupTestData();

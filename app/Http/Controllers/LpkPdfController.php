@@ -174,6 +174,7 @@ class LpkPdfController extends Controller
                 'output_code' => $p->participant_code,
             ])->values()->all(),
             'sosialKemasyarakatan' => $sosialKemasyarakatan->map(fn ($p) => [
+                'program_id' => $p->program_id,
                 'program_title' => $p->program?->title,
                 'participant_title' => $p->participant_title,
                 'student_name' => $p->student?->name,
@@ -185,8 +186,10 @@ class LpkPdfController extends Controller
                 'description' => $p->responsibility,
                 'achievement' => $p->achievement,
                 'output_code' => $p->participant_code,
+                'is_initiator' => ($p->program?->student_id === $p->student_id),
             ])->values()->all(),
             'lainnya' => $lainnya->map(fn ($p) => [
+                'program_id' => $p->program_id,
                 'program_title' => $p->program?->title,
                 'participant_title' => $p->participant_title,
                 'student_name' => $p->student?->name,
@@ -198,6 +201,7 @@ class LpkPdfController extends Controller
                 'description' => $p->responsibility,
                 'achievement' => $p->achievement,
                 'output_code' => $p->participant_code,
+                'is_initiator' => ($p->program?->student_id === $p->student_id),
             ])->values()->all(),
             'calendar' => $calendar,
             'outputs' => $outputs->values()->all(),
