@@ -62,9 +62,14 @@ class Programs extends Component
             $program = $participant->program;
             $participant->delete();
 
-            // If it's an individual program, delete the program entirely
-            if ($program->student_id === Auth::id()) {
-                $program->delete();
+            // If user is program creator/initiator, only delete the program if no other participants remain
+            if ($program && $program->student_id === Auth::id()) {
+                if ($program->participants()->count() === 0) {
+                    $program->delete();
+                } else {
+                    $nextStudentId = $program->participants()->value('student_id');
+                    $program->update(['student_id' => $nextStudentId]);
+                }
             }
 
             Flux::toast(variant: 'success', heading: 'Dihapus', text: 'Data program berhasil dihapus.');

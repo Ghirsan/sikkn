@@ -3,6 +3,7 @@
 namespace App\Livewire\Mahasiswa;
 
 use App\Enums\DocumentStatus;
+use App\Models\Group;
 use App\Services\ExternalImagePreviewUrl;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,13 @@ class LrkForm extends Component
 
     public string $storyboard_text = '';
 
+    public array $storyboard_scenes = [];
+
     public string $video_script_text = '';
+
+    public array $video_script_scenes = [];
+
+    public array $macro_schedules = [];
 
     public string $survey_documentation_text = '';
 
@@ -85,7 +92,10 @@ class LrkForm extends Component
         $this->program_sosmas_text = $group->program_sosmas_text ?? '';
         $this->program_lainnya_text = $group->program_lainnya_text ?? '';
         $this->storyboard_text = $group->storyboard_text ?? '';
+        $this->storyboard_scenes = ! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes();
         $this->video_script_text = $group->video_script_text ?? '';
+        $this->video_script_scenes = ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes();
+        $this->macro_schedules = ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules();
         $this->survey_documentation_text = $group->survey_documentation_text ?? '';
         $this->location_map_text = $group->location_map_text ?? '';
 
@@ -221,7 +231,10 @@ class LrkForm extends Component
             'program_sosmas_text' => $this->program_sosmas_text,
             'program_lainnya_text' => $this->program_lainnya_text,
             'storyboard_text' => $this->storyboard_text,
+            'storyboard_scenes' => $this->storyboard_scenes,
             'video_script_text' => $this->video_script_text,
+            'video_script_scenes' => $this->video_script_scenes,
+            'macro_schedules' => $this->macro_schedules,
             'survey_documentation_text' => $this->survey_documentation_text,
             'location_map_text' => $this->location_map_text,
         ];
@@ -274,6 +287,60 @@ class LrkForm extends Component
         $this->persistData();
 
         Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data laporan LRK berhasil disimpan.');
+    }
+
+    public function addStoryboardScene(): void
+    {
+        $this->storyboard_scenes[] = [
+            'scene' => (string) (count($this->storyboard_scenes) + 1),
+            'visual' => '',
+            'audio' => '',
+            'duration' => '10s',
+        ];
+    }
+
+    public function removeStoryboardScene(int $index): void
+    {
+        unset($this->storyboard_scenes[$index]);
+        $this->storyboard_scenes = array_values($this->storyboard_scenes);
+    }
+
+    public function addVideoScriptScene(): void
+    {
+        $this->video_script_scenes[] = [
+            'scene' => (string) (count($this->video_script_scenes) + 1),
+            'visual' => '',
+            'audio' => '',
+        ];
+    }
+
+    public function removeVideoScriptScene(int $index): void
+    {
+        unset($this->video_script_scenes[$index]);
+        $this->video_script_scenes = array_values($this->video_script_scenes);
+    }
+
+    public function addMacroSchedule(): void
+    {
+        $this->macro_schedules[] = [
+            'no' => count($this->macro_schedules) + 1,
+            'kegiatan' => '',
+            'm1' => false,
+            'm2' => false,
+            'm3' => false,
+            'm4' => false,
+            'm5' => false,
+            'm6' => false,
+        ];
+    }
+
+    public function removeMacroSchedule(int $index): void
+    {
+        unset($this->macro_schedules[$index]);
+        $this->macro_schedules = array_values($this->macro_schedules);
+        foreach ($this->macro_schedules as $idx => &$item) {
+            $item['no'] = $idx + 1;
+        }
     }
 
     public function preview(): void

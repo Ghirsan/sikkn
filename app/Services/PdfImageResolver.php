@@ -68,7 +68,7 @@ class PdfImageResolver
 
         // Try resolving preview link if it's Google Drive or imgbb
         try {
-            $previewUrl = $this->externalImagePreviewUrl->resolve($path);
+            $previewUrl = $this->externalImagePreviewUrl->resolve($path, highRes: true);
             if (! empty($previewUrl)) {
                 $targetUrl = $previewUrl;
             }
@@ -84,7 +84,7 @@ class PdfImageResolver
 
         return Cache::remember($cacheKey, now()->addDays(7), function () use ($targetUrl) {
             try {
-                $response = Http::timeout(8)->withHeaders([
+                $response = Http::timeout(15)->withHeaders([
                     'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SIKKN/1.0',
                     'Accept' => 'image/*,*/*;q=0.8',
                 ])->get($targetUrl);

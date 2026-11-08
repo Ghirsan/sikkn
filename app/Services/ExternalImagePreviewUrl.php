@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 class ExternalImagePreviewUrl
 {
-    public function resolve(string $value): string
+    public function resolve(string $value, bool $highRes = false): string
     {
         $url = trim($value);
         $parts = parse_url($url);
@@ -21,7 +21,9 @@ class ExternalImagePreviewUrl
                 throw new \InvalidArgumentException('Gunakan tautan Google Drive dengan format /file/d/.../view.');
             }
 
-            return 'https://drive.google.com/thumbnail?id='.$matches[1];
+            $suffix = $highRes ? '&sz=w2048' : '';
+
+            return 'https://drive.google.com/thumbnail?id='.$matches[1].$suffix;
         }
 
         if (in_array($host, ['ibb.co.com', 'ibb.co'], true)) {

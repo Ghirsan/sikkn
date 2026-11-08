@@ -43,14 +43,56 @@
                 @endforeach
             </flux:select>
         @elseif($formMode === 'create_individual')
-            @if($type === 'sosial_kemasyarakatan')
-                <flux:input wire:model="title" label="{{ __('Nama Program Sosial Kemasyarakatan') }}" placeholder="{{ __('Contoh: Bakti Sosial Soshum') }}" />
-            @else
-                <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Lomba 17 Agustus') }}" />
+            @if($action === 'create' && count($availableGroupPrograms) > 0)
+                <div class="space-y-3">
+                    <flux:label>{{ __('Bentuk Pengajuan Program') }}</flux:label>
+
+                    <flux:radio.group wire:model.live="creationMode" variant="cards" class="max-sm:flex-col">
+                        <flux:radio
+                            value="new"
+                            label="{{ __('Usulan Baru (Penggagas)') }}"
+                            description="{{ __('Membuat usulan tema program baru untuk Anda dan tim.') }}"
+                        />
+                        <flux:radio
+                            value="join"
+                            label="{{ __('Gabung Program Tim (Anggota)') }}"
+                            description="{{ __('Bergabung ke program yang digagas rekan sekelompok.') }}"
+                        />
+                    </flux:radio.group>
+                </div>
+
+                @if($creationMode === 'join')
+                    <flux:select wire:model.live="programId" label="{{ __('Pilih Program Kerja Tim') }}" placeholder="{{ __('Pilih program yang akan diikuti...') }}">
+                        @foreach($availableGroupPrograms as $prog)
+                            <flux:select.option value="{{ $prog->id }}">
+                                {{ $prog->title }} (Penggagas: {{ $prog->student?->name ?? 'Tim' }})
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                @endif
+            @endif
+
+            @if($action === 'edit' && ! $isInitiator)
+                <div class="p-3 bg-neutral-100 dark:bg-zinc-800 rounded-lg">
+                    <flux:text class="text-xs text-zinc-500 mb-1">{{ __('Program Kelompok (Anggota)') }}</flux:text>
+                    <flux:text variant="strong">{{ $title }}</flux:text>
+                </div>
+            @elseif($action !== 'create' || $creationMode === 'new')
+                @if($type === 'sosial_kemasyarakatan')
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <flux:label>{{ __('Nama Program Sosial Kemasyarakatan') }}</flux:label>
+                            <flux:badge size="sm" color="blue">{{ __('Rumpun: ') . Auth::user()->rumpun() }}</flux:badge>
+                        </div>
+                        <flux:input wire:model="title" placeholder="{{ __('Contoh: Edukasi Pola Hidup Bersih dan Sehat') }}" />
+                    </div>
+                @else
+                    <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Festival Kemerdekaan Desa') }}" />
+                @endif
             @endif
             
             <flux:input type="date" wire:model="execution_date" label="{{ __('Tanggal Pelaksanaan') }}" min="{{ $min_date }}" max="{{ $max_date }}" class="mt-2" />
-            <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, dll.') }}" class="mt-2" />
+            <flux:input wire:model="role_in_program" label="{{ __('Peran Anda') }}" placeholder="{{ __('Contoh: Koordinator Lapangan, Pemateri, Fasilitator, dll.') }}" class="mt-2" />
             <flux:textarea wire:model="responsibility" label="{{ __('Deskripsi Tugas dan Tanggung Jawab') }}" rows="3" />
             <flux:select wire:model="sdg_category" label="{{ __('Kategori SDGs') }}" placeholder="{{ __('Pilih kategori SDGs...') }}">
                 @foreach(\App\Models\SdgCategory::all() as $sdg)

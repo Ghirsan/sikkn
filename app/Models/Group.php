@@ -40,9 +40,12 @@ class Group extends Model
         'program_sosmas_text',
         'program_lainnya_text',
         'storyboard_text',
+        'storyboard_scenes',
         'video_script_text',
+        'video_script_scenes',
         'survey_documentation_text',
         'location_map_text',
+        'macro_schedules',
         'survey_document_path',
         'start_date',
         'end_date',
@@ -60,6 +63,40 @@ class Group extends Model
             'is_lpk_locked' => 'boolean',
             'start_date' => 'date',
             'end_date' => 'date',
+            'storyboard_scenes' => 'array',
+            'video_script_scenes' => 'array',
+            'macro_schedules' => 'array',
+        ];
+    }
+
+    public static function defaultMacroSchedules(): array
+    {
+        return [
+            ['no' => 1, 'kegiatan' => 'Survey Pendahuluan', 'm1' => true, 'm2' => false, 'm3' => false, 'm4' => false, 'm5' => false, 'm6' => false],
+            ['no' => 2, 'kegiatan' => 'Penyusunan Proposal / LRK', 'm1' => true, 'm2' => true, 'm3' => false, 'm4' => false, 'm5' => false, 'm6' => false],
+            ['no' => 3, 'kegiatan' => 'Pelaksanaan Program Kegiatan KKN', 'm1' => false, 'm2' => true, 'm3' => true, 'm4' => true, 'm5' => true, 'm6' => false],
+            ['no' => 4, 'kegiatan' => 'Pelaporan & Penyusunan LPK', 'm1' => false, 'm2' => false, 'm3' => false, 'm4' => false, 'm5' => true, 'm6' => true],
+            ['no' => 5, 'kegiatan' => 'Monev & Gelar Karya', 'm1' => false, 'm2' => false, 'm3' => false, 'm4' => true, 'm5' => true, 'm6' => false],
+        ];
+    }
+
+    public static function defaultStoryboardScenes(): array
+    {
+        return [
+            ['scene' => '1', 'visual' => 'Opening lanskap desa (aerial/drone shot) & judul video profil', 'audio' => 'Backsound musik instrumental kontemporer lembut', 'duration' => '10s'],
+            ['scene' => '2', 'visual' => 'Sambutan hangat Kepala Desa & penayangan peta wilayah desa', 'audio' => 'Voice Over profil singkat dan potensi wilayah desa', 'duration' => '15s'],
+            ['scene' => '3', 'visual' => 'Aktivitas mata pencaharian warga, UMKM, dan kearifan lokal', 'audio' => 'Narasi potensi ekonomi desa & wawancara warga lokal', 'duration' => '20s'],
+            ['scene' => '4', 'visual' => 'Kontribusi kegiatan KKN Undip bersama masyarakat & penutup', 'audio' => 'Closing statement & ucapan terima kasih', 'duration' => '15s'],
+        ];
+    }
+
+    public static function defaultVideoScriptScenes(): array
+    {
+        return [
+            ['scene' => '1 (00:00 - 00:10)', 'visual' => 'Opening pemandangan alam desa dengan teks Selamat Datang', 'audio' => 'Selamat datang di Desa ..., perpaduan keasrian alam dan kehangatan warganya.'],
+            ['scene' => '2 (00:10 - 00:25)', 'visual' => 'Kepala Desa memaparkan potensi desa di kantor balai desa', 'audio' => 'Kepala Desa: "Kami menyambut baik inisiatif mahasiswa KKN Undip dalam memajukan desa kami."'],
+            ['scene' => '3 (00:25 - 00:45)', 'visual' => 'Sorotan produk unggulan UMKM dan keindahan lanskap desa', 'audio' => 'Narator: "Potensi unggulan desa ini terletak pada sektor pertanian dan UMKM kreatif masyarakat."'],
+            ['scene' => '4 (00:45 - 01:00)', 'visual' => 'Kolaborasi warga dan mahasiswa, ditutup logo resmi Undip', 'audio' => 'Narator: "Bersama membangun desa berdaya saing. KKN Universitas Diponegoro mengabdi untuk negeri."'],
         ];
     }
 

@@ -256,6 +256,58 @@ class ProgramFormTest extends TestCase
             ->assertHasErrors('documentation_image_url');
     }
 
+    public function test_student_can_create_sosmas_as_initiator_and_peer_can_join_as_member_with_initial_codes(): void
+    {
+        [$student1, $participant1] = $this->createApprovedParticipant();
+        $group = $student1->group;
+        $student1->update(['name' => 'Budi Santoso']);
+
+        $student2 = User::factory()->mahasiswa()->create([
+            'name' => 'Andi Wijaya',
+            'group_id' => $group->id,
+        ]);
+
+        $sdg = SdgCategory::first();
+
+        // 1. Student 1 creates Sosmas as initiator
+        Livewire::actingAs($student1)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'sosial_kemasyarakatan'])
+            ->set('creationMode', 'new')
+            ->set('title', 'Pemberdayaan Posyandu Balita')
+            ->set('execution_date', '2026-06-15')
+            ->set('role_in_program', 'Koordinator Acara')
+            ->set('responsibility', 'Menyusun rundown dan materi')
+            ->set('sdg_category', (string) $sdg->code)
+            ->call('save')
+            ->assertRedirect(route('programs.index'));
+
+        $program = Program::where('title', 'Pemberdayaan Posyandu Balita')->first();
+        $this->assertNotNull($program);
+        $this->assertEquals($student1->id, $program->student_id);
+
+        $p1 = ProgramParticipant::where('program_id', $program->id)->where('student_id', $student1->id)->first();
+        $this->assertNotNull($p1);
+        $this->assertEquals('SK1-BS', $p1->participant_code);
+
+        // 2. Student 2 joins the same program as member
+        Livewire::actingAs($student2)
+            ->test(ProgramForm::class, ['action' => 'create', 'type' => 'sosial_kemasyarakatan'])
+            ->assertSet('creationMode', 'new')
+            ->set('creationMode', 'join')
+            ->set('programId', (string) $program->id)
+            ->set('execution_date', '2026-06-15')
+            ->set('role_in_program', 'Fasilitator Lapangan')
+            ->set('responsibility', 'Mendampingi registrasi peserta dan penyuluhan')
+            ->set('sdg_category', (string) $sdg->code)
+            ->call('save')
+            ->assertRedirect(route('programs.index'));
+
+        $p2 = ProgramParticipant::where('program_id', $program->id)->where('student_id', $student2->id)->first();
+        $this->assertNotNull($p2);
+        $this->assertEquals('SK1-AW', $p2->participant_code);
+        $this->assertEquals(2, $program->participants()->count());
+    }
+
     private function createApprovedParticipant(): array
     {
         $period = Period::create([

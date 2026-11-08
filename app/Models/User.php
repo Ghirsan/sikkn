@@ -168,6 +168,49 @@ class User extends Authenticatable
     /**
      * Get the faculty this user belongs to.
      */
+    public function isSaintek(): bool
+    {
+        $short = strtoupper((string) ($this->faculty?->short_name ?? ''));
+        if ($short === 'SV') {
+            $nim = (string) $this->nim;
+            if (str_starts_with($nim, '4003') || str_starts_with($nim, '4004')) {
+                return true;
+            }
+            if (str_starts_with($nim, '4001') || str_starts_with($nim, '4002')) {
+                return false;
+            }
+        }
+
+        $saintek = ['FT', 'FK', 'FPP', 'FPIK', 'FSM', 'FKM'];
+        if (in_array($short, $saintek, true)) {
+            return true;
+        }
+
+        $soshum = ['FH', 'FEB', 'FISIP', 'FIB', 'FPSI', 'FPSIKOLOGI'];
+        if (in_array($short, $soshum, true)) {
+            return false;
+        }
+
+        // Fallback by NIM prefix if faculty relation not loaded or different
+        $nim = (string) $this->nim;
+        if (str_starts_with($nim, '4003') || str_starts_with($nim, '4004')) {
+            return true;
+        }
+        if (str_starts_with($nim, '4001') || str_starts_with($nim, '4002') || str_starts_with($nim, '11') || str_starts_with($nim, '12')) {
+            return false;
+        }
+        if (str_starts_with($nim, '2')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function rumpun(): string
+    {
+        return $this->isSaintek() ? 'Saintek' : 'Soshum';
+    }
+
     public function faculty(): BelongsTo
     {
         return $this->belongsTo(Faculty::class);

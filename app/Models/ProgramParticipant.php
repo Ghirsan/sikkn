@@ -54,12 +54,50 @@ class ProgramParticipant extends Model
         });
     }
 
+    public static function extractInitials(?string $name): string
+    {
+        if (blank($name)) {
+            return 'XX';
+        }
+
+        $words = preg_split('/\s+/', trim((string) $name));
+        $initials = '';
+        foreach ($words as $word) {
+            $char = mb_substr($word, 0, 1);
+            if (ctype_alpha($char)) {
+                $initials .= strtoupper($char);
+            }
+        }
+
+        if (strlen($initials) === 0) {
+            return 'XX';
+        }
+
+        if (strlen($initials) === 1) {
+            $second = mb_substr($words[0] ?? '', 1, 1);
+            if ($second && ctype_alpha($second)) {
+                $initials .= strtoupper($second);
+            } else {
+                $initials .= 'X';
+            }
+        }
+
+        if (strlen($initials) > 3) {
+            $initials = substr($initials, 0, 3);
+        }
+
+        return $initials;
+    }
+
     public static function generateParticipantCode($participant)
     {
         $program = $participant->program ?? Program::with('programType')->find($participant->program_id);
         if (! $program || ! $participant->student_id) {
             return null;
         }
+
+        $student = $participant->student ?? User::find($participant->student_id);
+        $initials = static::extractInitials($student?->name);
 
         $typePrefix = match ($program->programType?->code) {
             'multidisiplin' => 'M',
@@ -76,18 +114,21 @@ class ProgramParticipant extends Model
             }
         })
             ->where('student_id', $participant->student_id)
+            ->where('id', '!=', $participant->id ?? 0)
             ->count();
 
         $sequence = $existingCount + 1;
 
         // Ensure uniqueness by checking for existing codes
-        $baseCode = "{$typePrefix}{$sequence}M{$participant->student_id}";
-        while (static::where('participant_code', $baseCode)->exists()) {
-            $sequence++;
-            $baseCode = "{$typePrefix}{$sequence}M{$participant->student_id}";
+        $baseCode = "{$typePrefix}{$sequence}-{$initials}";
+        $disambiguator = 2;
+        $code = $baseCode;
+        while (static::where('participant_code', $code)->where('id', '!=', $participant->id ?? 0)->exists()) {
+            $code = "{$typePrefix}{$sequence}-{$initials}{$disambiguator}";
+            $disambiguator++;
         }
 
-        return $baseCode;
+        return $code;
     }
 
     public function program(): BelongsTo

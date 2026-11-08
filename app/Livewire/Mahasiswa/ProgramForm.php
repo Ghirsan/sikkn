@@ -35,8 +35,15 @@ class ProgramForm extends Component
 
     public string $formMode = 'edit_program';
 
+    public string $creationMode = 'new'; // 'new' (penggagas) or 'join' (anggota)
+
+    public bool $isInitiator = true;
+
     // For Multidisiplin Join
     public $availableMultidisiplinPrograms = [];
+
+    // For Group Program Join (Sosmas / Lainnya)
+    public $availableGroupPrograms = [];
 
     // Program Fields (Programs Table)
     public string $title = '';
@@ -124,10 +131,18 @@ class ProgramForm extends Component
                     ->get();
             } else {
                 $this->formMode = 'create_individual';
+                $this->creationMode = 'new';
+                $joinedIds = ProgramParticipant::where('student_id', $user->id)->pluck('program_id');
+                $this->availableGroupPrograms = Program::with(['student.faculty', 'student.studyProgram', 'participants.student'])
+                    ->where('group_id', $user->group_id)
+                    ->whereType($this->type)
+                    ->whereNotIn('id', $joinedIds)
+                    ->get();
             }
         } elseif ($this->action === 'edit' && $this->programId) {
             $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
             $this->type = $program->programType?->code;
+            $this->isInitiator = ($program->student_id === $user->id || $program->student_id === null);
 
             $isVideoProfile = $program ? $program->isVideoProfile() : false;
 
@@ -320,19 +335,45 @@ class ProgramForm extends Component
 
     public function updatedProgramId($value)
     {
-        if ($this->action === 'create' && $this->type === 'multidisiplin') {
-            if ($value) {
-                $program = Program::find($value);
-                $this->title = $program->title;
-                if ($program->isVideoProfile()) {
-                    $this->formMode = 'edit_peran';
+        if ($this->action === 'create') {
+            if ($this->type === 'multidisiplin') {
+                if ($value) {
+                    $program = Program::find($value);
+                    $this->title = $program?->title ?? '';
+                    if ($program?->isVideoProfile()) {
+                        $this->formMode = 'edit_peran';
+                    } else {
+                        $this->formMode = 'edit_program';
+                    }
                 } else {
-                    $this->formMode = 'edit_program';
+                    $this->formMode = 'create_multidisiplin';
+                    $this->title = '';
                 }
+            } elseif (in_array($this->type, ['sosial_kemasyarakatan', 'lainnya'], true)) {
+                if ($value) {
+                    $program = Program::find($value);
+                    $this->title = $program?->title ?? '';
+                } else {
+                    $this->title = '';
+                }
+            }
+        }
+    }
+
+    public function updatedCreationMode($value)
+    {
+        if ($value === 'join') {
+            $firstProg = $this->availableGroupPrograms->first();
+            if ($firstProg) {
+                $this->programId = (string) $firstProg->id;
+                $this->title = $firstProg->title;
             } else {
-                $this->formMode = 'create_multidisiplin';
+                $this->programId = '';
                 $this->title = '';
             }
+        } else {
+            $this->programId = '';
+            $this->title = '';
         }
     }
 
@@ -363,13 +404,25 @@ class ProgramForm extends Component
                 'execution_date' => 'required|date',
             ]);
         } elseif ($this->formMode === 'create_individual') {
-            $this->validate([
-                'title' => 'required|string|max:255',
-                'role_in_program' => 'required|string',
-                'responsibility' => 'required|string',
-                'execution_date' => 'required|date',
-                'sdg_category' => 'required|integer|between:1,17',
-            ]);
+            if ($this->action === 'create' && $this->creationMode === 'join') {
+                $this->validate([
+                    'programId' => 'required|exists:programs,id',
+                    'role_in_program' => 'required|string|max:255',
+                    'responsibility' => 'required|string',
+                    'execution_date' => 'required|date',
+                    'sdg_category' => 'required|integer|between:1,17',
+                ], [
+                    'programId.required' => 'Pilih program tim yang ingin diikuti.',
+                ]);
+            } else {
+                $this->validate([
+                    'title' => 'required|string|max:255',
+                    'role_in_program' => 'required|string|max:255',
+                    'responsibility' => 'required|string',
+                    'execution_date' => 'required|date',
+                    'sdg_category' => 'required|integer|between:1,17',
+                ]);
+            }
         } else {
             $this->validate([
                 'participant_title' => 'required|string|max:255',
@@ -387,7 +440,7 @@ class ProgramForm extends Component
             // 1. Handle Program Creation/Update
             if ($this->programId) {
                 $program = Program::where('group_id', $user->group_id)->findOrFail($this->programId);
-                if ($this->formMode === 'create_individual') {
+                if ($this->formMode === 'create_individual' && $this->isInitiator) {
                     $program->update([
                         'title' => $this->title,
                     ]);

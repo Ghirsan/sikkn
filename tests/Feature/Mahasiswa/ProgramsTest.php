@@ -155,6 +155,41 @@ class ProgramsTest extends TestCase
             ->assertSee('Dokumentasi kegiatan uji');
     }
 
+    public function test_deleting_draft_participant_retains_program_if_other_members_exist(): void
+    {
+        $student1 = $this->createStudentWithGroup();
+        $group = $student1->group;
+        $student2 = User::factory()->mahasiswa()->create(['group_id' => $group->id]);
+
+        $program = Program::create([
+            'group_id' => $group->id,
+            'student_id' => $student1->id,
+            'title' => 'Program Bersama',
+            'program_type_id' => ProgramType::where('code', 'lainnya')->first()->id,
+        ]);
+
+        $p1 = ProgramParticipant::create([
+            'program_id' => $program->id,
+            'student_id' => $student1->id,
+            'status' => ProgramStatus::Draft,
+        ]);
+
+        $p2 = ProgramParticipant::create([
+            'program_id' => $program->id,
+            'student_id' => $student2->id,
+            'status' => ProgramStatus::Draft,
+        ]);
+
+        Livewire::actingAs($student1)
+            ->test(Programs::class)
+            ->set('participantToDelete', $p1->id)
+            ->call('deleteParticipant');
+
+        $this->assertDatabaseMissing('program_participants', ['id' => $p1->id]);
+        $this->assertDatabaseHas('program_participants', ['id' => $p2->id]);
+        $this->assertDatabaseHas('programs', ['id' => $program->id, 'student_id' => $student2->id]);
+    }
+
     private function createStudentWithGroup(): User
     {
         $period = Period::create([

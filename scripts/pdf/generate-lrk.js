@@ -526,25 +526,76 @@ drawTable(doc, {
   headerFontSize: 8
 });
 
-// Video Storyboard & Script
+// Video Storyboard & Script (Multidisiplin 3)
 doc.moveDown(0.5);
-doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
    .text('Rencana Story Board :', landMarginLeft, doc.y);
-doc.font('Helvetica').text(
-  group.storyboard_text || '- Pengambilan video sambutan Kepala Desa\n- Dokumentasi potensi alam, budaya, dan UMKM desa',
-  landMarginLeft,
-  doc.y,
-  { width: landContentW }
-);
-doc.moveDown(0.4);
+doc.moveDown(0.3);
 
-doc.font('Helvetica-Bold').text('Rencana Skrip Video :', landMarginLeft, doc.y);
-doc.font('Helvetica').text(
-  group.video_script_text || '- Voice over mengenalkan profil desa, fasilitas umum, dan potensi pariwisata\n- Penutup dengan ucapan terima kasih',
-  landMarginLeft,
-  doc.y,
-  { width: landContentW }
-);
+const sbScenes = group.storyboard_scenes || [];
+if (Array.isArray(sbScenes) && sbScenes.length > 0) {
+  const sbCols = [
+    { key: 'scene', label: 'Scene/Shot', width: 65, align: 'center' },
+    { key: 'visual', label: 'Deskripsi Visual / Framing', width: 330, align: 'left' },
+    { key: 'audio', label: 'Audio / Backsound', width: 286, align: 'left' },
+    { key: 'duration', label: 'Durasi', width: 80, align: 'center' }
+  ];
+  const sbRows = sbScenes.map((s, idx) => ({
+    scene: s.scene || String(idx + 1),
+    visual: s.visual || '-',
+    audio: s.audio || '-',
+    duration: s.duration || '-'
+  }));
+  drawTable(doc, {
+    columns: sbCols,
+    rows: sbRows,
+    fontSize: 7.5,
+    headerFontSize: 8
+  });
+} else {
+  doc.font('Helvetica').fontSize(8).text(
+    group.storyboard_text || '- Pengambilan video sambutan Kepala Desa\n- Dokumentasi potensi alam, budaya, dan UMKM desa',
+    landMarginLeft,
+    doc.y,
+    { width: landContentW }
+  );
+}
+
+doc.moveDown(0.6);
+if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
+  addLandscapePage();
+}
+
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
+   .text('Rencana Skrip Video :', landMarginLeft, doc.y);
+doc.moveDown(0.3);
+
+const vsScenes = group.video_script_scenes || [];
+if (Array.isArray(vsScenes) && vsScenes.length > 0) {
+  const vsCols = [
+    { key: 'scene', label: 'Scene / Waktu', width: 120, align: 'center' },
+    { key: 'visual', label: 'Aksi Visual On-Screen', width: 320, align: 'left' },
+    { key: 'audio', label: 'Dialog / Narasi Voice-Over', width: 321, align: 'left' }
+  ];
+  const vsRows = vsScenes.map((s, idx) => ({
+    scene: s.scene || `Scene ${idx + 1}`,
+    visual: s.visual || '-',
+    audio: s.audio || '-'
+  }));
+  drawTable(doc, {
+    columns: vsCols,
+    rows: vsRows,
+    fontSize: 7.5,
+    headerFontSize: 8
+  });
+} else {
+  doc.font('Helvetica').fontSize(8).text(
+    group.video_script_text || '- Voice over mengenalkan profil desa, fasilitas umum, dan potensi pariwisata\n- Penutup dengan ucapan terima kasih',
+    landMarginLeft,
+    doc.y,
+    { width: landContentW }
+  );
+}
 
 // Page break before 2.2 Sosial Kemasyarakatan matching template
 addLandscapePage();
@@ -579,6 +630,7 @@ doc.fontSize(9.5).font('Helvetica-Bold')
    .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
+const saintekTitle = (saintekList[0] && saintekList[0].program_title) ? saintekList[0].program_title : 'Peningkatan Sanitasi & Lingkungan';
 const saintekRows = (saintekList.length > 0 ? saintekList : sosmasAll.slice(0, 3)).map((p, idx) => ({
   no: `${idx + 1}.`,
   pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
@@ -590,7 +642,7 @@ const saintekRows = (saintekList.length > 0 ? saintekList : sosmasAll.slice(0, 3
 drawTable(doc, {
   columns: sosmasCols,
   rows: saintekRows,
-  bannerTitle: 'Program Sosial Kemasyarakatan Kelompok (Saintek) : Peningkatan Sanitasi & Lingkungan',
+  bannerTitle: `Program Sosial Kemasyarakatan Kelompok (Saintek) : ${saintekTitle}`,
   fontSize: 7.5,
   headerFontSize: 8
 });
@@ -605,6 +657,7 @@ doc.fontSize(9.5).font('Helvetica-Bold')
    .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
+const soshumTitle = (soshumList[0] && soshumList[0].program_title) ? soshumList[0].program_title : 'Pembinaan Administrasi & Tata Kelola';
 const soshumRows = (soshumList.length > 0 ? soshumList : sosmasAll.slice(3)).map((p, idx) => ({
   no: `${idx + 1}.`,
   pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
@@ -616,7 +669,7 @@ const soshumRows = (soshumList.length > 0 ? soshumList : sosmasAll.slice(3)).map
 drawTable(doc, {
   columns: sosmasCols,
   rows: soshumRows,
-  bannerTitle: 'Program Sosial Kemasyarakatan Kelompok (Soshum) : Pembinaan Administrasi & Tata Kelola',
+  bannerTitle: `Program Sosial Kemasyarakatan Kelompok (Soshum) : ${soshumTitle}`,
   fontSize: 7.5,
   headerFontSize: 8
 });
@@ -642,6 +695,7 @@ doc.fontSize(9.5).font('Helvetica-Bold')
    .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
+const lainnyaTitle = (lainnyaList[0] && lainnyaList[0].program_title) ? lainnyaList[0].program_title : 'Kegiatan Pendukung Lapangan';
 const lainnyaRows = (lainnyaList.length > 0 ? lainnyaList : []).map((p, idx) => ({
   no: `${idx + 1}.`,
   pelaksana: `${p.student_name ?? '-'} / ${p.student_nim ?? '-'} / ${p.student_fakultas ?? '-'} / ${p.student_prodi ?? '-'}`,
@@ -654,6 +708,7 @@ if (lainnyaRows.length > 0) {
   drawTable(doc, {
     columns: sosmasCols,
     rows: lainnyaRows,
+    bannerTitle: `Program Lainnya Kelompok : ${lainnyaTitle}`,
     fontSize: 7.5,
     headerFontSize: 8
   });
@@ -696,17 +751,29 @@ const schedCols = [
   { key: 'm6', label: '6', width: 60, align: 'center' }
 ];
 
-const defaultSchedActivities = [
-  { no: '1.', kegiatan: 'Survey Pendahuluan', m1: 'v', m2: '', m3: '', m4: '', m5: '', m6: '' },
-  { no: '2.', kegiatan: 'Penyusunan Proposal / LRK', m1: 'v', m2: 'v', m3: '', m4: '', m5: '', m6: '' },
-  { no: '3.', kegiatan: 'Pelaksanaan Program Kegiatan KKN', m1: '', m2: 'v', m3: 'v', m4: 'v', m5: 'v', m6: '' },
-  { no: '4.', kegiatan: 'Pelaporan & Penyusunan LPK', m1: '', m2: '', m3: '', m4: '', m5: 'v', m6: 'v' },
-  { no: '5.', kegiatan: 'Monev & Gelar Karya', m1: '', m2: '', m3: '', m4: 'v', m5: 'v', m6: '' }
-];
+const rawSched = group.macro_schedules || [];
+const schedRows = (Array.isArray(rawSched) && rawSched.length > 0)
+  ? rawSched.map((item, idx) => ({
+      no: `${idx + 1}.`,
+      kegiatan: item.kegiatan || '-',
+      m1: item.m1 ? 'v' : '',
+      m2: item.m2 ? 'v' : '',
+      m3: item.m3 ? 'v' : '',
+      m4: item.m4 ? 'v' : '',
+      m5: item.m5 ? 'v' : '',
+      m6: item.m6 ? 'v' : ''
+    }))
+  : [
+      { no: '1.', kegiatan: 'Survey Pendahuluan', m1: 'v', m2: '', m3: '', m4: '', m5: '', m6: '' },
+      { no: '2.', kegiatan: 'Penyusunan Proposal / LRK', m1: 'v', m2: 'v', m3: '', m4: '', m5: '', m6: '' },
+      { no: '3.', kegiatan: 'Pelaksanaan Program Kegiatan KKN', m1: '', m2: 'v', m3: 'v', m4: 'v', m5: 'v', m6: '' },
+      { no: '4.', kegiatan: 'Pelaporan & Penyusunan LPK', m1: '', m2: '', m3: '', m4: '', m5: 'v', m6: 'v' },
+      { no: '5.', kegiatan: 'Monev & Gelar Karya', m1: '', m2: '', m3: '', m4: 'v', m5: 'v', m6: '' }
+    ];
 
 drawTable(doc, {
   columns: schedCols,
-  rows: defaultSchedActivities,
+  rows: schedRows,
   bannerTitle: 'Rencana Pelaksanaan Umum Kegiatan KKN Berdasarkan Minggu',
   fontSize: 8,
   headerFontSize: 8.5
@@ -740,7 +807,14 @@ calY += 18;
 
 calendarWeeks.forEach(weekKey => {
   const days = calendar[weekKey] || [];
-  const cellH = 40;
+  
+  let maxItems = 1;
+  days.forEach(d => {
+    const totalItems = (d.events || []).length + (d.programs || []).length;
+    if (totalItems > maxItems) maxItems = totalItems;
+  });
+
+  const cellH = Math.max(40, 14 + (maxItems * 8) + 4);
 
   if (calY + cellH > doc.page.height - doc.page.margins.bottom) {
     addLandscapePage();
@@ -768,23 +842,26 @@ calendarWeeks.forEach(weekKey => {
 
     // Bullet items
     let itemY = calY + 13;
-    doc.fontSize(6.5).font('Helvetica').fillColor('#1f2937');
-    (dayData.events || []).slice(0, 2).forEach(ev => {
+    doc.fontSize(6).font('Helvetica').fillColor('#1f2937');
+    (dayData.events || []).forEach(ev => {
       doc.text(`* ${ev.title}`, curX + 4, itemY, { width: dayColW - 8, lineBreak: false, ellipsis: true });
-      itemY += 8;
+      itemY += 7.5;
     });
 
-    (dayData.programs || []).slice(0, 2).forEach(pr => {
+    (dayData.programs || []).forEach(pr => {
       doc.font('Helvetica-Bold').text(`* ${pr.code}`, curX + 4, itemY, { width: dayColW - 8, lineBreak: false });
-      itemY += 8;
+      itemY += 7.5;
     });
   });
 
   calY += cellH;
 });
 
-// Check if legend fits on same page
-if (calY + 50 > doc.page.height - doc.page.margins.bottom) {
+// Dynamic Legend
+const legendItems = payload.legend || [];
+const legendLinesCount = legendItems.length > 0 ? Math.ceil(legendItems.length / 2) * 11 + 25 : 40;
+
+if (calY + legendLinesCount > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
   calY = doc.page.margins.top;
 }
@@ -794,11 +871,40 @@ doc.y = calY + 8;
 
 // Keterangan / Legend
 doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
-   .text('Keterangan :', landMarginLeft, doc.y);
-doc.font('Helvetica').fontSize(8);
-doc.text('* M1MA : Multidisiplin 1 Mahasiswa A', landMarginLeft, doc.y);
-doc.text('* SK1MA : Sosial Kemasyarakatan 1 Mahasiswa A', landMarginLeft, doc.y);
-doc.text('* L1MA : Lainnya 1 Mahasiswa A', landMarginLeft, doc.y);
+   .text('Keterangan / Legenda Kode Program :', landMarginLeft, doc.y);
+doc.moveDown(0.2);
+
+if (legendItems.length > 0) {
+  doc.fontSize(7.5).font('Helvetica').fillColor('#1f2937');
+  const half = Math.ceil(legendItems.length / 2);
+  const leftItems = legendItems.slice(0, half);
+  const rightItems = legendItems.slice(half);
+
+  const startLegY = doc.y;
+  let curLegY = startLegY;
+  const col1X = landMarginLeft;
+  const col2X = landMarginLeft + 380;
+
+  leftItems.forEach(item => {
+    doc.font('Helvetica-Bold').text(`* ${item.code}`, col1X, curLegY, { continued: true, width: 370 });
+    doc.font('Helvetica').text(` : ${item.student_name} (${item.type_label} - ${item.program_title})`, { width: 370, lineBreak: false, ellipsis: true });
+    curLegY += 10;
+  });
+
+  curLegY = startLegY;
+  rightItems.forEach(item => {
+    doc.font('Helvetica-Bold').text(`* ${item.code}`, col2X, curLegY, { continued: true, width: 370 });
+    doc.font('Helvetica').text(` : ${item.student_name} (${item.type_label} - ${item.program_title})`, { width: 370, lineBreak: false, ellipsis: true });
+    curLegY += 10;
+  });
+
+  doc.y = Math.max(startLegY + (leftItems.length * 10), startLegY + (rightItems.length * 10));
+} else {
+  doc.font('Helvetica').fontSize(8);
+  doc.text('* M : Multidisiplin (contoh: M1-BS untuk Multidisiplin 1 - Budi Santoso)', landMarginLeft, doc.y);
+  doc.text('* SK : Sosial Kemasyarakatan (contoh: SK1-BS untuk Sosmas 1 - Budi Santoso)', landMarginLeft, doc.y);
+  doc.text('* L : Program Lainnya (contoh: L1-BS untuk Lainnya 1 - Budi Santoso)', landMarginLeft, doc.y);
+}
 
 // ------------------------------------------------------------
 // BAB 4: JENIS-JENIS LUARAN (Landscape - matching docs-source/lrk.pdf)
@@ -861,28 +967,20 @@ if (assets.survey_image_base64 && assets.survey_image_base64.includes('base64,')
     const imgBuf = Buffer.from(b64Data, 'base64');
     const imgObj = doc.openImage(imgBuf);
 
-    const maxW = 420;
-    const maxH = 200;
-    let renderW = imgObj.width;
-    let renderH = imgObj.height;
-
-    if (renderW > maxW) {
-      renderH = (renderH * maxW) / renderW;
-      renderW = maxW;
-    }
-    if (renderH > maxH) {
-      renderH = (renderH * maxH) / renderH;
-      renderH = maxH;
-    }
-
-    if (doc.y + renderH + 30 > doc.page.height - doc.page.margins.bottom) {
+    if ((doc.page.height - doc.page.margins.bottom) - doc.y < 220) {
       addLandscapePage();
     }
+
+    const maxH = Math.min(350, (doc.page.height - doc.page.margins.bottom) - doc.y - 40);
+    const maxW = 660;
+    const scale = Math.min(maxW / imgObj.width, maxH / imgObj.height);
+    const renderW = Math.round(imgObj.width * scale);
+    const renderH = Math.round(imgObj.height * scale);
 
     doc.moveDown(0.5);
     const imgX = landMarginLeft + (landContentW - renderW) / 2;
     doc.image(imgObj, imgX, doc.y, { width: renderW, height: renderH });
-    doc.y += renderH + 5;
+    doc.y += renderH + 6;
 
     doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#374151')
        .text(`Dokumentasi Survey Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });
@@ -912,28 +1010,20 @@ if (assets.map_image_base64 && assets.map_image_base64.includes('base64,')) {
     const imgBuf = Buffer.from(b64Data, 'base64');
     const imgObj = doc.openImage(imgBuf);
 
-    const maxW = 420;
-    const maxH = 200;
-    let renderW = imgObj.width;
-    let renderH = imgObj.height;
-
-    if (renderW > maxW) {
-      renderH = (renderH * maxW) / renderW;
-      renderW = maxW;
-    }
-    if (renderH > maxH) {
-      renderH = (renderH * maxH) / renderH;
-      renderH = maxH;
-    }
-
-    if (doc.y + renderH + 30 > doc.page.height - doc.page.margins.bottom) {
+    if ((doc.page.height - doc.page.margins.bottom) - doc.y < 220) {
       addLandscapePage();
     }
+
+    const maxH = Math.min(350, (doc.page.height - doc.page.margins.bottom) - doc.y - 40);
+    const maxW = 660;
+    const scale = Math.min(maxW / imgObj.width, maxH / imgObj.height);
+    const renderW = Math.round(imgObj.width * scale);
+    const renderH = Math.round(imgObj.height * scale);
 
     doc.moveDown(0.5);
     const imgX = landMarginLeft + (landContentW - renderW) / 2;
     doc.image(imgObj, imgX, doc.y, { width: renderW, height: renderH });
-    doc.y += renderH + 5;
+    doc.y += renderH + 6;
 
     doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#374151')
        .text(`Peta Lokasi KKN Desa ${group.village || '-'}`, landMarginLeft, doc.y, { width: landContentW, align: 'center' });

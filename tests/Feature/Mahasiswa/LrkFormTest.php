@@ -236,6 +236,37 @@ class LrkFormTest extends TestCase
         $this->assertStringContainsString('attachment', (string) $downloadResponse->headers->get('content-disposition'));
     }
 
+    public function test_lrk_form_can_save_structured_storyboard_video_script_and_macro_schedules(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertCount('storyboard_scenes', 4)
+            ->assertCount('video_script_scenes', 4)
+            ->assertCount('macro_schedules', 5)
+            ->call('addStoryboardScene')
+            ->assertCount('storyboard_scenes', 5)
+            ->set('storyboard_scenes.4.visual', 'Drone view persawahan dan embung desa')
+            ->call('addVideoScriptScene')
+            ->assertCount('video_script_scenes', 5)
+            ->set('video_script_scenes.4.audio', 'Narasi penutup KKN Undip')
+            ->call('addMacroSchedule')
+            ->assertCount('macro_schedules', 6)
+            ->set('macro_schedules.5.kegiatan', 'Penerimaan dan Koordinasi Kecamatan')
+            ->set('macro_schedules.5.m1', true)
+            ->call('save');
+
+        $group->refresh();
+        $this->assertCount(5, $group->storyboard_scenes);
+        $this->assertEquals('Drone view persawahan dan embung desa', $group->storyboard_scenes[4]['visual']);
+        $this->assertCount(5, $group->video_script_scenes);
+        $this->assertEquals('Narasi penutup KKN Undip', $group->video_script_scenes[4]['audio']);
+        $this->assertCount(6, $group->macro_schedules);
+        $this->assertEquals('Penerimaan dan Koordinasi Kecamatan', $group->macro_schedules[5]['kegiatan']);
+        $this->assertTrue($group->macro_schedules[5]['m1']);
+    }
+
     public function test_lrk_form_cannot_submit_when_document_not_ready(): void
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
@@ -378,11 +409,11 @@ class LrkFormTest extends TestCase
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
 
-        // Not finalized: shows Pratinjau PDF, not Cetak PDF
+        // Not finalized: shows Pratinjau LRK, not Cetak LRK
         Livewire::actingAs($leader)
             ->test(LrkDocuments::class)
-            ->assertSee(__('Pratinjau PDF'))
-            ->assertDontSee(__('Cetak PDF'));
+            ->assertSee(__('Pratinjau LRK'))
+            ->assertDontSee(__('Cetak LRK'));
 
         // Lock group and approve all programs
         $mdType = ProgramType::firstOrCreate(['code' => 'multidisiplin'], ['name' => 'Multidisiplin', 'is_active' => true]);
@@ -410,19 +441,19 @@ class LrkFormTest extends TestCase
         // Ready and Finalized: Preview changes to Print
         Livewire::actingAs($leader->fresh())
             ->test(LrkDocuments::class)
-            ->assertSee(__('Cetak PDF'))
-            ->assertDontSee(__('Pratinjau PDF'));
+            ->assertSee(__('Cetak LRK'))
+            ->assertDontSee(__('Pratinjau LRK'));
     }
 
     public function test_lpk_documents_switches_preview_to_print_when_ready_and_finalized(): void
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
 
-        // Not finalized: shows Pratinjau PDF, not Cetak PDF
+        // Not finalized: shows Pratinjau LPK, not Cetak LPK
         Livewire::actingAs($leader)
             ->test(LpkDocuments::class)
-            ->assertSee(__('Pratinjau PDF'))
-            ->assertDontSee(__('Cetak PDF'));
+            ->assertSee(__('Pratinjau LPK'))
+            ->assertDontSee(__('Cetak LPK'));
 
         // Lock group and approve all programs
         $mdType = ProgramType::firstOrCreate(['code' => 'multidisiplin'], ['name' => 'Multidisiplin', 'is_active' => true]);
@@ -446,8 +477,8 @@ class LrkFormTest extends TestCase
         // Ready and Finalized: Preview changes to Print
         Livewire::actingAs($leader->fresh())
             ->test(LpkDocuments::class)
-            ->assertSee(__('Cetak PDF'))
-            ->assertDontSee(__('Pratinjau PDF'));
+            ->assertSee(__('Cetak LPK'))
+            ->assertDontSee(__('Pratinjau LPK'));
     }
 
     private function createGroupWithLeaderAndMember(): array

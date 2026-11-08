@@ -108,7 +108,7 @@
                     @if($isReady)
                         <flux:modal.trigger name="confirm-submit-modal" class="w-full sm:w-auto">
                             <flux:button type="button" icon="paper-airplane" variant="primary" size="sm" class="w-full sm:w-auto">
-                                {{ __('Ajukan') }}
+                                {{ __('Ajukan LRK ke DPL') }}
                             </flux:button>
                         </flux:modal.trigger>
                     @endif
@@ -141,15 +141,190 @@
 
         <flux:separator />
 
-        {{-- Storyboard & Skrip Video (Multidisiplin Video) --}}
-        <div>
-            <flux:heading size="md" class="mb-2">{{ __('Storyboard & Skrip Video Profil') }}</flux:heading>
-            <flux:text class="text-sm text-zinc-500 mb-4">{{ __('Bagian ini untuk program Multidisiplin yang berformat video profil desa.') }}</flux:text>
+        {{-- Storyboard & Skrip Video (Multidisiplin 3) --}}
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="md" class="mb-1">{{ __('Storyboard Video Profil (Multidisiplin 3)') }}</flux:heading>
+                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Rincian visual, audio/narasi, dan estimasi durasi per adegan video profil desa.') }}</flux:text>
 
-            <div class="flex flex-col gap-4">
-                <flux:textarea wire:model="storyboard_text" label="{{ __('Storyboard') }}" rows="5" :disabled="!$canEdit" placeholder="{{ __('Scene 1: ...\nScene 2: ...\nScene 3: ...') }}" />
+                <div class="space-y-3">
+                    <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-white/10">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-white/10 text-xs font-semibold uppercase text-zinc-600 dark:text-zinc-300">
+                                <tr>
+                                    <th class="p-3 w-28">{{ __('Scene/Shot') }}</th>
+                                    <th class="p-3">{{ __('Deskripsi Visual / Framing') }}</th>
+                                    <th class="p-3">{{ __('Audio / Backsound') }}</th>
+                                    <th class="p-3 w-28">{{ __('Durasi') }}</th>
+                                    @if($canEdit)
+                                        <th class="p-3 w-12 text-center">{{ __('Aksi') }}</th>
+                                    @endif
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
+                                @forelse($storyboard_scenes as $index => $scene)
+                                    <tr class="align-top">
+                                        <td class="p-2">
+                                            <flux:input wire:model="storyboard_scenes.{{ $index }}.scene" :disabled="!$canEdit" placeholder="1 / Shot 1" />
+                                        </td>
+                                        <td class="p-2">
+                                            <flux:textarea wire:model="storyboard_scenes.{{ $index }}.visual" rows="2" :disabled="!$canEdit" placeholder="Deskripsi gambar visual..." />
+                                        </td>
+                                        <td class="p-2">
+                                            <flux:textarea wire:model="storyboard_scenes.{{ $index }}.audio" rows="2" :disabled="!$canEdit" placeholder="Musik / narasi / efek..." />
+                                        </td>
+                                        <td class="p-2">
+                                            <flux:input wire:model="storyboard_scenes.{{ $index }}.duration" :disabled="!$canEdit" placeholder="10s" />
+                                        </td>
+                                        @if($canEdit)
+                                            <td class="p-2 text-center">
+                                                <flux:button type="button" wire:click="removeStoryboardScene({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" />
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ $canEdit ? 5 : 4 }}" class="p-4 text-center text-zinc-500 text-xs">
+                                            {{ __('Belum ada adegan storyboard.') }}
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
-                <flux:textarea wire:model="video_script_text" label="{{ __('Skrip Video') }}" rows="5" :disabled="!$canEdit" placeholder="{{ __('Opening: Selamat datang di Desa ...\nVoice Over: Desa ini memiliki potensi ...') }}" />
+                    @if($canEdit)
+                        <div class="flex justify-start">
+                            <flux:button type="button" wire:click="addStoryboardScene" variant="subtle" size="sm" icon="plus">
+                                {{ __('Tambah Adegan Storyboard') }}
+                            </flux:button>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div>
+                <flux:heading size="md" class="mb-1">{{ __('Skrip Video Profil (Naskah Audio-Visual)') }}</flux:heading>
+                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Naskah terstruktur adegan, visual on-screen, dan dialog/voice-over.') }}</flux:text>
+
+                <div class="space-y-3">
+                    <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-white/10">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-white/10 text-xs font-semibold uppercase text-zinc-600 dark:text-zinc-300">
+                                <tr>
+                                    <th class="p-3 w-36">{{ __('Scene / Waktu') }}</th>
+                                    <th class="p-3">{{ __('Aksi Visual On-Screen') }}</th>
+                                    <th class="p-3">{{ __('Dialog / Voice-Over / Narasi') }}</th>
+                                    @if($canEdit)
+                                        <th class="p-3 w-12 text-center">{{ __('Aksi') }}</th>
+                                    @endif
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
+                                @forelse($video_script_scenes as $index => $scene)
+                                    <tr class="align-top">
+                                        <td class="p-2">
+                                            <flux:input wire:model="video_script_scenes.{{ $index }}.scene" :disabled="!$canEdit" placeholder="Scene 1 (00:00 - 00:15)" />
+                                        </td>
+                                        <td class="p-2">
+                                            <flux:textarea wire:model="video_script_scenes.{{ $index }}.visual" rows="2" :disabled="!$canEdit" placeholder="Aksi visual atau teks di layar..." />
+                                        </td>
+                                        <td class="p-2">
+                                            <flux:textarea wire:model="video_script_scenes.{{ $index }}.audio" rows="2" :disabled="!$canEdit" placeholder="Kalimat narasi atau dialog pembicara..." />
+                                        </td>
+                                        @if($canEdit)
+                                            <td class="p-2 text-center">
+                                                <flux:button type="button" wire:click="removeVideoScriptScene({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" />
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ $canEdit ? 4 : 3 }}" class="p-4 text-center text-zinc-500 text-xs">
+                                            {{ __('Belum ada naskah adegan skrip.') }}
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if($canEdit)
+                        <div class="flex justify-start">
+                            <flux:button type="button" wire:click="addVideoScriptScene" variant="subtle" size="sm" icon="plus">
+                                {{ __('Tambah Adegan Skrip') }}
+                            </flux:button>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <flux:separator />
+
+        {{-- Bab 3: Rencana Pelaksanaan (Tabel 7 Rencana Umum Kegiatan) --}}
+        <div class="space-y-4">
+            <div>
+                <flux:heading size="md" class="mb-1">{{ __('Rencana Pelaksanaan: Tabel 7 Rencana Umum Kegiatan (Mingguan)') }}</flux:heading>
+                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Atur alokasi minggu pelaksanaan untuk kegiatan makro operasional KKN kelompok Anda.') }}</flux:text>
+            </div>
+
+            <div class="space-y-3">
+                <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-white/10">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-white/10 text-xs font-semibold uppercase text-zinc-600 dark:text-zinc-300">
+                            <tr>
+                                <th class="p-3 w-12 text-center">No</th>
+                                <th class="p-3">{{ __('Nama Kegiatan Umum') }}</th>
+                                <th class="p-3 w-14 text-center">M1</th>
+                                <th class="p-3 w-14 text-center">M2</th>
+                                <th class="p-3 w-14 text-center">M3</th>
+                                <th class="p-3 w-14 text-center">M4</th>
+                                <th class="p-3 w-14 text-center">M5</th>
+                                <th class="p-3 w-14 text-center">M6</th>
+                                @if($canEdit)
+                                    <th class="p-3 w-12 text-center">{{ __('Aksi') }}</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
+                            @forelse($macro_schedules as $index => $sched)
+                                <tr class="hover:bg-zinc-50/50 dark:hover:bg-white/5">
+                                    <td class="p-3 text-center text-xs font-semibold text-zinc-500">
+                                        {{ $index + 1 }}.
+                                    </td>
+                                    <td class="p-2">
+                                        <flux:input wire:model="macro_schedules.{{ $index }}.kegiatan" :disabled="!$canEdit" placeholder="Nama kegiatan umum..." />
+                                    </td>
+                                    @foreach(['m1', 'm2', 'm3', 'm4', 'm5', 'm6'] as $w)
+                                        <td class="p-2 text-center">
+                                            <input type="checkbox" wire:model="macro_schedules.{{ $index }}.{{ $w }}" @disabled(!$canEdit) class="rounded border-zinc-300 text-primary-600 focus:ring-primary-500 w-4 h-4" />
+                                        </td>
+                                    @endforeach
+                                    @if($canEdit)
+                                        <td class="p-2 text-center">
+                                            <flux:button type="button" wire:click="removeMacroSchedule({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" />
+                                        </td>
+                                    @endif
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="{{ $canEdit ? 9 : 8 }}" class="p-4 text-center text-zinc-500 text-xs">
+                                        {{ __('Belum ada kegiatan umum mingguan.') }}
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if($canEdit)
+                    <div class="flex justify-start">
+                        <flux:button type="button" wire:click="addMacroSchedule" variant="subtle" size="sm" icon="plus">
+                            {{ __('Tambah Kegiatan Umum') }}
+                        </flux:button>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -246,7 +421,7 @@
                 @if($isReady)
                     <flux:modal.trigger name="confirm-submit-modal" class="w-full sm:w-auto">
                         <flux:button type="button" icon="paper-airplane" variant="primary" class="w-full sm:w-auto">
-                            {{ $isNeedsRevision ? __('Ajukan Ulang') : __('Ajukan') }}
+                            {{ $isNeedsRevision ? __('Ajukan Ulang LRK') : __('Ajukan LRK ke DPL') }}
                         </flux:button>
                     </flux:modal.trigger>
                 @endif

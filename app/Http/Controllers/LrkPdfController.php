@@ -97,9 +97,30 @@ class LrkPdfController extends Controller
         $sosialKemasyarakatan = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'sosial_kemasyarakatan')->values();
         $lainnya = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'lainnya')->values();
 
+        // Build dynamic legend for calendar codes
+        $legend = $approvedParticipants->filter(fn ($p) => ! empty($p->participant_code))
+            ->map(fn ($p) => [
+                'code' => $p->participant_code,
+                'student_name' => $p->student?->name,
+                'program_title' => $p->participant_title ?: ($p->program?->title ?? ''),
+                'type_label' => match ($p->program?->programType?->code) {
+                    'multidisiplin' => 'Multidisiplin',
+                    'sosial_kemasyarakatan' => 'Sosial Kemasyarakatan',
+                    'lainnya' => 'Lainnya',
+                    default => 'Program',
+                },
+            ])
+            ->unique('code')
+            ->sortBy('code')
+            ->values()
+            ->all();
+
         // Helper to determine Saintek vs Soshum by NIM
-        $isSaintek = function ($nim) {
-            $nim = (string) $nim;
+        $isSaintek = function ($student) {
+            if ($student && method_exists($student, 'isSaintek')) {
+                return $student->isSaintek();
+            }
+            $nim = (string) ($student?->nim ?? '');
             if (str_starts_with($nim, '4003') || str_starts_with($nim, '4004')) {
                 return true;
             }
@@ -137,7 +158,10 @@ class LrkPdfController extends Controller
                 'program_sosmas_text' => $group->program_sosmas_text,
                 'program_lainnya_text' => $group->program_lainnya_text,
                 'storyboard_text' => $group->storyboard_text,
+                'storyboard_scenes' => ! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes(),
                 'video_script_text' => $group->video_script_text,
+                'video_script_scenes' => ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes(),
+                'macro_schedules' => ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules(),
                 'survey_documentation_text' => $group->survey_documentation_text,
                 'location_map_text' => $group->location_map_text,
             ],
@@ -174,7 +198,7 @@ class LrkPdfController extends Controller
                 'participant_code' => $p->participant_code,
             ])->values()->all(),
             'sosialKemasyarakatan' => $sosialKemasyarakatan->map(fn ($p) => [
-                'is_saintek' => $isSaintek($p->student?->nim),
+                'is_saintek' => $isSaintek($p->student),
                 'program_title' => $p->program?->title,
                 'student_name' => $p->student?->name,
                 'student_nim' => $p->student?->nim,
@@ -201,6 +225,7 @@ class LrkPdfController extends Controller
                 'week_number' => $e->week_number,
             ])->values()->all(),
             'calendar' => $calendar,
+            'legend' => $legend,
         ];
 
         $pdfBinary = $this->pdfKitService->generate('generate-lrk.js', $payload);
