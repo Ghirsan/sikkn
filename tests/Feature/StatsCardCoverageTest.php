@@ -259,8 +259,8 @@ class StatsCardCoverageTest extends TestCase
         Livewire::actingAs($observer)
             ->test(ObserverDocuments::class)
             ->assertSee('Total Kelompok')
-            ->assertSee('LRK Terkunci')
-            ->assertSee('LPK Terkunci')
+            ->assertSee('LRK Difinalisasi')
+            ->assertSee('LPK Difinalisasi')
             ->assertSee('Dalam Proses');
     }
 }

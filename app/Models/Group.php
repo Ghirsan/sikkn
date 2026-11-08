@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\UserRole;
 use App\Services\ExternalImagePreviewUrl;
@@ -28,6 +29,10 @@ class Group extends Model
         'partner_name',
         'village_head',
         'background',
+        'lrk_status',
+        'lrk_notes',
+        'lrk_submitted_at',
+        'lrk_reviewed_at',
         'is_lrk_locked',
         'is_lpk_locked',
         'location_map_path',
@@ -48,6 +53,9 @@ class Group extends Model
     protected function casts(): array
     {
         return [
+            'lrk_status' => DocumentStatus::class,
+            'lrk_submitted_at' => 'datetime',
+            'lrk_reviewed_at' => 'datetime',
             'is_lrk_locked' => 'boolean',
             'is_lpk_locked' => 'boolean',
             'start_date' => 'date',
@@ -169,7 +177,13 @@ class Group extends Model
 
     public function isLrkEditable(): bool
     {
-        return ! $this->is_lrk_locked;
+        if ($this->is_lrk_locked) {
+            return false;
+        }
+
+        $status = $this->lrk_status ?? DocumentStatus::Draft;
+
+        return in_array($status, [DocumentStatus::Draft, DocumentStatus::NeedsRevision], true);
     }
 
     public function isLpkEditable(): bool
@@ -179,7 +193,22 @@ class Group extends Model
 
     public function isLrkFinalized(): bool
     {
-        return (bool) $this->is_lrk_locked;
+        return (bool) $this->is_lrk_locked || $this->lrk_status === DocumentStatus::Approved;
+    }
+
+    public function isLrkSubmitted(): bool
+    {
+        return $this->lrk_status === DocumentStatus::Submitted;
+    }
+
+    public function isLrkNeedsRevision(): bool
+    {
+        return $this->lrk_status === DocumentStatus::NeedsRevision;
+    }
+
+    public function isLrkDraft(): bool
+    {
+        return $this->lrk_status === null || $this->lrk_status === DocumentStatus::Draft;
     }
 
     public function isLpkFinalized(): bool

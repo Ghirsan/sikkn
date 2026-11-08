@@ -29,11 +29,11 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 @if($group?->is_lpk_locked)
                     <flux:button href="{{ route('lpk.pdf', $group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
-                        {{ __('Cetak PDF') }}
+                        {{ __('Cetak LPK') }}
                     </flux:button>
                 @elseif($group)
                     <flux:button href="{{ route('lpk.preview', $group) }}" target="_blank" icon="arrow-top-right-on-square" variant="subtle" size="sm" class="w-full sm:w-auto">
-                        {{ __('Pratinjau PDF') }}
+                        {{ __('Pratinjau LPK') }}
                     </flux:button>
                 @endif
             </div>
@@ -53,7 +53,7 @@
     @elseif(!$allLpkApproved)
         <flux:callout variant="warning" icon="information-circle">
             <flux:callout.heading>{{ __('LPK Sedang Dalam Penyusunan') }}</flux:callout.heading>
-            <flux:callout.text>{{ __('Gunakan tombol Pratinjau PDF untuk meninjau draf dokumen. Tombol cetak resmi akan aktif setelah seluruh laporan pelaksanaan program disetujui Dosen KKN.') }}</flux:callout.text>
+            <flux:callout.text>{{ __('Gunakan tombol Pratinjau untuk meninjau draf dokumen. Tombol cetak resmi akan aktif setelah seluruh laporan pelaksanaan program disetujui Dosen KKN.') }}</flux:callout.text>
         </flux:callout>
     @else
         <flux:callout variant="info" icon="information-circle">

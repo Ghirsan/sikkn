@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mahasiswa;
 
+use App\Enums\DocumentStatus;
 use App\Services\ExternalImagePreviewUrl;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -48,9 +49,19 @@ class LrkForm extends Component
 
     public ?string $previewUrl = null;
 
+    public ?DocumentStatus $lrkStatus = DocumentStatus::Draft;
+
+    public ?string $lrkNotes = null;
+
     public bool $isReady = false;
 
     public bool $isFinalized = false;
+
+    public bool $isSubmitted = false;
+
+    public bool $isNeedsRevision = false;
+
+    public bool $canEdit = true;
 
     public function mount()
     {
@@ -62,7 +73,12 @@ class LrkForm extends Component
         }
 
         $this->isReady = $group->isLrkReady();
+        $this->lrkStatus = $group->lrk_status ?? DocumentStatus::Draft;
+        $this->lrkNotes = $group->lrk_notes;
         $this->isFinalized = $group->isLrkFinalized();
+        $this->isSubmitted = $this->lrkStatus === DocumentStatus::Submitted;
+        $this->isNeedsRevision = $this->lrkStatus === DocumentStatus::NeedsRevision;
+        $this->canEdit = $group->isLrkEditable();
 
         $this->background = $group->background ?? '';
         $this->program_multidisiplin_text = $group->program_multidisiplin_text ?? '';
@@ -247,6 +263,14 @@ class LrkForm extends Component
 
     public function save(): void
     {
+        $group = Auth::user()->group;
+
+        if (! $group || ! $group->isLrkEditable()) {
+            Flux::toast(variant: 'danger', heading: 'Tidak Dapat Disimpan', text: 'Dokumen sedang ditinjau atau telah disetujui.');
+
+            return;
+        }
+
         $this->persistData();
 
         Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data laporan LRK berhasil disimpan.');
@@ -254,7 +278,9 @@ class LrkForm extends Component
 
     public function preview(): void
     {
-        $this->persistData();
+        if ($this->canEdit) {
+            $this->persistData();
+        }
 
         $group = Auth::user()->group;
         $url = route('lrk.preview', ['group' => $group, 'v' => now()->timestamp]);
@@ -262,10 +288,10 @@ class LrkForm extends Component
 
         $this->js("window.open('{$url}', '_blank')");
 
-        Flux::toast(variant: 'info', heading: 'Pratinjau PDF', text: 'Data tersimpan dan membuka dokumen di halaman baru.');
+        Flux::toast(variant: 'info', heading: 'Pratinjau PDF', text: 'Membuka dokumen di halaman baru.');
     }
 
-    public function finalize(): void
+    public function submit(): void
     {
         $group = Auth::user()->group;
 
@@ -274,22 +300,30 @@ class LrkForm extends Component
         }
 
         if (! $group->isLrkReady()) {
-            Flux::modal('confirm-finalize-modal')->close();
-            Flux::toast(variant: 'danger', heading: 'Belum Siap', text: 'Dokumen LRK belum dapat difinalisasi karena belum seluruh rencana program disetujui.');
+            Flux::modal('confirm-submit-modal')->close();
+            Flux::toast(variant: 'danger', heading: 'Belum Siap', text: 'Dokumen LRK belum dapat diajukan karena belum seluruh rencana program disetujui.');
 
             return;
         }
 
         $this->persistData();
 
-        $group->update(['is_lrk_locked' => true]);
-        $this->isFinalized = true;
+        $group->update([
+            'lrk_status' => DocumentStatus::Submitted,
+            'lrk_submitted_at' => now(),
+            'is_lrk_locked' => false,
+        ]);
 
-        Flux::modal('confirm-finalize-modal')->close();
-        Flux::toast(variant: 'success', heading: 'LRK Berhasil Difinalisasi', text: 'Dokumen LRK telah difinalisasi dan siap dicetak.');
+        $this->lrkStatus = DocumentStatus::Submitted;
+        $this->isSubmitted = true;
+        $this->isNeedsRevision = false;
+        $this->canEdit = false;
+
+        Flux::modal('confirm-submit-modal')->close();
+        Flux::toast(variant: 'success', heading: 'LRK Berhasil Diajukan', text: 'Dokumen LRK telah diajukan ke DPL untuk diperiksa.');
     }
 
-    public function unfinalize(): void
+    public function withdraw(): void
     {
         $group = Auth::user()->group;
 
@@ -297,11 +331,30 @@ class LrkForm extends Component
             abort(403);
         }
 
-        $group->update(['is_lrk_locked' => false]);
-        $this->isFinalized = false;
+        if ($group->lrk_status !== DocumentStatus::Submitted) {
+            return;
+        }
 
-        Flux::modal('confirm-unfinalize-modal')->close();
-        Flux::toast(variant: 'info', heading: 'Finalisasi Dibatalkan', text: 'Dokumen LRK dapat diedit kembali.');
+        $group->update([
+            'lrk_status' => DocumentStatus::Draft,
+        ]);
+
+        $this->lrkStatus = DocumentStatus::Draft;
+        $this->isSubmitted = false;
+        $this->canEdit = true;
+
+        Flux::modal('confirm-withdraw-modal')->close();
+        Flux::toast(variant: 'info', heading: 'Pengajuan Dibatalkan', text: 'Dokumen LRK kembali ke status draf untuk dapat diedit.');
+    }
+
+    public function finalize(): void
+    {
+        $this->submit();
+    }
+
+    public function unfinalize(): void
+    {
+        $this->withdraw();
     }
 
     public function render()

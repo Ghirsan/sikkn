@@ -25,7 +25,7 @@
         </x-tabs>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             @if($logs->isNotEmpty())
-                <flux:button variant="ghost" size="sm" icon="printer" :href="route('logbook.pdf', $student)" target="_blank" class="w-full sm:w-auto">
+                <flux:button variant="primary" size="sm" icon="printer" :href="route('logbook.pdf', $student)" target="_blank" class="w-full sm:w-auto">
                     {{ __('Cetak Logbook') }}
                 </flux:button>
             @endif

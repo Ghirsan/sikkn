@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Mahasiswa;
 
+use App\Enums\DocumentStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\Semester;
+use App\Livewire\Dpl\TeamDocuments;
 use App\Livewire\Mahasiswa\LpkDocuments;
 use App\Livewire\Mahasiswa\LrkDocuments;
 use App\Livewire\Mahasiswa\LrkForm;
@@ -234,20 +236,21 @@ class LrkFormTest extends TestCase
         $this->assertStringContainsString('attachment', (string) $downloadResponse->headers->get('content-disposition'));
     }
 
-    public function test_lrk_form_cannot_finalize_when_document_not_ready(): void
+    public function test_lrk_form_cannot_submit_when_document_not_ready(): void
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
 
         Livewire::actingAs($leader)
             ->test(LrkForm::class)
             ->assertSet('isReady', false)
-            ->assertSet('isFinalized', false)
-            ->call('finalize');
+            ->assertSet('isSubmitted', false)
+            ->call('submit');
 
-        $this->assertFalse($group->refresh()->is_lrk_locked);
+        $this->assertEquals(DocumentStatus::Draft, $group->refresh()->lrk_status);
+        $this->assertFalse($group->is_lrk_locked);
     }
 
-    public function test_lrk_form_can_finalize_and_unfinalize_when_ready(): void
+    public function test_lrk_form_can_submit_and_withdraw_when_ready(): void
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
 
@@ -277,27 +280,98 @@ class LrkFormTest extends TestCase
         Livewire::actingAs($leader)
             ->test(LrkForm::class)
             ->assertSet('isReady', true)
-            ->assertSet('isFinalized', false)
-            ->assertSeeHtml('confirm-finalize-modal')
-            ->assertSee(__('Finalisasi LRK'))
-            ->assertSee(__('Finalisasi Dokumen LRK?'))
-            ->call('finalize')
-            ->assertSet('isFinalized', true);
+            ->assertSet('isSubmitted', false)
+            ->assertSeeHtml('confirm-submit-modal')
+            ->assertSee(__('Ajukan LRK ke DPL'))
+            ->assertSee(__('Ajukan Dokumen LRK ke DPL?'))
+            ->call('submit')
+            ->assertSet('isSubmitted', true)
+            ->assertSet('canEdit', false);
 
-        $this->assertTrue($group->refresh()->is_lrk_locked);
+        $this->assertEquals(DocumentStatus::Submitted, $group->refresh()->lrk_status);
+        $this->assertNotNull($group->lrk_submitted_at);
 
-        // Can unfinalize
+        // Can withdraw
         Livewire::actingAs($leader)
             ->test(LrkForm::class)
-            ->assertSet('isFinalized', true)
-            ->assertSeeHtml('confirm-unfinalize-modal')
-            ->assertSee(__('Ubah Kembali'))
-            ->assertSee(__('Ubah Kembali Dokumen LRK?'))
-            ->assertSee(__('Cetak PDF'))
-            ->call('unfinalize')
-            ->assertSet('isFinalized', false);
+            ->assertSet('isSubmitted', true)
+            ->assertSeeHtml('confirm-withdraw-modal')
+            ->assertSee(__('Tarik Pengajuan'))
+            ->assertSee(__('Tarik Pengajuan Dokumen LRK?'))
+            ->call('withdraw')
+            ->assertSet('isSubmitted', false)
+            ->assertSet('canEdit', true);
 
-        $this->assertFalse($group->refresh()->is_lrk_locked);
+        $this->assertEquals(DocumentStatus::Draft, $group->refresh()->lrk_status);
+    }
+
+    public function test_dpl_can_inspect_and_request_revision_or_approve_lrk(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+        $dpl = User::factory()->dpl()->create();
+        $group->dpls()->attach($dpl->id);
+
+        $mdType = ProgramType::firstOrCreate(['code' => 'multidisiplin'], ['name' => 'Multidisiplin', 'is_active' => true]);
+        $sosmasType = ProgramType::firstOrCreate(['code' => 'sosial_kemasyarakatan'], ['name' => 'Sosial Kemasyarakatan', 'is_active' => true]);
+        $lainnyaType = ProgramType::firstOrCreate(['code' => 'lainnya'], ['name' => 'Lainnya', 'is_active' => true]);
+
+        $group->students()->where('id', '!=', $leader->id)->update(['group_id' => null]);
+
+        foreach ([$mdType, $mdType, $sosmasType, $lainnyaType] as $type) {
+            $p = Program::create([
+                'group_id' => $group->id,
+                'student_id' => $leader->id,
+                'title' => 'Program '.$type->code,
+                'program_type_id' => $type->id,
+            ]);
+            ProgramParticipant::create([
+                'program_id' => $p->id,
+                'student_id' => $leader->id,
+                'status' => ProgramStatus::Approved,
+            ]);
+        }
+
+        // Leader submits LRK
+        $group->update([
+            'lrk_status' => DocumentStatus::Submitted,
+            'lrk_submitted_at' => now(),
+            'background' => 'Latar belakang kelompok 10',
+        ]);
+
+        // DPL inspects and requests revision
+        Livewire::actingAs($dpl)
+            ->test(TeamDocuments::class)
+            ->call('inspectLrk', $group->id)
+            ->assertSet('reviewingGroupId', $group->id)
+            ->set('lrkReviewNote', 'Mohon lengkapi data potensi desa lebih mendalam.')
+            ->call('requestLrkRevision');
+
+        $this->assertEquals(DocumentStatus::NeedsRevision, $group->refresh()->lrk_status);
+        $this->assertEquals('Mohon lengkapi data potensi desa lebih mendalam.', $group->lrk_notes);
+
+        // Leader sees revision note in form
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertSet('isNeedsRevision', true)
+            ->assertSet('canEdit', true)
+            ->assertSee('Mohon lengkapi data potensi desa lebih mendalam.')
+            ->assertSee(__('Ajukan Ulang LRK'));
+
+        // DPL inspects and approves LRK
+        Livewire::actingAs($dpl)
+            ->test(TeamDocuments::class)
+            ->call('inspectLrk', $group->id)
+            ->call('approveLrk');
+
+        $this->assertEquals(DocumentStatus::Approved, $group->refresh()->lrk_status);
+        $this->assertTrue($group->is_lrk_locked);
+
+        // Leader sees approved state and Cetak PDF
+        Livewire::actingAs($leader->fresh())
+            ->test(LrkForm::class)
+            ->assertSet('isFinalized', true)
+            ->assertSee(__('Dokumen LRK Telah Disetujui DPL'))
+            ->assertSee(__('Cetak PDF'));
     }
 
     public function test_lrk_documents_switches_preview_to_print_when_ready_and_finalized(): void
