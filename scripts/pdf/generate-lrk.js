@@ -660,17 +660,29 @@ doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Rencana Skrip Video :', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
+if (group.video_script_text && group.video_script_text.trim()) {
+  doc.font('Helvetica').fontSize(8.5).fillColor('#374151').text(
+    group.video_script_text.trim(),
+    landMarginLeft,
+    doc.y,
+    { width: landContentW, lineGap: 2 }
+  );
+  doc.moveDown(0.4);
+}
+
 const vsScenes = group.video_script_scenes || [];
 if (Array.isArray(vsScenes) && vsScenes.length > 0) {
   const vsCols = [
-    { key: 'scene', label: 'Scene / Waktu', width: 120, align: 'center' },
-    { key: 'visual', label: 'Aksi Visual On-Screen', width: 320, align: 'left' },
-    { key: 'audio', label: 'Dialog / Narasi Voice-Over', width: 321, align: 'left' }
+    { key: 'scene', label: 'Scene', width: 70, align: 'center' },
+    { key: 'visual', label: 'Aksi Visual On-Screen', width: 280, align: 'left' },
+    { key: 'audio', label: 'Dialog / Narasi Voice-Over', width: 321, align: 'left' },
+    { key: 'duration', label: 'Durasi', width: 90, align: 'center' }
   ];
   const vsRows = vsScenes.map((s, idx) => ({
     scene: s.scene || `Scene ${idx + 1}`,
     visual: s.visual || '-',
-    audio: s.audio || '-'
+    audio: s.audio || '-',
+    duration: s.duration || '-'
   }));
   drawTable(doc, {
     columns: vsCols,
@@ -679,8 +691,8 @@ if (Array.isArray(vsScenes) && vsScenes.length > 0) {
     headerFontSize: 8
   });
 } else {
-  doc.font('Helvetica').fontSize(8).text(
-    group.video_script_text || '- Voice over mengenalkan profil desa, fasilitas umum, dan potensi pariwisata\n- Penutup dengan ucapan terima kasih',
+  doc.font('Helvetica-Oblique').fontSize(8.5).fillColor('#6b7280').text(
+    group.video_script_text || 'Belum ada naskah adegan skrip video yang ditambahkan.',
     landMarginLeft,
     doc.y,
     { width: landContentW }

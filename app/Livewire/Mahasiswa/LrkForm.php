@@ -107,6 +107,19 @@ class LrkForm extends Component
         unset($scene);
         $this->video_script_text = $group->video_script_text ?? '';
         $this->video_script_scenes = ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes();
+        foreach ($this->video_script_scenes as $idx => &$scene) {
+            $scene['scene'] = 'Scene '.($idx + 1);
+            if (! isset($scene['visual'])) {
+                $scene['visual'] = '';
+            }
+            if (! isset($scene['audio'])) {
+                $scene['audio'] = '';
+            }
+            if (! isset($scene['duration'])) {
+                $scene['duration'] = '';
+            }
+        }
+        unset($scene);
         $this->weekKeys = $group->getWeekKeys();
         $this->macro_schedules = ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules($group->getWeeksCount());
         foreach ($this->macro_schedules as &$row) {
@@ -349,10 +362,12 @@ class LrkForm extends Component
 
     public function addVideoScriptScene(): void
     {
+        $count = count($this->video_script_scenes);
         $this->video_script_scenes[] = [
-            'scene' => (string) (count($this->video_script_scenes) + 1),
+            'scene' => 'Scene '.($count + 1),
             'visual' => '',
             'audio' => '',
+            'duration' => '',
         ];
     }
 
@@ -360,6 +375,10 @@ class LrkForm extends Component
     {
         unset($this->video_script_scenes[$index]);
         $this->video_script_scenes = array_values($this->video_script_scenes);
+        foreach ($this->video_script_scenes as $idx => &$scene) {
+            $scene['scene'] = 'Scene '.($idx + 1);
+        }
+        unset($scene);
     }
 
     public function addMacroSchedule(): void

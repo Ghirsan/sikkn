@@ -148,12 +148,7 @@ class Group extends Model
 
     public static function defaultVideoScriptScenes(): array
     {
-        return [
-            ['scene' => '1 (00:00 - 00:10)', 'visual' => 'Opening pemandangan alam desa dengan teks Selamat Datang', 'audio' => 'Selamat datang di Desa ..., perpaduan keasrian alam dan kehangatan warganya.'],
-            ['scene' => '2 (00:10 - 00:25)', 'visual' => 'Kepala Desa memaparkan potensi desa di kantor balai desa', 'audio' => 'Kepala Desa: "Kami menyambut baik inisiatif mahasiswa KKN Undip dalam memajukan desa kami."'],
-            ['scene' => '3 (00:25 - 00:45)', 'visual' => 'Sorotan produk unggulan UMKM dan keindahan lanskap desa', 'audio' => 'Narator: "Potensi unggulan desa ini terletak pada sektor pertanian dan UMKM kreatif masyarakat."'],
-            ['scene' => '4 (00:45 - 01:00)', 'visual' => 'Kolaborasi warga dan mahasiswa, ditutup logo resmi Undip', 'audio' => 'Narator: "Bersama membangun desa berdaya saing. KKN Universitas Diponegoro mengabdi untuk negeri."'],
-        ];
+        return [];
     }
 
     /**

@@ -243,7 +243,7 @@ class LrkFormTest extends TestCase
         Livewire::actingAs($leader)
             ->test(LrkForm::class)
             ->assertCount('storyboard_scenes', 0)
-            ->assertCount('video_script_scenes', 4)
+            ->assertCount('video_script_scenes', 0)
             ->assertCount('macro_schedules', 5)
             ->call('addStoryboardScene')
             ->assertCount('storyboard_scenes', 1)
@@ -251,8 +251,11 @@ class LrkFormTest extends TestCase
             ->set('storyboard_scenes.0.image_url', 'https://drive.google.com/file/d/test123/view')
             ->set('storyboard_scenes.0.visual', 'Drone view persawahan dan embung desa')
             ->call('addVideoScriptScene')
-            ->assertCount('video_script_scenes', 5)
-            ->set('video_script_scenes.4.audio', 'Narasi penutup KKN Undip')
+            ->assertCount('video_script_scenes', 1)
+            ->assertSet('video_script_scenes.0.scene', 'Scene 1')
+            ->set('video_script_scenes.0.visual', 'Teks visual penutup')
+            ->set('video_script_scenes.0.audio', 'Narasi penutup KKN Undip')
+            ->set('video_script_scenes.0.duration', '15s')
             ->call('addMacroSchedule')
             ->assertCount('macro_schedules', 6)
             ->set('macro_schedules.5.kegiatan', 'Penerimaan dan Koordinasi Kecamatan')
@@ -264,8 +267,11 @@ class LrkFormTest extends TestCase
         $this->assertEquals('Scene 1', $group->storyboard_scenes[0]['scene']);
         $this->assertEquals('https://drive.google.com/file/d/test123/view', $group->storyboard_scenes[0]['image_url']);
         $this->assertEquals('Drone view persawahan dan embung desa', $group->storyboard_scenes[0]['visual']);
-        $this->assertCount(5, $group->video_script_scenes);
-        $this->assertEquals('Narasi penutup KKN Undip', $group->video_script_scenes[4]['audio']);
+        $this->assertCount(1, $group->video_script_scenes);
+        $this->assertEquals('Scene 1', $group->video_script_scenes[0]['scene']);
+        $this->assertEquals('Teks visual penutup', $group->video_script_scenes[0]['visual']);
+        $this->assertEquals('Narasi penutup KKN Undip', $group->video_script_scenes[0]['audio']);
+        $this->assertEquals('15s', $group->video_script_scenes[0]['duration']);
         $this->assertCount(6, $group->macro_schedules);
         $this->assertEquals('Penerimaan dan Koordinasi Kecamatan', $group->macro_schedules[5]['kegiatan']);
         $this->assertTrue($group->macro_schedules[5]['m1']);
@@ -295,6 +301,40 @@ class LrkFormTest extends TestCase
             ->assertSet('storyboard_scenes.0.visual', 'Visual Scene 1')
             ->assertSet('storyboard_scenes.1.scene', 'Scene 2')
             ->assertSet('storyboard_scenes.1.visual', 'Visual Scene 3');
+    }
+
+    public function test_video_script_scenes_are_incrementally_numbered_and_reindexed_on_removal(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertCount('video_script_scenes', 0)
+            ->call('addVideoScriptScene')
+            ->call('addVideoScriptScene')
+            ->call('addVideoScriptScene')
+            ->assertCount('video_script_scenes', 3)
+            ->assertSet('video_script_scenes.0.scene', 'Scene 1')
+            ->assertSet('video_script_scenes.1.scene', 'Scene 2')
+            ->assertSet('video_script_scenes.2.scene', 'Scene 3')
+            ->set('video_script_scenes.0.visual', 'Visual 1')
+            ->set('video_script_scenes.0.audio', 'Narasi 1')
+            ->set('video_script_scenes.0.duration', '10s')
+            ->set('video_script_scenes.1.visual', 'Visual 2')
+            ->set('video_script_scenes.1.audio', 'Narasi 2')
+            ->set('video_script_scenes.1.duration', '15s')
+            ->set('video_script_scenes.2.visual', 'Visual 3')
+            ->set('video_script_scenes.2.audio', 'Narasi 3')
+            ->set('video_script_scenes.2.duration', '20s')
+            // Remove middle scene (Scene 2)
+            ->call('removeVideoScriptScene', 1)
+            ->assertCount('video_script_scenes', 2)
+            ->assertSet('video_script_scenes.0.scene', 'Scene 1')
+            ->assertSet('video_script_scenes.0.visual', 'Visual 1')
+            ->assertSet('video_script_scenes.0.duration', '10s')
+            ->assertSet('video_script_scenes.1.scene', 'Scene 2')
+            ->assertSet('video_script_scenes.1.visual', 'Visual 3')
+            ->assertSet('video_script_scenes.1.duration', '20s');
     }
 
     public function test_lrk_form_adapts_macro_schedule_weeks_to_kkn_period(): void

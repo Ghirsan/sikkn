@@ -223,16 +223,17 @@
 
             <div>
                 <flux:heading size="md" class="mb-1">{{ __('Skrip Video Profil (Naskah Audio-Visual)') }}</flux:heading>
-                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Naskah terstruktur adegan, visual on-screen, dan dialog/voice-over.') }}</flux:text>
+                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Naskah terstruktur adegan, visual on-screen, dialog/voice-over, dan estimasi durasi per adegan.') }}</flux:text>
 
                 <div class="space-y-3">
                     <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-white/10">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-white/10 text-xs font-semibold uppercase text-zinc-600 dark:text-zinc-300">
                                 <tr>
-                                    <th class="p-3 w-36">{{ __('Scene / Waktu') }}</th>
+                                    <th class="p-3 w-28 text-center">{{ __('Scene') }}</th>
                                     <th class="p-3">{{ __('Aksi Visual On-Screen') }}</th>
                                     <th class="p-3">{{ __('Dialog / Voice-Over / Narasi') }}</th>
+                                    <th class="p-3 w-44">{{ __('Durasi Adegan') }}</th>
                                     @if($canEdit)
                                         <th class="p-3 w-12 text-center">{{ __('Aksi') }}</th>
                                     @endif
@@ -240,26 +241,30 @@
                             </thead>
                             <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
                                 @forelse($video_script_scenes as $index => $scene)
-                                    <tr class="align-top">
-                                        <td class="p-2">
-                                            <flux:input wire:model="video_script_scenes.{{ $index }}.scene" :disabled="!$canEdit" placeholder="Scene 1 (00:00 - 00:15)" />
+                                    <tr class="align-top hover:bg-zinc-50/50 dark:hover:bg-white/5">
+                                        <td class="p-3 text-center">
+                                            <flux:badge size="sm" color="zinc" class="font-bold">Scene {{ $index + 1 }}</flux:badge>
                                         </td>
                                         <td class="p-2">
-                                            <flux:textarea wire:model="video_script_scenes.{{ $index }}.visual" rows="2" :disabled="!$canEdit" placeholder="Aksi visual atau teks di layar..." />
+                                            <flux:textarea wire:model="video_script_scenes.{{ $index }}.visual" rows="3" :disabled="!$canEdit" placeholder="{{ __('Aksi visual atau teks di layar...') }}" />
                                         </td>
                                         <td class="p-2">
-                                            <flux:textarea wire:model="video_script_scenes.{{ $index }}.audio" rows="2" :disabled="!$canEdit" placeholder="Kalimat narasi atau dialog pembicara..." />
+                                            <flux:textarea wire:model="video_script_scenes.{{ $index }}.audio" rows="3" :disabled="!$canEdit" placeholder="{{ __('Kalimat narasi atau dialog pembicara...') }}" />
+                                        </td>
+                                        <td class="p-2">
+                                            <flux:input wire:model="video_script_scenes.{{ $index }}.duration" :disabled="!$canEdit" placeholder="{{ __('misal: 15s atau 00:00 - 00:15') }}" />
                                         </td>
                                         @if($canEdit)
-                                            <td class="p-2 text-center">
-                                                <flux:button type="button" wire:click="removeVideoScriptScene({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" />
+                                            <td class="p-2 text-center align-middle">
+                                                <flux:button type="button" wire:click="removeVideoScriptScene({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" title="{{ __('Hapus adegan') }}" />
                                             </td>
                                         @endif
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $canEdit ? 4 : 3 }}" class="p-4 text-center text-zinc-500 text-xs">
-                                            {{ __('Belum ada naskah adegan skrip.') }}
+                                        <td colspan="{{ $canEdit ? 5 : 4 }}" class="p-6 text-center text-zinc-500 text-xs">
+                                            <flux:icon.video-camera class="w-8 h-8 mx-auto mb-2 text-zinc-300 dark:text-zinc-600" />
+                                            {{ __('Belum ada naskah adegan skrip. Klik "Tambah Adegan Skrip" untuk mulai menambahkan baris.') }}
                                         </td>
                                     </tr>
                                 @endforelse

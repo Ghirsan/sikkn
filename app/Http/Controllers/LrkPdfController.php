@@ -161,6 +161,16 @@ class LrkPdfController extends Controller
                 ];
             })->values()->all();
 
+        $videoScriptScenes = collect(! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes())
+            ->map(function ($s, $idx) {
+                return [
+                    'scene' => 'Scene '.($idx + 1),
+                    'visual' => $s['visual'] ?? '',
+                    'audio' => $s['audio'] ?? '',
+                    'duration' => $s['duration'] ?? '',
+                ];
+            })->values()->all();
+
         $payload = [
             'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
             'assets' => [
@@ -182,7 +192,7 @@ class LrkPdfController extends Controller
                 'storyboard_text' => $group->storyboard_text,
                 'storyboard_scenes' => $storyboardScenes,
                 'video_script_text' => $group->video_script_text,
-                'video_script_scenes' => ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes(),
+                'video_script_scenes' => $videoScriptScenes,
                 'weeks_count' => $group->getWeeksCount(),
                 'week_keys' => $group->getWeekKeys(),
                 'macro_schedules' => ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules($group->getWeeksCount()),
