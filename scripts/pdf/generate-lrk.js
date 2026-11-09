@@ -381,7 +381,7 @@ function renderTocLine(title, targetPage, curY) {
 
   // Interactive link directing to target page (0-indexed)
   if (typeof targetPage === 'number' && targetPage > 0 && targetPage <= doc.bufferedPageRange().count) {
-    doc.link(startX, curY - 3, endX - startX, 18, targetPage - 1);
+    doc.link(startX, curY - 2, endX - startX, 18, targetPage - 1);
   }
 
   return curY + 22;
@@ -1318,6 +1318,7 @@ if (assets.map_image_base64 && assets.map_image_base64.includes('base64,')) {
 const range = doc.bufferedPageRange();
 
 doc.switchToPage(tocPageIndex);
+doc._ctm = [1, 0, 0, -1, 0, doc.page.height];
 let curTocY = tocStartY;
 
 // 8 Standard Chapters from docs-source/lrk.pdf Page 3

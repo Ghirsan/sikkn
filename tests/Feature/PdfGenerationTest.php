@@ -141,6 +141,10 @@ class PdfGenerationTest extends TestCase
         $this->assertNotEmpty($content);
         $this->assertStringContainsString('/Subtype /Link', $content);
         $this->assertStringContainsString('/S /GoTo', $content);
+        preg_match_all('/\/Rect\s*\[([^\]]+)\]/', $content, $matches);
+        $this->assertNotEmpty($matches[1]);
+        $firstCoords = array_map('floatval', preg_split('/\s+/', trim($matches[1][0])));
+        $this->assertGreaterThan(700, $firstCoords[3], 'First TOC link annotation Y coordinate must align with the top of portrait page');
     }
 
     public function test_authenticated_user_can_download_lpk_pdf(): void
@@ -156,6 +160,10 @@ class PdfGenerationTest extends TestCase
         $this->assertNotEmpty($content);
         $this->assertStringContainsString('/Subtype /Link', $content);
         $this->assertStringContainsString('/S /GoTo', $content);
+        preg_match_all('/\/Rect\s*\[([^\]]+)\]/', $content, $matches);
+        $this->assertNotEmpty($matches[1]);
+        $firstCoords = array_map('floatval', preg_split('/\s+/', trim($matches[1][0])));
+        $this->assertGreaterThan(700, $firstCoords[3], 'First TOC link annotation Y coordinate must align with the top of portrait page');
     }
 
     public function test_authenticated_user_can_preview_lpk_pdf(): void
@@ -171,6 +179,10 @@ class PdfGenerationTest extends TestCase
         $this->assertNotEmpty($content);
         $this->assertStringContainsString('/Subtype /Link', $content);
         $this->assertStringContainsString('/S /GoTo', $content);
+        preg_match_all('/\/Rect\s*\[([^\]]+)\]/', $content, $matches);
+        $this->assertNotEmpty($matches[1]);
+        $firstCoords = array_map('floatval', preg_split('/\s+/', trim($matches[1][0])));
+        $this->assertGreaterThan(700, $firstCoords[3], 'First TOC link annotation Y coordinate must align with the top of portrait page');
     }
 
     public function test_authenticated_user_can_download_logbook_pdf(): void

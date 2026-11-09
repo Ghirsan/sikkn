@@ -373,7 +373,7 @@ function renderTocLine(title, targetPage, curY, isSub = false) {
 
   // Interactive link directing to target page (0-indexed)
   if (typeof targetPage === 'number' && targetPage > 0 && targetPage <= doc.bufferedPageRange().count) {
-    doc.link(startX, curY - 3, endX - startX, 18, targetPage - 1);
+    doc.link(startX, curY - 2, endX - startX, 18, targetPage - 1);
   }
 
   return curY + 22;
@@ -824,6 +824,7 @@ drawTable(doc, {
 // TWO-PASS: DYNAMIC TABLE OF CONTENTS (Exact entries matching docs-source/lpk.pdf)
 // ============================================================
 doc.switchToPage(tocPageIndex);
+doc._ctm = [1, 0, 0, -1, 0, doc.page.height];
 let curTocY = tocStartY;
 
 curTocY = renderTocLine('HALAMAN PENGESAHAN', tocPageMap.pengesahan, curTocY);
@@ -844,6 +845,7 @@ curTocY = renderTocLine('LAMPIRAN 2 LUARAN KEGIATAN', tocPageMap.lampiranLuaran,
 const range = doc.bufferedPageRange();
 for (let i = range.start; i < range.start + range.count; i++) {
   doc.switchToPage(i);
+  doc._ctm = [1, 0, 0, -1, 0, doc.page.height];
   const { width, height } = doc.page;
   const contentW = width - 80;
 
