@@ -345,33 +345,44 @@ doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000').text('DAFTAR ISI', 
 doc.moveDown(1.5);
 tocStartY = doc.y;
 
-// Dotted Leader helper function for TOC
+// Dotted Leader helper function for TOC with full filling and interactive navigation
 function renderTocLine(title, targetPage, curY) {
   const startX = 40;
   const endX = doc.page.width - 40;
 
+  // Title
   doc.fontSize(10).font('Helvetica').fillColor('#000000')
-    .text(title, startX, curY, { continued: false });
+    .text(title, startX, curY, { lineBreak: false });
 
   const titleW = doc.widthOfString(title);
-  const pageNumStr = String(targetPage);
+  const pageNumStr = String(targetPage ?? '');
+  doc.fontSize(10).font('Helvetica-Bold');
   const pageNumW = doc.widthOfString(pageNumStr);
 
   const dotsStart = startX + titleW + 5;
   const dotsEnd = endX - pageNumW - 5;
 
   if (dotsEnd > dotsStart) {
-    let dotStr = '';
-    const oneDotW = doc.widthOfString('.');
-    const dotCount = Math.floor((dotsEnd - dotsStart) / (oneDotW * 2.2));
-    for (let d = 0; d < dotCount; d++) dotStr += ' .';
+    const availW = dotsEnd - dotsStart;
+    doc.fontSize(9).font('Helvetica').fillColor('#6b7280');
+    const unitW = doc.widthOfString('. ');
+    const count = Math.max(0, Math.floor((availW - doc.widthOfString('.')) / unitW));
+    let dotStr = '. '.repeat(count) + '.';
+    while (doc.widthOfString(dotStr + ' .') <= availW) {
+      dotStr += ' .';
+    }
 
-    doc.fontSize(9).fillColor('#6b7280')
-      .text(dotStr, dotsStart, curY, { lineBreak: false });
+    doc.text(dotStr, dotsStart, curY, { lineBreak: false });
   }
 
+  // Page number
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-    .text(pageNumStr, endX - pageNumW, curY);
+    .text(pageNumStr, endX - pageNumW, curY, { lineBreak: false });
+
+  // Interactive link directing to target page (0-indexed)
+  if (typeof targetPage === 'number' && targetPage > 0 && targetPage <= doc.bufferedPageRange().count) {
+    doc.link(startX, curY - 3, endX - startX, 18, targetPage - 1);
+  }
 
   return curY + 22;
 }
@@ -401,6 +412,7 @@ doc.fontSize(9.5).font('Helvetica').fillColor('#000000').text(
 );
 doc.moveDown(1.2);
 
+tocPageMap.usulanProgram = doc.bufferedPageRange().count;
 doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
   .text('2. USULAN RENCANA PROGRAM', landMarginLeft, doc.y);
 doc.moveDown(0.4);

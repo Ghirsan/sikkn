@@ -327,56 +327,57 @@ doc.text('Kepala Desa,', rightSigX, sigBlockY + 14);
 doc.fontSize(9.5).font('Helvetica-Bold').text(group.village_head || 'Nama dan Stempel', rightSigX, sigBlockY + 70);
 
 // ============================================================
+// ============================================================
 // PAGE 3: DAFTAR ISI (Portrait)
 // ============================================================
 addPortraitPage();
+const tocPageIndex = doc.bufferedPageRange().count - 1;
 tocPageMap.daftarIsi = doc.bufferedPageRange().count;
 
 doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000').text('DAFTAR ISI', { align: 'center' });
 doc.moveDown(1.5);
+const tocStartY = doc.y;
 
-function renderTocLine(title, targetPage, isSub = false) {
+function renderTocLine(title, targetPage, curY, isSub = false) {
   const startX = isSub ? 60 : 40;
   const endX = doc.page.width - 40;
-  const lineY = doc.y;
 
+  // Title
   doc.fontSize(10).font('Helvetica').fillColor('#000000')
-     .text(title, startX, lineY, { continued: false });
+     .text(title, startX, curY, { lineBreak: false });
 
   const titleW = doc.widthOfString(title);
-  const pageNumStr = String(targetPage);
+  const pageNumStr = String(targetPage ?? '');
+  doc.fontSize(10).font('Helvetica-Bold');
   const pageNumW = doc.widthOfString(pageNumStr);
 
   const dotsStart = startX + titleW + 5;
   const dotsEnd = endX - pageNumW - 5;
 
   if (dotsEnd > dotsStart) {
-    let dotStr = '';
-    const oneDotW = doc.widthOfString('.');
-    const dotCount = Math.floor((dotsEnd - dotsStart) / (oneDotW * 2.2));
-    for (let d = 0; d < dotCount; d++) dotStr += ' .';
+    const availW = dotsEnd - dotsStart;
+    doc.fontSize(9).font('Helvetica').fillColor('#6b7280');
+    const unitW = doc.widthOfString('. ');
+    const count = Math.max(0, Math.floor((availW - doc.widthOfString('.')) / unitW));
+    let dotStr = '. '.repeat(count) + '.';
+    while (doc.widthOfString(dotStr + ' .') <= availW) {
+      dotStr += ' .';
+    }
 
-    doc.fontSize(9).fillColor('#6b7280')
-       .text(dotStr, dotsStart, lineY, { lineBreak: false });
+    doc.text(dotStr, dotsStart, curY, { lineBreak: false });
   }
 
+  // Page number
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-     .text(pageNumStr, endX - pageNumW, lineY);
+     .text(pageNumStr, endX - pageNumW, curY, { lineBreak: false });
 
-  doc.y = lineY + 22;
+  // Interactive link directing to target page (0-indexed)
+  if (typeof targetPage === 'number' && targetPage > 0 && targetPage <= doc.bufferedPageRange().count) {
+    doc.link(startX, curY - 3, endX - startX, 18, targetPage - 1);
+  }
+
+  return curY + 22;
 }
-
-renderTocLine('HALAMAN PENGESAHAN', 2);
-renderTocLine('DAFTAR ISI', 3);
-renderTocLine('1. LATAR BELAKANG', 4);
-renderTocLine('2. PELAKSANAAN PROGRAM', 4);
-renderTocLine('2.1 Multidisiplin', 4, true);
-renderTocLine('2.2 Sosial Kemasyarakatan', 4, true);
-renderTocLine('2.3 Program Lainnya', 4, true);
-renderTocLine('3. REALISASI JADWAL PELAKSANAAN', 5);
-renderTocLine('4. JENIS-JENIS LUARAN', 6);
-renderTocLine('LAMPIRAN 1 DOKUMENTASI PELAKSANAAN PROGRAM', 7);
-renderTocLine('LAMPIRAN 2 LUARAN KEGIATAN', 8);
 
 // ============================================================
 // PAGE 4+: BAB 1 LATAR BELAKANG & BAB 2 PELAKSANAAN PROGRAM (SWITCH TO LANDSCAPE)
@@ -399,6 +400,7 @@ doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text('2. PELAKSANAA
 doc.moveDown(0.4);
 
 // 2.1 MULTIDISIPLIN
+tocPageMap.multidisiplin = doc.bufferedPageRange().count;
 doc.fontSize(11).font('Helvetica-Bold').text('2.1 MULTIDISIPLIN');
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   'Tulis program multidisiplin yang telah dilaksanakan, setiap mahasiswa terlibat dalam 3 program multidisiplin.',
@@ -516,6 +518,7 @@ if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
+tocPageMap.sosmas = doc.bufferedPageRange().count;
 doc.fontSize(11).font('Helvetica-Bold').text('2.2 SOSIAL KEMASYARAKATAN');
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   'Tulis program sosial kemasyarakatan yang telah dilaksanakan, setiap mahasiswa memiliki 1 program sosial kemasyarakatan.',
@@ -593,6 +596,7 @@ if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
+tocPageMap.lainnya = doc.bufferedPageRange().count;
 doc.fontSize(11).font('Helvetica-Bold').text('2.3 PROGRAM LAINNYA');
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   'Tulis yang termasuk program lainnya yang telah dilaksanakan, tidak ada batasan jumlah dan jenis program pada bagian ini.',
@@ -815,6 +819,24 @@ drawTable(doc, {
   fontSize: 8,
   headerFontSize: 8.5
 });
+
+// ============================================================
+// TWO-PASS: DYNAMIC TABLE OF CONTENTS (Exact entries matching docs-source/lpk.pdf)
+// ============================================================
+doc.switchToPage(tocPageIndex);
+let curTocY = tocStartY;
+
+curTocY = renderTocLine('HALAMAN PENGESAHAN', tocPageMap.pengesahan, curTocY);
+curTocY = renderTocLine('DAFTAR ISI', tocPageMap.daftarIsi, curTocY);
+curTocY = renderTocLine('1. LATAR BELAKANG', tocPageMap.latarBelakang, curTocY);
+curTocY = renderTocLine('2. PELAKSANAAN PROGRAM', tocPageMap.pelaksanaanProgram, curTocY);
+curTocY = renderTocLine('2.1 Multidisiplin', tocPageMap.multidisiplin || tocPageMap.pelaksanaanProgram, curTocY, true);
+curTocY = renderTocLine('2.2 Sosial Kemasyarakatan', tocPageMap.sosmas || tocPageMap.pelaksanaanProgram, curTocY, true);
+curTocY = renderTocLine('2.3 Program Lainnya', tocPageMap.lainnya || tocPageMap.pelaksanaanProgram, curTocY, true);
+curTocY = renderTocLine('3. REALISASI JADWAL PELAKSANAAN', tocPageMap.realisasiJadwal, curTocY);
+curTocY = renderTocLine('4. JENIS-JENIS LUARAN', tocPageMap.luaran, curTocY);
+curTocY = renderTocLine('LAMPIRAN 1 DOKUMENTASI PELAKSANAAN PROGRAM', tocPageMap.lampiranDokumentasi, curTocY);
+curTocY = renderTocLine('LAMPIRAN 2 LUARAN KEGIATAN', tocPageMap.lampiranLuaran, curTocY);
 
 // ============================================================
 // TWO-PASS NUMBERING & DYNAMIC FOOTERS

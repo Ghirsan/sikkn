@@ -137,7 +137,10 @@ class PdfGenerationTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
         $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
-        $this->assertNotEmpty($response->getContent());
+        $content = (string) $response->getContent();
+        $this->assertNotEmpty($content);
+        $this->assertStringContainsString('/Subtype /Link', $content);
+        $this->assertStringContainsString('/S /GoTo', $content);
     }
 
     public function test_authenticated_user_can_download_lpk_pdf(): void
@@ -149,7 +152,10 @@ class PdfGenerationTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
         $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
-        $this->assertNotEmpty($response->getContent());
+        $content = (string) $response->getContent();
+        $this->assertNotEmpty($content);
+        $this->assertStringContainsString('/Subtype /Link', $content);
+        $this->assertStringContainsString('/S /GoTo', $content);
     }
 
     public function test_authenticated_user_can_preview_lpk_pdf(): void
@@ -161,7 +167,10 @@ class PdfGenerationTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
         $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
-        $this->assertNotEmpty($response->getContent());
+        $content = (string) $response->getContent();
+        $this->assertNotEmpty($content);
+        $this->assertStringContainsString('/Subtype /Link', $content);
+        $this->assertStringContainsString('/S /GoTo', $content);
     }
 
     public function test_authenticated_user_can_download_logbook_pdf(): void

@@ -83,4 +83,3 @@ class UserPolicy
         return false;
     }
 }
-
