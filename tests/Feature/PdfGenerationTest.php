@@ -367,6 +367,17 @@ class PdfGenerationTest extends TestCase
             'achievement' => 'Membantu pembuatan 10 unit komposter skala rumah tangga.',
         ]);
 
+        $group->update([
+            'storyboard_scenes' => [
+                ['scene' => 'Scene 1', 'image_url' => '', 'visual' => 'Opening lanskap persawahan desa'],
+                ['scene' => 'Scene 2', 'image_url' => '', 'visual' => 'Wawancara dengan perangkat desa'],
+            ],
+            'video_script_scenes' => [
+                ['scene' => 'Scene 1', 'visual' => 'Lanskap desa pagi hari', 'audio' => 'Selamat datang di Desa Sukamaju', 'duration' => '15s'],
+                ['scene' => 'Scene 2', 'visual' => 'Warga memanen padi', 'audio' => 'Potensi pertanian menjadi tulang punggung', 'duration' => '20s'],
+            ],
+        ]);
+
         $response = $this->actingAs($student)->get(URL::signedRoute('lpk.pdf', $group));
 
         $response->assertOk();

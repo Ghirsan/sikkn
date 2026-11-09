@@ -45,9 +45,11 @@ class LpkPdfController extends Controller
 
         // Build calendar structure
         $calendar = [];
-        if ($period && $period->start_date && $period->end_date) {
-            $startDate = $period->start_date->copy()->startOfWeek(Carbon::MONDAY);
-            $endDate = $period->end_date->copy()->endOfWeek(Carbon::SUNDAY);
+        $effectiveStart = $group->effective_start_date;
+        $effectiveEnd = $group->effective_end_date;
+        if ($effectiveStart && $effectiveEnd) {
+            $startDate = Carbon::parse($effectiveStart)->startOfWeek(Carbon::MONDAY);
+            $endDate = Carbon::parse($effectiveEnd)->endOfWeek(Carbon::SUNDAY);
 
             $eventsByDate = $group->scheduleEvents->groupBy(function ($e) {
                 return $e->date->format('Y-m-d');
@@ -75,7 +77,7 @@ class LpkPdfController extends Controller
                 $calendar[$week][] = [
                     'date' => $currentDate->format('Y-m-d'),
                     'day' => $currentDate->day,
-                    'in_period' => $currentDate->between($period->start_date, $period->end_date),
+                    'in_period' => $currentDate->between($effectiveStart, $effectiveEnd),
                     'events' => ($eventsByDate[$dateStr] ?? collect())->map(fn ($e) => ['title' => $e->title])->values()->all(),
                     'programs' => collect($programsByDate[$dateStr] ?? [])->map(fn ($p) => [
                         'code' => $p->participant_code ?? '',
@@ -101,31 +103,119 @@ class LpkPdfController extends Controller
         $sosialKemasyarakatan = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'sosial_kemasyarakatan')->values();
         $lainnya = $approvedParticipants->filter(fn ($p) => $p->program->programType?->code === 'lainnya')->values();
 
+        // Build dynamic legend for calendar codes
+        $legend = $approvedParticipants->filter(fn ($p) => ! empty($p->participant_code))
+            ->map(fn ($p) => [
+                'code' => $p->participant_code,
+                'student_name' => $p->student?->name,
+                'program_title' => $p->participant_title ?: ($p->program?->title ?? ''),
+                'type_label' => match ($p->program?->programType?->code) {
+                    'multidisiplin' => 'Multidisiplin',
+                    'sosial_kemasyarakatan' => 'Sosial Kemasyarakatan',
+                    'lainnya' => 'Lainnya',
+                    default => 'Program',
+                },
+            ])
+            ->unique('code')
+            ->sortBy('code')
+            ->values()
+            ->all();
+
+        // Helper to determine Saintek vs Soshum by NIM
+        $isSaintek = function ($student) {
+            if ($student && method_exists($student, 'isSaintek')) {
+                return $student->isSaintek();
+            }
+            $nim = (string) ($student?->nim ?? '');
+            if (str_starts_with($nim, '4003') || str_starts_with($nim, '4004')) {
+                return true;
+            }
+            if (str_starts_with($nim, '4001')) {
+                return false;
+            }
+            if (str_starts_with($nim, '2')) {
+                return true;
+            }
+
+            return false;
+        };
+
         $logoPath = public_path('images/logo-undip.png');
+
+        $storyboardScenes = collect(! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes())
+            ->map(function ($s, $idx) {
+                $imageUrl = $s['image_url'] ?? '';
+                $imgBase64 = null;
+                if (! empty($imageUrl)) {
+                    try {
+                        $imgBase64 = $this->imageResolver->resolve($imageUrl);
+                    } catch (\Throwable) {
+                        $imgBase64 = null;
+                    }
+                }
+
+                return [
+                    'scene' => 'Scene '.($idx + 1),
+                    'image_url' => $imageUrl,
+                    'image_base64' => $imgBase64,
+                    'visual' => $s['visual'] ?? '',
+                ];
+            })->values()->all();
+
+        $videoScriptScenes = collect(! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes())
+            ->map(function ($s, $idx) {
+                return [
+                    'scene' => 'Scene '.($idx + 1),
+                    'visual' => $s['visual'] ?? '',
+                    'audio' => $s['audio'] ?? '',
+                    'duration' => $s['duration'] ?? '',
+                ];
+            })->values()->all();
 
         // Extract outputs
         $outputs = collect();
         foreach ($approvedParticipants as $participant) {
-            foreach ($participant->outputs as $out) {
+            if ($participant->outputs->isNotEmpty()) {
+                foreach ($participant->outputs as $out) {
+                    $outputs->push([
+                        'code' => $participant->participant_code ?: 'LUARAN',
+                        'program_title' => $participant->participant_title ?: ($participant->program?->title ?? '-'),
+                        'student_name' => $participant->student?->name ?? '-',
+                        'type' => $out->output_type ?? 'Dokumen / Media',
+                        'url' => $out->url ?? '-',
+                    ]);
+                }
+            } elseif ($participant->participant_code) {
                 $outputs->push([
-                    'code' => $participant->participant_code ?: 'LUARAN',
+                    'code' => $participant->participant_code,
                     'program_title' => $participant->participant_title ?: ($participant->program?->title ?? '-'),
                     'student_name' => $participant->student?->name ?? '-',
-                    'type' => $out->output_type ?? 'Dokumen / Media',
-                    'url' => $out->url ?? '-',
+                    'type' => $participant->output_target ?: 'Laporan / Luaran Program',
+                    'url' => '-',
                 ]);
             }
         }
+        $outputs = $outputs->sortBy('code')->values();
 
         // Extract documentation
         $documentation = collect();
         foreach ($approvedParticipants as $participant) {
             if ($participant->documentation_image_path || $participant->documentation_caption) {
+                $imgBase64 = null;
+                if (! empty($participant->documentation_image_path)) {
+                    try {
+                        $imgBase64 = $this->imageResolver->resolve($participant->documentation_image_path);
+                    } catch (\Throwable) {
+                        $imgBase64 = null;
+                    }
+                }
+
                 $documentation->push([
                     'title' => $participant->participant_title ?: ($participant->program?->title ?? 'Dokumentasi Program'),
                     'student_name' => $participant->student?->name ?? '-',
                     'caption' => $participant->documentation_caption,
                     'image_url' => $participant->documentation_image_path,
+                    'image_base64' => $imgBase64,
                 ]);
             }
         }
@@ -144,6 +234,13 @@ class LpkPdfController extends Controller
                 'village_head' => $group->village_head,
                 'background' => $group->background,
                 'lpk_background' => $group->lpk_background ?? $group->background,
+                'program_multidisiplin_text' => $group->program_multidisiplin_text,
+                'program_sosmas_text' => $group->program_sosmas_text,
+                'program_lainnya_text' => $group->program_lainnya_text,
+                'storyboard_text' => $group->storyboard_text,
+                'storyboard_scenes' => $storyboardScenes,
+                'video_script_text' => $group->video_script_text,
+                'video_script_scenes' => $videoScriptScenes,
             ],
             'period' => [
                 'semester' => $period?->semester?->value,
@@ -190,6 +287,7 @@ class LpkPdfController extends Controller
                 'achievement' => $p->achievement,
                 'output_code' => $p->participant_code,
                 'is_initiator' => ($p->program?->student_id === $p->student_id),
+                'is_saintek' => $isSaintek($p->student),
             ])->values()->all(),
             'lainnya' => $lainnya->map(fn ($p) => [
                 'program_id' => $p->program_id,
@@ -205,8 +303,10 @@ class LpkPdfController extends Controller
                 'achievement' => $p->achievement,
                 'output_code' => $p->participant_code,
                 'is_initiator' => ($p->program?->student_id === $p->student_id),
+                'is_saintek' => $isSaintek($p->student),
             ])->values()->all(),
             'calendar' => $calendar,
+            'legend' => $legend,
             'outputs' => $outputs->values()->all(),
             'documentation' => $documentation->values()->all(),
         ];
