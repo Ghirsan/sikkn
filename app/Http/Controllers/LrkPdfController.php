@@ -41,9 +41,11 @@ class LrkPdfController extends Controller
 
         // Build calendar structure
         $calendar = [];
-        if ($period && $period->start_date && $period->end_date) {
-            $startDate = $period->start_date->copy()->startOfWeek(Carbon::MONDAY);
-            $endDate = $period->end_date->copy()->endOfWeek(Carbon::SUNDAY);
+        $effectiveStart = $group->effective_start_date;
+        $effectiveEnd = $group->effective_end_date;
+        if ($effectiveStart && $effectiveEnd) {
+            $startDate = Carbon::parse($effectiveStart)->startOfWeek(Carbon::MONDAY);
+            $endDate = Carbon::parse($effectiveEnd)->endOfWeek(Carbon::SUNDAY);
 
             $eventsByDate = $group->scheduleEvents->groupBy(function ($e) {
                 return $e->date->format('Y-m-d');
@@ -71,7 +73,7 @@ class LrkPdfController extends Controller
                 $calendar[$week][] = [
                     'date' => $currentDate->format('Y-m-d'),
                     'day' => $currentDate->day,
-                    'in_period' => $currentDate->between($period->start_date, $period->end_date),
+                    'in_period' => $currentDate->between($effectiveStart, $effectiveEnd),
                     'events' => ($eventsByDate[$dateStr] ?? collect())->map(fn ($e) => ['title' => $e->title])->values()->all(),
                     'programs' => collect($programsByDate[$dateStr] ?? [])->map(fn ($p) => [
                         'code' => $p->participant_code ?? '',
@@ -161,7 +163,9 @@ class LrkPdfController extends Controller
                 'storyboard_scenes' => ! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes(),
                 'video_script_text' => $group->video_script_text,
                 'video_script_scenes' => ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes(),
-                'macro_schedules' => ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules(),
+                'weeks_count' => $group->getWeeksCount(),
+                'week_keys' => $group->getWeekKeys(),
+                'macro_schedules' => ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules($group->getWeeksCount()),
                 'survey_documentation_text' => $group->survey_documentation_text,
                 'location_map_text' => $group->location_map_text,
             ],

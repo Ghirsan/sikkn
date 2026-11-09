@@ -823,36 +823,54 @@ doc.fontSize(9.5).font('Helvetica-Bold')
   .text('Tabel 7. Rencana Umum Kegiatan', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
+const rawSched = group.macro_schedules || [];
+const weeksCount = group.weeks_count || (group.week_keys ? group.week_keys.length : (
+  Array.isArray(rawSched) && rawSched.length > 0
+    ? Object.keys(rawSched[0]).filter(k => /^m\d+$/i.test(k)).length || 6
+    : 6
+));
+const weekKeys = group.week_keys || Array.from({ length: weeksCount }, (_, i) => `m${i + 1}`);
+
+const totalAvailableW = 761;
+const noColW = 35;
+const weekColW = Math.min(60, Math.max(30, Math.floor(360 / Math.max(1, weekKeys.length))));
+const kegiatanColW = totalAvailableW - noColW - (weekColW * weekKeys.length);
+
 const schedCols = [
-  { key: 'no', label: 'No', width: 35, align: 'center' },
-  { key: 'kegiatan', label: 'Kegiatan', width: 366, align: 'left' },
-  { key: 'm1', label: '1', width: 60, align: 'center' },
-  { key: 'm2', label: '2', width: 60, align: 'center' },
-  { key: 'm3', label: '3', width: 60, align: 'center' },
-  { key: 'm4', label: '4', width: 60, align: 'center' },
-  { key: 'm5', label: '5', width: 60, align: 'center' },
-  { key: 'm6', label: '6', width: 60, align: 'center' }
+  { key: 'no', label: 'No', width: noColW, align: 'center' },
+  { key: 'kegiatan', label: 'Kegiatan', width: kegiatanColW, align: 'left' },
+  ...weekKeys.map((wKey, i) => ({
+    key: wKey,
+    label: `${i + 1}`,
+    width: weekColW,
+    align: 'center'
+  }))
 ];
 
-const rawSched = group.macro_schedules || [];
 const schedRows = (Array.isArray(rawSched) && rawSched.length > 0)
-  ? rawSched.map((item, idx) => ({
-    no: `${idx + 1}.`,
-    kegiatan: item.kegiatan || '-',
-    m1: item.m1 ? 'v' : '',
-    m2: item.m2 ? 'v' : '',
-    m3: item.m3 ? 'v' : '',
-    m4: item.m4 ? 'v' : '',
-    m5: item.m5 ? 'v' : '',
-    m6: item.m6 ? 'v' : ''
-  }))
+  ? rawSched.map((item, idx) => {
+    const row = {
+      no: `${idx + 1}.`,
+      kegiatan: item.kegiatan || '-'
+    };
+    weekKeys.forEach(wKey => {
+      row[wKey] = item[wKey] ? 'v' : '';
+    });
+    return row;
+  })
   : [
-    { no: '1.', kegiatan: 'Survey Pendahuluan', m1: 'v', m2: '', m3: '', m4: '', m5: '', m6: '' },
-    { no: '2.', kegiatan: 'Penyusunan Proposal / LRK', m1: 'v', m2: 'v', m3: '', m4: '', m5: '', m6: '' },
-    { no: '3.', kegiatan: 'Pelaksanaan Program Kegiatan KKN', m1: '', m2: 'v', m3: 'v', m4: 'v', m5: 'v', m6: '' },
-    { no: '4.', kegiatan: 'Pelaporan & Penyusunan LPK', m1: '', m2: '', m3: '', m4: '', m5: 'v', m6: 'v' },
-    { no: '5.', kegiatan: 'Monev & Gelar Karya', m1: '', m2: '', m3: '', m4: 'v', m5: 'v', m6: '' }
-  ];
+    { no: '1.', kegiatan: 'Survey Pendahuluan', m1: 'v' },
+    { no: '2.', kegiatan: 'Penyusunan Proposal / LRK', m1: 'v', m2: 'v' },
+    { no: '3.', kegiatan: 'Pelaksanaan Program Kegiatan KKN', m2: 'v' },
+    { no: '4.', kegiatan: 'Pelaporan & Penyusunan LPK' },
+    { no: '5.', kegiatan: 'Monev & Gelar Karya' }
+  ].map(item => {
+    const row = { no: item.no, kegiatan: item.kegiatan };
+    weekKeys.forEach(wKey => {
+      row[wKey] = item[wKey] ? 'v' : '';
+    });
+    return row;
+  });
 
 drawTable(doc, {
   columns: schedCols,

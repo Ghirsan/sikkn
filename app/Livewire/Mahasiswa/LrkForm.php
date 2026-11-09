@@ -30,6 +30,8 @@ class LrkForm extends Component
 
     public array $macro_schedules = [];
 
+    public array $weekKeys = [];
+
     public string $survey_documentation_text = '';
 
     public string $location_map_text = '';
@@ -95,7 +97,16 @@ class LrkForm extends Component
         $this->storyboard_scenes = ! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes();
         $this->video_script_text = $group->video_script_text ?? '';
         $this->video_script_scenes = ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes();
-        $this->macro_schedules = ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules();
+        $this->weekKeys = $group->getWeekKeys();
+        $this->macro_schedules = ! empty($group->macro_schedules) ? $group->macro_schedules : Group::defaultMacroSchedules($group->getWeeksCount());
+        foreach ($this->macro_schedules as &$row) {
+            foreach ($this->weekKeys as $wKey) {
+                if (! isset($row[$wKey])) {
+                    $row[$wKey] = false;
+                }
+            }
+        }
+        unset($row);
         $this->survey_documentation_text = $group->survey_documentation_text ?? '';
         $this->location_map_text = $group->location_map_text ?? '';
 
@@ -322,16 +333,14 @@ class LrkForm extends Component
 
     public function addMacroSchedule(): void
     {
-        $this->macro_schedules[] = [
+        $newRow = [
             'no' => count($this->macro_schedules) + 1,
             'kegiatan' => '',
-            'm1' => false,
-            'm2' => false,
-            'm3' => false,
-            'm4' => false,
-            'm5' => false,
-            'm6' => false,
         ];
+        foreach ($this->weekKeys as $wKey) {
+            $newRow[$wKey] = false;
+        }
+        $this->macro_schedules[] = $newRow;
     }
 
     public function removeMacroSchedule(int $index): void

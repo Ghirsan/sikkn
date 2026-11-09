@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Group extends Model
 {
@@ -69,14 +70,74 @@ class Group extends Model
         ];
     }
 
-    public static function defaultMacroSchedules(): array
+    public function getWeeksCount(): int
     {
+        $start = $this->effective_start_date;
+        $end = $this->effective_end_date;
+
+        if (! $start || ! $end) {
+            return 6;
+        }
+
+        $startDate = Carbon::parse($start)->startOfWeek(Carbon::MONDAY);
+        $endDate = Carbon::parse($end)->endOfWeek(Carbon::SUNDAY);
+
+        if ($endDate->lt($startDate)) {
+            return 6;
+        }
+
+        $days = $startDate->diffInDays($endDate) + 1;
+        $weeks = (int) round($days / 7);
+
+        return max(1, min(16, $weeks));
+    }
+
+    public function getWeekKeys(): array
+    {
+        $count = $this->getWeeksCount();
+        $keys = [];
+        for ($i = 1; $i <= $count; $i++) {
+            $keys[] = 'm'.$i;
+        }
+
+        return $keys;
+    }
+
+    public static function defaultMacroSchedules(?int $weeksCount = 6): array
+    {
+        $weeksCount = max(1, $weeksCount ?? 6);
+
+        $makeRow = function (int $no, string $kegiatan, array $activeWeeks) use ($weeksCount) {
+            $row = [
+                'no' => $no,
+                'kegiatan' => $kegiatan,
+            ];
+            for ($w = 1; $w <= $weeksCount; $w++) {
+                $row['m'.$w] = in_array($w, $activeWeeks, true);
+            }
+
+            return $row;
+        };
+
+        $surveyWeeks = [1];
+        $lrkWeeks = $weeksCount >= 2 ? [1, 2] : [1];
+
+        if ($weeksCount <= 2) {
+            $pelaksanaanWeeks = range(1, $weeksCount);
+            $lpkWeeks = [$weeksCount];
+            $monevWeeks = [$weeksCount];
+        } else {
+            $pelaksanaanWeeks = range(2, max(2, $weeksCount - 1));
+            $lpkWeeks = [$weeksCount - 1, $weeksCount];
+            $monevWeeks = range(max(2, $weeksCount - 2), max(2, $weeksCount - 1));
+        }
+
         return [
-            ['no' => 1, 'kegiatan' => 'Survey Pendahuluan', 'm1' => true, 'm2' => false, 'm3' => false, 'm4' => false, 'm5' => false, 'm6' => false],
-            ['no' => 2, 'kegiatan' => 'Penyusunan Proposal / LRK', 'm1' => true, 'm2' => true, 'm3' => false, 'm4' => false, 'm5' => false, 'm6' => false],
-            ['no' => 3, 'kegiatan' => 'Pelaksanaan Program Kegiatan KKN', 'm1' => false, 'm2' => true, 'm3' => true, 'm4' => true, 'm5' => true, 'm6' => false],
-            ['no' => 4, 'kegiatan' => 'Pelaporan & Penyusunan LPK', 'm1' => false, 'm2' => false, 'm3' => false, 'm4' => false, 'm5' => true, 'm6' => true],
-            ['no' => 5, 'kegiatan' => 'Monev & Gelar Karya', 'm1' => false, 'm2' => false, 'm3' => false, 'm4' => true, 'm5' => true, 'm6' => false],
+            $makeRow(1, 'Survey Pendahuluan', $surveyWeeks),
+            $makeRow(2, 'Penyusunan Proposal / LRK', $lrkWeeks),
+            $makeRow(3, 'Pelaksanaan Program Kegiatan KKN', $pelaksanaanWeeks),
+            $makeRow(4, 'Pelaporan & Penyusunan LPK', $lpkWeeks),
+            $makeRow(5, 'Monev & Gelar Karya', $monevWeeks),
         ];
     }
 

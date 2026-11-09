@@ -267,6 +267,53 @@ class LrkFormTest extends TestCase
         $this->assertTrue($group->macro_schedules[5]['m1']);
     }
 
+    public function test_lrk_form_adapts_macro_schedule_weeks_to_kkn_period(): void
+    {
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-06-28', // Exactly 4 weeks (28 days, Mon-Sun)
+        ]);
+
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 4 Minggu',
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-06-28',
+        ]);
+
+        $leader = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+            'name' => 'Ketua Kelompok 4 Minggu',
+        ]);
+
+        $group->update(['student_leader_id' => $leader->id]);
+
+        $this->assertEquals(4, $group->getWeeksCount());
+        $this->assertEquals(['m1', 'm2', 'm3', 'm4'], $group->getWeekKeys());
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertSet('weekKeys', ['m1', 'm2', 'm3', 'm4'])
+            ->assertCount('macro_schedules', 5)
+            ->call('addMacroSchedule')
+            ->assertCount('macro_schedules', 6)
+            ->assertSet('macro_schedules.5.m1', false)
+            ->assertSet('macro_schedules.5.m2', false)
+            ->assertSet('macro_schedules.5.m3', false)
+            ->assertSet('macro_schedules.5.m4', false)
+            ->set('macro_schedules.5.kegiatan', 'Kegiatan Minggu Ke-4')
+            ->set('macro_schedules.5.m4', true)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $group->refresh();
+        $this->assertCount(6, $group->macro_schedules);
+        $this->assertTrue($group->macro_schedules[5]['m4']);
+        $this->assertFalse($group->macro_schedules[5]['m1']);
+    }
+
     public function test_lrk_form_cannot_submit_when_document_not_ready(): void
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
