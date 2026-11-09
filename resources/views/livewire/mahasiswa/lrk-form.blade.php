@@ -145,17 +145,15 @@
         <div class="space-y-6">
             <div>
                 <flux:heading size="md" class="mb-1">{{ __('Storyboard Video Profil (Multidisiplin 3)') }}</flux:heading>
-                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Rincian visual, audio/narasi, dan estimasi durasi per adegan video profil desa.') }}</flux:text>
+                <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Rincian visual dan sketsa gambar per adegan video profil desa.') }}</flux:text>
 
                 <div class="space-y-3">
                     <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-white/10">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-white/10 text-xs font-semibold uppercase text-zinc-600 dark:text-zinc-300">
                                 <tr>
-                                    <th class="p-3 w-28">{{ __('Scene/Shot') }}</th>
+                                    <th class="p-3 w-80">{{ __('Scene & Sketsa Visual') }}</th>
                                     <th class="p-3">{{ __('Deskripsi Visual / Framing') }}</th>
-                                    <th class="p-3">{{ __('Audio / Backsound') }}</th>
-                                    <th class="p-3 w-28">{{ __('Durasi') }}</th>
                                     @if($canEdit)
                                         <th class="p-3 w-12 text-center">{{ __('Aksi') }}</th>
                                     @endif
@@ -163,29 +161,49 @@
                             </thead>
                             <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
                                 @forelse($storyboard_scenes as $index => $scene)
-                                    <tr class="align-top">
-                                        <td class="p-2">
-                                            <flux:input wire:model="storyboard_scenes.{{ $index }}.scene" :disabled="!$canEdit" placeholder="1 / Shot 1" />
+                                    <tr class="align-top hover:bg-zinc-50/50 dark:hover:bg-white/5">
+                                        <td class="p-3">
+                                            <div class="space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                    <flux:badge size="sm" color="zinc" class="font-bold">Scene {{ $index + 1 }}</flux:badge>
+                                                </div>
+
+                                                @php
+                                                    $preview = $this->getStoryboardPreviewUrl($scene['image_url'] ?? '');
+                                                @endphp
+
+                                                @if($preview)
+                                                    <div class="relative w-full h-36 bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden border border-zinc-200 dark:border-white/10 flex items-center justify-center">
+                                                        <img src="{{ $preview }}" alt="Preview Scene {{ $index + 1 }}" class="w-full h-full object-cover" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+                                                        <div style="display:none;" class="flex-col items-center justify-center text-zinc-400 text-xs p-2 text-center">
+                                                            <flux:icon.photo class="w-6 h-6 mb-1 text-zinc-400" />
+                                                            <span>{{ __('Gagal memuat gambar') }}</span>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="w-full h-36 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-dashed border-zinc-200 dark:border-white/10 flex flex-col items-center justify-center text-zinc-400 text-xs p-2 text-center">
+                                                        <flux:icon.photo class="w-6 h-6 mb-1 text-zinc-300 dark:text-zinc-600" />
+                                                        <span>{{ __('Pratinjau gambar akan tampil di sini') }}</span>
+                                                    </div>
+                                                @endif
+
+                                                <flux:input wire:model.live.debounce.500ms="storyboard_scenes.{{ $index }}.image_url" placeholder="https://drive.google.com/... atau link gambar" :disabled="!$canEdit" size="sm" />
+                                            </div>
                                         </td>
-                                        <td class="p-2">
-                                            <flux:textarea wire:model="storyboard_scenes.{{ $index }}.visual" rows="2" :disabled="!$canEdit" placeholder="Deskripsi gambar visual..." />
-                                        </td>
-                                        <td class="p-2">
-                                            <flux:textarea wire:model="storyboard_scenes.{{ $index }}.audio" rows="2" :disabled="!$canEdit" placeholder="Musik / narasi / efek..." />
-                                        </td>
-                                        <td class="p-2">
-                                            <flux:input wire:model="storyboard_scenes.{{ $index }}.duration" :disabled="!$canEdit" placeholder="10s" />
+                                        <td class="p-3">
+                                            <flux:textarea wire:model="storyboard_scenes.{{ $index }}.visual" rows="6" :disabled="!$canEdit" placeholder="{{ __('Tuliskan detail aksi visual, objek, pergerakan talent, framing kamera (misal: Wide Shot, Close Up), dan suasana adegan...') }}" />
                                         </td>
                                         @if($canEdit)
-                                            <td class="p-2 text-center">
-                                                <flux:button type="button" wire:click="removeStoryboardScene({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" />
+                                            <td class="p-3 text-center align-middle">
+                                                <flux:button type="button" wire:click="removeStoryboardScene({{ $index }})" variant="ghost" size="sm" icon="trash" class="text-rose-500 hover:text-rose-700" title="{{ __('Hapus adegan') }}" />
                                             </td>
                                         @endif
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $canEdit ? 5 : 4 }}" class="p-4 text-center text-zinc-500 text-xs">
-                                            {{ __('Belum ada adegan storyboard.') }}
+                                        <td colspan="{{ $canEdit ? 3 : 2 }}" class="p-6 text-center text-zinc-500 text-xs">
+                                            <flux:icon.photo class="w-8 h-8 mx-auto mb-2 text-zinc-300 dark:text-zinc-600" />
+                                            {{ __('Belum ada adegan storyboard. Klik "Tambah Adegan Storyboard" untuk mulai menambahkan panel.') }}
                                         </td>
                                     </tr>
                                 @endforelse

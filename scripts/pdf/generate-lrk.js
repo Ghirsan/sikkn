@@ -228,7 +228,7 @@ doc.fontSize(13).text(`KULIAH KERJA NYATA ${semesterLabel} TA ${academicYear}`, 
 
 if (group.partner_name) {
   doc.moveDown(0.4);
-  doc.fontSize(11).font('Helvetica-Bold').text(`[${String(group.partner_name).toUpperCase()}]`, { align: 'center' });
+  doc.fontSize(11).font('Helvetica-Bold').text(`${String(group.partner_name).toUpperCase()}`, { align: 'center' });
 }
 
 doc.moveDown(1.2);
@@ -532,29 +532,119 @@ doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Rencana Story Board :', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
+if (group.storyboard_text && group.storyboard_text.trim()) {
+  doc.font('Helvetica').fontSize(8.5).fillColor('#374151').text(
+    group.storyboard_text.trim(),
+    landMarginLeft,
+    doc.y,
+    { width: landContentW, lineGap: 2 }
+  );
+  doc.moveDown(0.4);
+}
+
 const sbScenes = group.storyboard_scenes || [];
 if (Array.isArray(sbScenes) && sbScenes.length > 0) {
-  const sbCols = [
-    { key: 'scene', label: 'Scene/Shot', width: 65, align: 'center' },
-    { key: 'visual', label: 'Deskripsi Visual / Framing', width: 330, align: 'left' },
-    { key: 'audio', label: 'Audio / Backsound', width: 286, align: 'left' },
-    { key: 'duration', label: 'Durasi', width: 80, align: 'center' }
-  ];
-  const sbRows = sbScenes.map((s, idx) => ({
-    scene: s.scene || String(idx + 1),
-    visual: s.visual || '-',
-    audio: s.audio || '-',
-    duration: s.duration || '-'
-  }));
-  drawTable(doc, {
-    columns: sbCols,
-    rows: sbRows,
-    fontSize: 7.5,
-    headerFontSize: 8
+  const col1W = 250;
+  const col2W = landContentW - col1W; // 511 pt
+  const headerH = 18;
+  const padding = 6;
+  const cellInnerW = col1W - (padding * 2);
+
+  const renderSbHeader = (y) => {
+    doc.rect(landMarginLeft, y, landContentW, headerH).fillColor('#d9d9d9').fill();
+    doc.rect(landMarginLeft, y, col1W, headerH).strokeColor('#000000').lineWidth(0.5).stroke();
+    doc.rect(landMarginLeft + col1W, y, col2W, headerH).strokeColor('#000000').lineWidth(0.5).stroke();
+
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000');
+    doc.text('Scene / Sketsa Visual', landMarginLeft + padding, y + 5, { width: cellInnerW, align: 'center' });
+    doc.text('Deskripsi Visual / Framing', landMarginLeft + col1W + padding, y + 5, { width: col2W - (padding * 2), align: 'left' });
+  };
+
+  if (doc.y + 60 > doc.page.height - doc.page.margins.bottom) {
+    addLandscapePage();
+  }
+
+  let curY = doc.y;
+  renderSbHeader(curY);
+  curY += headerH;
+
+  sbScenes.forEach((s, idx) => {
+    const sceneLabel = s.scene || `Scene ${idx + 1}`;
+    const visualText = s.visual || '-';
+
+    // Calculate Col 1 height
+    let imgObj = null;
+    let renderW = 0;
+    let renderH = 0;
+
+    if (s.image_base64 && typeof s.image_base64 === 'string' && s.image_base64.includes('base64,')) {
+      try {
+        const b64Data = s.image_base64.split('base64,')[1];
+        const imgBuf = Buffer.from(b64Data, 'base64');
+        imgObj = doc.openImage(imgBuf);
+
+        const maxImgW = cellInnerW;
+        const maxImgH = 110;
+        const scale = Math.min(maxImgW / imgObj.width, maxImgH / imgObj.height);
+        renderW = Math.round(imgObj.width * scale);
+        renderH = Math.round(imgObj.height * scale);
+      } catch (e) {
+        imgObj = null;
+      }
+    }
+
+    const col1ContentH = imgObj ? (16 + 4 + renderH + 6) : (16 + 4 + 38 + 6);
+
+    // Calculate Col 2 height
+    doc.fontSize(8).font('Helvetica');
+    const col2TextH = doc.heightOfString(visualText, { width: col2W - (padding * 2), lineGap: 2.5 });
+    const col2ContentH = col2TextH + (padding * 2);
+
+    const rowH = Math.max(col1ContentH, col2ContentH, 65);
+
+    // Check page break
+    if (curY + rowH > doc.page.height - doc.page.margins.bottom) {
+      addLandscapePage();
+      curY = doc.page.margins.top;
+      renderSbHeader(curY);
+      curY += headerH;
+    }
+
+    // Draw borders
+    doc.rect(landMarginLeft, curY, col1W, rowH).strokeColor('#000000').lineWidth(0.5).stroke();
+    doc.rect(landMarginLeft + col1W, curY, col2W, rowH).strokeColor('#000000').lineWidth(0.5).stroke();
+
+    // Render Col 1: Scene label & Image/Placeholder
+    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
+      .text(sceneLabel, landMarginLeft + padding, curY + padding, { width: cellInnerW, align: 'center' });
+
+    const contentTopY = curY + padding + 14;
+    if (imgObj) {
+      const imgX = landMarginLeft + padding + Math.round((cellInnerW - renderW) / 2);
+      doc.image(imgObj, imgX, contentTopY, { width: renderW, height: renderH });
+      doc.rect(imgX, contentTopY, renderW, renderH).strokeColor('#9ca3af').lineWidth(0.5).stroke();
+    } else {
+      const phH = 36;
+      doc.rect(landMarginLeft + padding, contentTopY, cellInnerW, phH).fillColor('#f9fafb').strokeColor('#d1d5db').lineWidth(0.5).fillAndStroke();
+      doc.fontSize(7.5).font('Helvetica-Oblique').fillColor('#6b7280')
+        .text('(Sketsa gambar belum dilampirkan)', landMarginLeft + padding, contentTopY + 12, { width: cellInnerW, align: 'center' });
+    }
+
+    // Render Col 2: Visual description
+    doc.fontSize(8).font('Helvetica').fillColor('#000000')
+      .text(visualText, landMarginLeft + col1W + padding, curY + padding, {
+        width: col2W - (padding * 2),
+        lineGap: 2.5
+      });
+
+    curY += rowH;
   });
+
+  doc.y = curY;
+  doc.x = landMarginLeft;
 } else {
-  doc.font('Helvetica').fontSize(8).text(
-    group.storyboard_text || '- Pengambilan video sambutan Kepala Desa\n- Dokumentasi potensi alam, budaya, dan UMKM desa',
+  doc.font('Helvetica-Oblique').fontSize(8.5).fillColor('#6b7280').text(
+    group.storyboard_text || 'Belum ada adegan storyboard yang ditambahkan.',
     landMarginLeft,
     doc.y,
     { width: landContentW }

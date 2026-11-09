@@ -95,6 +95,16 @@ class LrkForm extends Component
         $this->program_lainnya_text = $group->program_lainnya_text ?? '';
         $this->storyboard_text = $group->storyboard_text ?? '';
         $this->storyboard_scenes = ! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes();
+        foreach ($this->storyboard_scenes as $idx => &$scene) {
+            $scene['scene'] = 'Scene '.($idx + 1);
+            if (! isset($scene['image_url'])) {
+                $scene['image_url'] = '';
+            }
+            if (! isset($scene['visual'])) {
+                $scene['visual'] = '';
+            }
+        }
+        unset($scene);
         $this->video_script_text = $group->video_script_text ?? '';
         $this->video_script_scenes = ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes();
         $this->weekKeys = $group->getWeekKeys();
@@ -300,13 +310,30 @@ class LrkForm extends Component
         Flux::toast(variant: 'success', heading: 'Tersimpan', text: 'Data laporan LRK berhasil disimpan.');
     }
 
+    public function getStoryboardPreviewUrl(?string $url): ?string
+    {
+        if (blank($url)) {
+            return null;
+        }
+
+        try {
+            return app(ExternalImagePreviewUrl::class)->resolve($url);
+        } catch (\Throwable) {
+            if (filter_var($url, FILTER_VALIDATE_URL)) {
+                return $url;
+            }
+
+            return null;
+        }
+    }
+
     public function addStoryboardScene(): void
     {
+        $count = count($this->storyboard_scenes);
         $this->storyboard_scenes[] = [
-            'scene' => (string) (count($this->storyboard_scenes) + 1),
+            'scene' => 'Scene '.($count + 1),
+            'image_url' => '',
             'visual' => '',
-            'audio' => '',
-            'duration' => '10s',
         ];
     }
 
@@ -314,6 +341,10 @@ class LrkForm extends Component
     {
         unset($this->storyboard_scenes[$index]);
         $this->storyboard_scenes = array_values($this->storyboard_scenes);
+        foreach ($this->storyboard_scenes as $idx => &$scene) {
+            $scene['scene'] = 'Scene '.($idx + 1);
+        }
+        unset($scene);
     }
 
     public function addVideoScriptScene(): void

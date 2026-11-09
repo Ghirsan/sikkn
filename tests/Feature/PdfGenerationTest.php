@@ -120,6 +120,13 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl, $student] = $this->setupTestData();
 
+        $group->update([
+            'storyboard_scenes' => [
+                ['scene' => 'Scene 1', 'image_url' => '', 'visual' => 'Opening lanskap persawahan desa'],
+                ['scene' => 'Scene 2', 'image_url' => '', 'visual' => 'Wawancara dengan perangkat desa'],
+            ],
+        ]);
+
         $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
 
         $response->assertOk();
@@ -274,6 +281,13 @@ class PdfGenerationTest extends TestCase
             'responsibility' => 'Bantuan teknis lapangan',
         ]);
 
+        $group->update([
+            'storyboard_scenes' => [
+                ['scene' => 'Scene 1', 'image_url' => '', 'visual' => 'Opening lanskap persawahan desa'],
+                ['scene' => 'Scene 2', 'image_url' => '', 'visual' => 'Wawancara dengan perangkat desa'],
+            ],
+        ]);
+
         $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
 
         $response->assertOk();
@@ -374,6 +388,13 @@ class PdfGenerationTest extends TestCase
             'status' => ProgramStatus::Approved,
             'role_in_program' => 'Koordinator Lapangan',
             'responsibility' => 'Perencanaan dan pelaksanaan menyeluruh',
+        ]);
+
+        $group->update([
+            'storyboard_scenes' => [
+                ['scene' => 'Scene 1', 'image_url' => '', 'visual' => 'Opening lanskap persawahan desa'],
+                ['scene' => 'Scene 2', 'image_url' => '', 'visual' => 'Wawancara dengan perangkat desa'],
+            ],
         ]);
 
         $response = $this->actingAs($student)->get(route('lrk.pdf', $group));

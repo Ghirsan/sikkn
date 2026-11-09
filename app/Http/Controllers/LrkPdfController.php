@@ -141,6 +141,26 @@ class LrkPdfController extends Controller
         $surveyImgB64 = $group->survey_document_path ? $this->imageResolver->resolve($group->survey_document_path) : null;
         $mapImgB64 = $group->location_map_path ? $this->imageResolver->resolve($group->location_map_path) : null;
 
+        $storyboardScenes = collect(! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes())
+            ->map(function ($s, $idx) {
+                $imageUrl = $s['image_url'] ?? '';
+                $imgBase64 = null;
+                if (! empty($imageUrl)) {
+                    try {
+                        $imgBase64 = $this->imageResolver->resolve($imageUrl);
+                    } catch (\Throwable) {
+                        $imgBase64 = null;
+                    }
+                }
+
+                return [
+                    'scene' => 'Scene '.($idx + 1),
+                    'image_url' => $imageUrl,
+                    'image_base64' => $imgBase64,
+                    'visual' => $s['visual'] ?? '',
+                ];
+            })->values()->all();
+
         $payload = [
             'printed_at' => now()->locale('id')->isoFormat('D MMMM Y'),
             'assets' => [
@@ -160,7 +180,7 @@ class LrkPdfController extends Controller
                 'program_sosmas_text' => $group->program_sosmas_text,
                 'program_lainnya_text' => $group->program_lainnya_text,
                 'storyboard_text' => $group->storyboard_text,
-                'storyboard_scenes' => ! empty($group->storyboard_scenes) ? $group->storyboard_scenes : Group::defaultStoryboardScenes(),
+                'storyboard_scenes' => $storyboardScenes,
                 'video_script_text' => $group->video_script_text,
                 'video_script_scenes' => ! empty($group->video_script_scenes) ? $group->video_script_scenes : Group::defaultVideoScriptScenes(),
                 'weeks_count' => $group->getWeeksCount(),

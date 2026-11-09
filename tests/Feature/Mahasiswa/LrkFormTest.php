@@ -242,12 +242,14 @@ class LrkFormTest extends TestCase
 
         Livewire::actingAs($leader)
             ->test(LrkForm::class)
-            ->assertCount('storyboard_scenes', 4)
+            ->assertCount('storyboard_scenes', 0)
             ->assertCount('video_script_scenes', 4)
             ->assertCount('macro_schedules', 5)
             ->call('addStoryboardScene')
-            ->assertCount('storyboard_scenes', 5)
-            ->set('storyboard_scenes.4.visual', 'Drone view persawahan dan embung desa')
+            ->assertCount('storyboard_scenes', 1)
+            ->assertSet('storyboard_scenes.0.scene', 'Scene 1')
+            ->set('storyboard_scenes.0.image_url', 'https://drive.google.com/file/d/test123/view')
+            ->set('storyboard_scenes.0.visual', 'Drone view persawahan dan embung desa')
             ->call('addVideoScriptScene')
             ->assertCount('video_script_scenes', 5)
             ->set('video_script_scenes.4.audio', 'Narasi penutup KKN Undip')
@@ -258,13 +260,41 @@ class LrkFormTest extends TestCase
             ->call('save');
 
         $group->refresh();
-        $this->assertCount(5, $group->storyboard_scenes);
-        $this->assertEquals('Drone view persawahan dan embung desa', $group->storyboard_scenes[4]['visual']);
+        $this->assertCount(1, $group->storyboard_scenes);
+        $this->assertEquals('Scene 1', $group->storyboard_scenes[0]['scene']);
+        $this->assertEquals('https://drive.google.com/file/d/test123/view', $group->storyboard_scenes[0]['image_url']);
+        $this->assertEquals('Drone view persawahan dan embung desa', $group->storyboard_scenes[0]['visual']);
         $this->assertCount(5, $group->video_script_scenes);
         $this->assertEquals('Narasi penutup KKN Undip', $group->video_script_scenes[4]['audio']);
         $this->assertCount(6, $group->macro_schedules);
         $this->assertEquals('Penerimaan dan Koordinasi Kecamatan', $group->macro_schedules[5]['kegiatan']);
         $this->assertTrue($group->macro_schedules[5]['m1']);
+    }
+
+    public function test_storyboard_scenes_are_incrementally_numbered_and_reindexed_on_removal(): void
+    {
+        [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
+
+        Livewire::actingAs($leader)
+            ->test(LrkForm::class)
+            ->assertCount('storyboard_scenes', 0)
+            ->call('addStoryboardScene')
+            ->call('addStoryboardScene')
+            ->call('addStoryboardScene')
+            ->assertCount('storyboard_scenes', 3)
+            ->assertSet('storyboard_scenes.0.scene', 'Scene 1')
+            ->assertSet('storyboard_scenes.1.scene', 'Scene 2')
+            ->assertSet('storyboard_scenes.2.scene', 'Scene 3')
+            ->set('storyboard_scenes.0.visual', 'Visual Scene 1')
+            ->set('storyboard_scenes.1.visual', 'Visual Scene 2')
+            ->set('storyboard_scenes.2.visual', 'Visual Scene 3')
+            // Remove middle scene (Scene 2)
+            ->call('removeStoryboardScene', 1)
+            ->assertCount('storyboard_scenes', 2)
+            ->assertSet('storyboard_scenes.0.scene', 'Scene 1')
+            ->assertSet('storyboard_scenes.0.visual', 'Visual Scene 1')
+            ->assertSet('storyboard_scenes.1.scene', 'Scene 2')
+            ->assertSet('storyboard_scenes.1.visual', 'Visual Scene 3');
     }
 
     public function test_lrk_form_adapts_macro_schedule_weeks_to_kkn_period(): void

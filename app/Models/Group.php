@@ -143,12 +143,7 @@ class Group extends Model
 
     public static function defaultStoryboardScenes(): array
     {
-        return [
-            ['scene' => '1', 'visual' => 'Opening lanskap desa (aerial/drone shot) & judul video profil', 'audio' => 'Backsound musik instrumental kontemporer lembut', 'duration' => '10s'],
-            ['scene' => '2', 'visual' => 'Sambutan hangat Kepala Desa & penayangan peta wilayah desa', 'audio' => 'Voice Over profil singkat dan potensi wilayah desa', 'duration' => '15s'],
-            ['scene' => '3', 'visual' => 'Aktivitas mata pencaharian warga, UMKM, dan kearifan lokal', 'audio' => 'Narasi potensi ekonomi desa & wawancara warga lokal', 'duration' => '20s'],
-            ['scene' => '4', 'visual' => 'Kontribusi kegiatan KKN Undip bersama masyarakat & penutup', 'audio' => 'Closing statement & ucapan terima kasih', 'duration' => '15s'],
-        ];
+        return [];
     }
 
     public static function defaultVideoScriptScenes(): array
