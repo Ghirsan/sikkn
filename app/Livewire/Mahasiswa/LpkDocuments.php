@@ -63,7 +63,14 @@ class LpkDocuments extends Component
             return null;
         }
 
-        return ProgramParticipant::with(['program', 'outputs'])->find($this->selectedParticipantId);
+        $user = Auth::user();
+        if (! $user->group_id) {
+            return null;
+        }
+
+        return ProgramParticipant::with(['program', 'outputs'])
+            ->whereHas('program', fn ($q) => $q->where('group_id', $user->group_id))
+            ->find($this->selectedParticipantId);
     }
 
     public function render()

@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Services\ExternalImagePreviewUrl;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -409,7 +410,7 @@ class LrkForm extends Component
         }
 
         $group = Auth::user()->group;
-        $url = route('lrk.preview', ['group' => $group, 'v' => now()->timestamp]);
+        $url = URL::signedRoute('lrk.preview', ['group' => $group, 'v' => now()->timestamp]);
         $this->previewUrl = $url;
 
         $this->js("window.open('{$url}', '_blank')");

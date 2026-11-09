@@ -8,6 +8,7 @@ use App\Services\PdfImageResolver;
 use App\Services\PdfKitService;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class LpkPdfController extends Controller
 {
@@ -23,6 +24,8 @@ class LpkPdfController extends Controller
 
     public function download(Group $group, ?bool $inline = null): Response
     {
+        Gate::authorize('viewLpk', $group);
+
         $inline = $inline ?? ! request()->boolean('download');
 
         $group->load([

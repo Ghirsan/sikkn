@@ -17,6 +17,7 @@ use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -214,7 +215,7 @@ class LrkFormTest extends TestCase
     {
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
 
-        $response = $this->actingAs($leader)->get(route('lrk.preview', $group));
+        $response = $this->actingAs($leader)->get(URL::signedRoute('lrk.preview', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -226,12 +227,12 @@ class LrkFormTest extends TestCase
         [$period, $group, $leader] = $this->createGroupWithLeaderAndMember();
 
         // Default: inline preview
-        $previewResponse = $this->actingAs($leader)->get(route('lrk.pdf', $group));
+        $previewResponse = $this->actingAs($leader)->get(URL::signedRoute('lrk.pdf', $group));
         $previewResponse->assertOk();
         $this->assertStringContainsString('inline', (string) $previewResponse->headers->get('content-disposition'));
 
         // With download=1: attachment
-        $downloadResponse = $this->actingAs($leader)->get(route('lrk.pdf', [$group, 'download' => 1]));
+        $downloadResponse = $this->actingAs($leader)->get(URL::signedRoute('lrk.pdf', [$group, 'download' => 1]));
         $downloadResponse->assertOk();
         $this->assertStringContainsString('attachment', (string) $downloadResponse->headers->get('content-disposition'));
     }

@@ -6,6 +6,8 @@ use App\Livewire\Admin\GradeWeights;
 use App\Livewire\Dpl\StudentGradeForm;
 use App\Models\Grade;
 use App\Models\GradeWeight;
+use App\Models\Group;
+use App\Models\Period;
 use App\Models\User;
 use Database\Seeders\GradeWeightSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -172,8 +174,19 @@ class GradeWeightsTest extends TestCase
 
     public function test_dpl_saving_grade_persists_both_kkn_and_siap_components(): void
     {
+        $period = Period::create([
+            'semester' => 'Ganjil',
+            'year' => 2026,
+            'start_date' => now()->subDays(5)->format('Y-m-d'),
+            'end_date' => now()->addDays(30)->format('Y-m-d'),
+        ]);
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 1',
+        ]);
         $dpl = User::factory()->dpl()->create();
-        $student = User::factory()->mahasiswa()->create();
+        $group->dpls()->attach($dpl->id);
+        $student = User::factory()->mahasiswa()->create(['group_id' => $group->id]);
 
         Livewire::actingAs($dpl)
             ->test(StudentGradeForm::class, ['student' => $student->id])

@@ -64,7 +64,12 @@ class ReviewPrograms extends Component
             return null;
         }
 
+        $groupIds = Auth::user()->dplGroups()->pluck('groups.id');
+
         return ProgramParticipant::with(['student', 'program.group', 'outputs'])
+            ->whereHas('program', function ($q) use ($groupIds) {
+                $q->whereIn('group_id', $groupIds);
+            })
             ->find($this->inspectingParticipantId);
     }
 

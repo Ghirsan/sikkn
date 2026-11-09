@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\PdfImageResolver;
 use App\Services\PdfKitService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class LogbookPdfController extends Controller
 {
@@ -24,6 +25,8 @@ class LogbookPdfController extends Controller
         if ($student->role !== UserRole::Mahasiswa) {
             abort(404, 'User is not a student');
         }
+
+        Gate::authorize('viewLogbook', $student);
 
         $student->loadMissing(['studyProgram.faculty', 'faculty']);
 

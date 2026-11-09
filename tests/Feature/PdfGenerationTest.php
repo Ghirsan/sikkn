@@ -14,6 +14,7 @@ use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class PdfGenerationTest extends TestCase
@@ -131,7 +132,7 @@ class PdfGenerationTest extends TestCase
             ],
         ]);
 
-        $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
+        $response = $this->actingAs($student)->get(URL::signedRoute('lrk.pdf', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -143,7 +144,7 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl, $student] = $this->setupTestData();
 
-        $response = $this->actingAs($student)->get(route('lpk.pdf', $group));
+        $response = $this->actingAs($student)->get(URL::signedRoute('lpk.pdf', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -155,7 +156,7 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl, $student] = $this->setupTestData();
 
-        $response = $this->actingAs($student)->get(route('lpk.preview', $group));
+        $response = $this->actingAs($student)->get(URL::signedRoute('lpk.preview', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -167,7 +168,7 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl, $student] = $this->setupTestData();
 
-        $response = $this->actingAs($student)->get(route('logbook.pdf', $student));
+        $response = $this->actingAs($student)->get(URL::signedRoute('logbook.pdf', $student));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -179,7 +180,7 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl, $student] = $this->setupTestData();
 
-        $response = $this->actingAs($student)->get(route('mentoring-logs.pdf', $student));
+        $response = $this->actingAs($student)->get(URL::signedRoute('mentoring-logs.pdf', $student));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -296,7 +297,7 @@ class PdfGenerationTest extends TestCase
             ],
         ]);
 
-        $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
+        $response = $this->actingAs($student)->get(URL::signedRoute('lrk.pdf', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -345,7 +346,7 @@ class PdfGenerationTest extends TestCase
             'achievement' => 'Membantu pembuatan 10 unit komposter skala rumah tangga.',
         ]);
 
-        $response = $this->actingAs($student)->get(route('lpk.pdf', $group));
+        $response = $this->actingAs($student)->get(URL::signedRoute('lpk.pdf', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -356,7 +357,7 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl] = $this->setupTestData();
 
-        $response = $this->actingAs($dpl)->get(route('logbook.pdf', $dpl));
+        $response = $this->actingAs($dpl)->get(URL::signedRoute('logbook.pdf', $dpl));
         $response->assertNotFound();
     }
 
@@ -364,7 +365,7 @@ class PdfGenerationTest extends TestCase
     {
         [$period, $group, $dpl] = $this->setupTestData();
 
-        $response = $this->actingAs($dpl)->get(route('mentoring-logs.pdf', $dpl));
+        $response = $this->actingAs($dpl)->get(URL::signedRoute('mentoring-logs.pdf', $dpl));
         $response->assertNotFound();
     }
 
@@ -409,7 +410,7 @@ class PdfGenerationTest extends TestCase
             ],
         ]);
 
-        $response = $this->actingAs($student)->get(route('lrk.pdf', $group));
+        $response = $this->actingAs($student)->get(URL::signedRoute('lrk.pdf', $group));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');

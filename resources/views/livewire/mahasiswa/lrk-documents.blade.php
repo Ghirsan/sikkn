@@ -59,11 +59,11 @@
                 @endif
 
                 @if($group?->isLrkFinalized())
-                    <flux:button href="{{ route('lrk.pdf', $group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
+                    <flux:button href="{{ URL::signedRoute('lrk.pdf', $group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
                         {{ __('Cetak LRK') }}
                     </flux:button>
                 @elseif($group)
-                    <flux:button href="{{ route('lrk.preview', $group) }}" target="_blank" icon="arrow-top-right-on-square" variant="subtle" size="sm" class="w-full sm:w-auto">
+                    <flux:button href="{{ URL::signedRoute('lrk.preview', $group) }}" target="_blank" icon="arrow-top-right-on-square" variant="subtle" size="sm" class="w-full sm:w-auto">
                         {{ __('Pratinjau LRK') }}
                     </flux:button>
                 @endif

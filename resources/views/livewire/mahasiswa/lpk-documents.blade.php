@@ -28,11 +28,11 @@
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 @if($group?->is_lpk_locked)
-                    <flux:button href="{{ route('lpk.pdf', $group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
+                    <flux:button href="{{ URL::signedRoute('lpk.pdf', $group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
                         {{ __('Cetak LPK') }}
                     </flux:button>
                 @elseif($group)
-                    <flux:button href="{{ route('lpk.preview', $group) }}" target="_blank" icon="arrow-top-right-on-square" variant="subtle" size="sm" class="w-full sm:w-auto">
+                    <flux:button href="{{ URL::signedRoute('lpk.preview', $group) }}" target="_blank" icon="arrow-top-right-on-square" variant="subtle" size="sm" class="w-full sm:w-auto">
                         {{ __('Pratinjau LPK') }}
                     </flux:button>
                 @endif

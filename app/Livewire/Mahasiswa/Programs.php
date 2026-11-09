@@ -32,7 +32,14 @@ class Programs extends Component
             return null;
         }
 
-        return Program::with(['participants', 'student'])->find($this->selectedProgramId);
+        $user = Auth::user();
+        if (! $user->group_id) {
+            return null;
+        }
+
+        return Program::with(['participants', 'student'])
+            ->where('group_id', $user->group_id)
+            ->find($this->selectedProgramId);
     }
 
     #[Computed]
@@ -42,7 +49,14 @@ class Programs extends Component
             return null;
         }
 
-        return ProgramParticipant::with('outputs')->find($this->selectedParticipantId);
+        $user = Auth::user();
+        if (! $user->group_id) {
+            return null;
+        }
+
+        return ProgramParticipant::with('outputs')
+            ->whereHas('program', fn ($q) => $q->where('group_id', $user->group_id))
+            ->find($this->selectedParticipantId);
     }
 
     public function confirmDelete(int $participantId)

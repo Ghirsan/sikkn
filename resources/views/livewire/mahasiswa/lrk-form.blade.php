@@ -18,7 +18,7 @@
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                    <flux:button href="{{ route('lrk.pdf', Auth::user()->group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
+                    <flux:button href="{{ URL::signedRoute('lrk.pdf', Auth::user()->group) }}" target="_blank" icon="printer" variant="primary" size="sm" class="w-full sm:w-auto">
                         {{ __('Cetak PDF') }}
                     </flux:button>
                 </div>
@@ -419,7 +419,7 @@
             <flux:button href="{{ route('lrk.index') }}" wire:navigate variant="ghost" class="w-full sm:w-auto">{{ __('Kembali') }}</flux:button>
 
             @if($isFinalized)
-                <flux:button href="{{ route('lrk.pdf', Auth::user()->group) }}" target="_blank" icon="printer" variant="primary" class="w-full sm:w-auto">
+                <flux:button href="{{ URL::signedRoute('lrk.pdf', Auth::user()->group) }}" target="_blank" icon="printer" variant="primary" class="w-full sm:w-auto">
                     {{ __('Cetak PDF') }}
                 </flux:button>
             @elseif($isSubmitted)

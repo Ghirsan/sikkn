@@ -68,7 +68,12 @@ class LrkDocuments extends Component
             return null;
         }
 
-        return Program::find($this->selectedProgramId);
+        $user = Auth::user();
+        if (! $user->group_id) {
+            return null;
+        }
+
+        return Program::where('group_id', $user->group_id)->find($this->selectedProgramId);
     }
 
     #[Computed]
@@ -78,7 +83,13 @@ class LrkDocuments extends Component
             return null;
         }
 
-        return ProgramParticipant::find($this->selectedParticipantId);
+        $user = Auth::user();
+        if (! $user->group_id) {
+            return null;
+        }
+
+        return ProgramParticipant::whereHas('program', fn ($q) => $q->where('group_id', $user->group_id))
+            ->find($this->selectedParticipantId);
     }
 
     public function render()

@@ -7,6 +7,7 @@ use App\Models\MentoringLog;
 use App\Models\User;
 use App\Services\PdfKitService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class MentoringLogsPdfController extends Controller
 {
@@ -21,6 +22,8 @@ class MentoringLogsPdfController extends Controller
         if ($student->role !== UserRole::Mahasiswa) {
             abort(404, 'User is not a student');
         }
+
+        Gate::authorize('viewMentoringLogs', $student);
 
         $student->loadMissing(['studyProgram.faculty', 'faculty']);
 

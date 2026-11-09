@@ -71,11 +71,11 @@
 
                 <div class="flex flex-col sm:flex-row gap-2">
                     @if($data->isLrkLocked || $data->lrkStatus === \App\Enums\DocumentStatus::Approved)
-                        <flux:button :href="route('lrk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="printer" class="w-full justify-center">
+                        <flux:button :href="URL::signedRoute('lrk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="printer" class="w-full justify-center">
                             {{ __('Cetak LRK PDF') }}
                         </flux:button>
                     @else
-                        <flux:button :href="route('lrk.preview', $data->group)" target="_blank" variant="subtle" size="sm" icon="arrow-top-right-on-square" class="w-full justify-center">
+                        <flux:button :href="URL::signedRoute('lrk.preview', $data->group)" target="_blank" variant="subtle" size="sm" icon="arrow-top-right-on-square" class="w-full justify-center">
                             {{ __('Pratinjau LRK PDF') }}
                         </flux:button>
                     @endif
@@ -105,11 +105,11 @@
                     <flux:callout variant="success" icon="check-badge" class="mb-3">
                         <flux:callout.text>{{ __('LPK telah difinalisasi dan siap dicetak.') }}</flux:callout.text>
                     </flux:callout>
-                    <flux:button :href="route('lpk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="printer" class="w-full justify-center">
+                    <flux:button :href="URL::signedRoute('lpk.pdf', $data->group)" target="_blank" variant="filled" size="sm" icon="printer" class="w-full justify-center">
                         {{ __('Cetak LPK PDF') }}
                     </flux:button>
                 @else
-                    <flux:button :href="route('lpk.preview', $data->group)" target="_blank" variant="subtle" size="sm" icon="arrow-top-right-on-square" class="w-full justify-center">
+                    <flux:button :href="URL::signedRoute('lpk.preview', $data->group)" target="_blank" variant="subtle" size="sm" icon="arrow-top-right-on-square" class="w-full justify-center">
                         {{ __('Pratinjau LPK PDF') }}
                     </flux:button>
                 @endif
@@ -209,7 +209,7 @@
                         </div>
                     </div>
                     <div class="pt-2">
-                        <flux:button :href="route('lrk.preview', $reviewingGroup)" target="_blank" icon="arrow-top-right-on-square" size="sm" variant="subtle" class="w-full sm:w-auto">
+                        <flux:button :href="URL::signedRoute('lrk.preview', $reviewingGroup)" target="_blank" icon="arrow-top-right-on-square" size="sm" variant="subtle" class="w-full sm:w-auto">
                             {{ __('Buka Dokumen PDF Lengkap') }}
                         </flux:button>
                     </div>

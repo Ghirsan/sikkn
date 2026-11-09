@@ -12,13 +12,15 @@ Route::view('/offline', 'offline')->name('offline');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    // LRK & LPK Print Page (accessible by all authenticated roles)
-    Route::get('lrk/{group}/pdf', [LrkPdfController::class, 'download'])->name('lrk.pdf');
-    Route::get('lrk/{group}/preview', [LrkPdfController::class, 'preview'])->name('lrk.preview');
-    Route::get('lpk/{group}/pdf', [LpkPdfController::class, 'download'])->name('lpk.pdf');
-    Route::get('lpk/{group}/preview', [LpkPdfController::class, 'preview'])->name('lpk.preview');
-    Route::get('logbook/{student}/pdf', [LogbookPdfController::class, 'download'])->name('logbook.pdf');
-    Route::get('mentoring-logs/{student}/pdf', [MentoringLogsPdfController::class, 'download'])->name('mentoring-logs.pdf');
+    // LRK & LPK Print Page (accessible by authorized roles via signed URLs)
+    Route::middleware('signed')->group(function () {
+        Route::get('lrk/{group}/pdf', [LrkPdfController::class, 'download'])->name('lrk.pdf');
+        Route::get('lrk/{group}/preview', [LrkPdfController::class, 'preview'])->name('lrk.preview');
+        Route::get('lpk/{group}/pdf', [LpkPdfController::class, 'download'])->name('lpk.pdf');
+        Route::get('lpk/{group}/preview', [LpkPdfController::class, 'preview'])->name('lpk.preview');
+        Route::get('logbook/{student}/pdf', [LogbookPdfController::class, 'download'])->name('logbook.pdf');
+        Route::get('mentoring-logs/{student}/pdf', [MentoringLogsPdfController::class, 'download'])->name('mentoring-logs.pdf');
+    });
 
     // P2KKN Admin Routes
     Route::middleware('role:p2kkn')->prefix('admin')->group(function () {

@@ -43,7 +43,7 @@
                     variant="ghost"
                     size="sm"
                     icon="printer"
-                    :href="route('mentoring-logs.pdf', $filterStudent)"
+                    :href="URL::signedRoute('mentoring-logs.pdf', $filterStudent)"
                     target="_blank"
                     class="w-full sm:w-auto"
                 >

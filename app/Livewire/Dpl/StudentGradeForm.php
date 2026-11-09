@@ -7,6 +7,7 @@ use App\Models\GradeWeight;
 use App\Models\Period;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -48,6 +49,8 @@ class StudentGradeForm extends Component
     {
         $studentId = $student ?? request()->route('student');
         $this->student = User::with(['grade', 'group.period'])->findOrFail($studentId);
+
+        Gate::authorize('gradeStudent', $this->student);
 
         $currentPeriod = Period::current();
         if ($this->student->group?->period_id && $currentPeriod) {
@@ -152,6 +155,8 @@ class StudentGradeForm extends Component
 
     public function saveGrade()
     {
+        Gate::authorize('gradeStudent', $this->student);
+
         if (! $this->isGradingOpen) {
             abort(403, 'Penilaian untuk periode KKN ini telah ditutup karena periode baru telah dibuat.');
         }

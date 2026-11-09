@@ -9,7 +9,7 @@
     {{-- Mentoring Logs Actions --}}
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 w-full">
         @if($logs->isNotEmpty())
-            <flux:button variant="primary" size="sm" icon="printer" :href="route('mentoring-logs.pdf', $student)" target="_blank" class="w-full sm:w-auto">
+            <flux:button variant="primary" size="sm" icon="printer" :href="URL::signedRoute('mentoring-logs.pdf', $student)" target="_blank" class="w-full sm:w-auto">
                 {{ __('Cetak Buku') }}
             </flux:button>
         @endif
