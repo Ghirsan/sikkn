@@ -88,7 +88,7 @@
                         {{ __('Daftar Dosen KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="document-text" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>
-                        {{ __('Rancangan Dokumen') }}
+                        {{ __('Dokumen Tim KKN') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 

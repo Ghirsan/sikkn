@@ -2,10 +2,9 @@
 
 namespace App\Livewire\Admin;
 
-use App\Enums\ProgramStatus;
+use App\Enums\DocumentStatus;
 use App\Models\Group;
 use App\Models\Period;
-use App\Models\Program;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,9 +16,11 @@ class Documents extends Component
 
     public string $search = '';
 
-    public function mount()
+    public string $statusFilter = 'all';
+
+    public function mount(?int $periodId = null): void
     {
-        $this->periodId = Period::active()->first()?->id;
+        $this->periodId = $periodId ?? Period::active()->first()?->id ?? Period::latest('start_date')->first()?->id;
     }
 
     public function updatedSearch(): void
@@ -32,60 +33,85 @@ class Documents extends Component
         $this->resetPage();
     }
 
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $query = Group::with(['programs', 'period']);
+        $baseGroupQuery = Group::query();
+        if ($this->periodId) {
+            $baseGroupQuery->where('period_id', $this->periodId);
+        }
+
+        $totalGroups = (clone $baseGroupQuery)->count();
+
+        $lrkApprovedCount = (clone $baseGroupQuery)->where(function ($q) {
+            $q->where('is_lrk_locked', true)
+                ->orWhere('lrk_status', DocumentStatus::Approved);
+        })->count();
+
+        $lpkApprovedCount = (clone $baseGroupQuery)->where('is_lpk_locked', true)->count();
+
+        $completedCount = (clone $baseGroupQuery)->where(function ($q) {
+            $q->where('is_lrk_locked', true)
+                ->orWhere('lrk_status', DocumentStatus::Approved);
+        })->where('is_lpk_locked', true)->count();
+
+        $query = Group::query()
+            ->with([
+                'period',
+                'dpls',
+                'leadDpl',
+                'students' => fn ($q) => $q->select('id', 'name', 'group_id'),
+            ]);
 
         if ($this->periodId) {
             $query->where('period_id', $this->periodId);
         }
 
         if ($this->search) {
-            $query->where('name', 'like', '%'.$this->search.'%');
+            $term = '%'.trim($this->search).'%';
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', $term)
+                    ->orWhere('village', 'like', $term)
+                    ->orWhere('district', 'like', $term)
+                    ->orWhere('regency', 'like', $term)
+                    ->orWhereHas('dpls', function ($dplQuery) use ($term) {
+                        $dplQuery->where('name', 'like', $term)
+                            ->orWhere('nip', 'like', $term);
+                    });
+            });
         }
 
-        $paginatedGroups = $query->latest()->paginate(10);
+        if ($this->statusFilter === 'lrk_pending') {
+            $query->where(function ($q) {
+                $q->where('is_lrk_locked', false)
+                    ->where(function ($sub) {
+                        $sub->whereNull('lrk_status')
+                            ->orWhere('lrk_status', '!=', DocumentStatus::Approved);
+                    });
+            });
+        } elseif ($this->statusFilter === 'lpk_pending') {
+            $query->where('is_lpk_locked', false);
+        } elseif ($this->statusFilter === 'completed') {
+            $query->where(function ($q) {
+                $q->where('is_lrk_locked', true)
+                    ->orWhere('lrk_status', DocumentStatus::Approved);
+            })->where('is_lpk_locked', true);
+        }
 
-        $groupData = $paginatedGroups->through(function ($group) {
-            $total = $group->programs->count();
-            $approved = $group->programs->where('status', ProgramStatus::Approved)->count();
-
-            return (object) [
-                'group' => $group,
-                'totalPrograms' => $total,
-                'approvedCount' => $approved,
-                'allApproved' => $total > 0 && $approved === $total,
-            ];
-        });
-
-        // Global stats based on filtered groups
-        $statsProgramQuery = Program::whereHas('group', function ($q) {
-            if ($this->periodId) {
-                $q->where('period_id', $this->periodId);
-            }
-            if ($this->search) {
-                $q->where('name', 'like', '%'.$this->search.'%');
-            }
-        });
-
-        $readyPdfCount = Group::whereHas('programs')
-            ->when($this->periodId, fn ($q) => $q->where('period_id', $this->periodId))
-            ->when($this->search, fn ($q) => $q->where('name', 'like', '%'.$this->search.'%'))
-            ->withCount([
-                'programs',
-                'programs as approved_programs_count' => fn ($q) => $q->where('status', ProgramStatus::Approved),
-            ])
-            ->havingRaw('programs_count = approved_programs_count')
-            ->count();
+        $groups = $query->orderBy('name')->paginate(10);
 
         return view('livewire.admin.documents', [
-            'groupData' => $groupData,
+            'groups' => $groups,
             'periods' => Period::orderByDesc('start_date')->get(),
             'stats' => [
-                'draft' => (clone $statsProgramQuery)->where('status', ProgramStatus::Draft)->count(),
-                'submitted' => (clone $statsProgramQuery)->where('status', ProgramStatus::Submitted)->count(),
-                'approved' => (clone $statsProgramQuery)->where('status', ProgramStatus::Approved)->count(),
-                'ready_pdf' => $readyPdfCount,
+                'total' => $totalGroups,
+                'lrk_approved' => $lrkApprovedCount,
+                'lpk_approved' => $lpkApprovedCount,
+                'completed' => $completedCount,
             ],
         ]);
     }
