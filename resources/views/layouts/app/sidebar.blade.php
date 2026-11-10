@@ -127,7 +127,7 @@
                         {{ __('Mahasiswa KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="user-circle" :href="route('prodi.dpls.index')" :current="request()->routeIs('prodi.dpls.*')" wire:navigate>
-                        {{ __('Dosen KKN (DPL)') }}
+                        {{ __('Dosen KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="light-bulb" :href="route('prodi.programs.index')" :current="request()->routeIs('prodi.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}
@@ -157,7 +157,7 @@
                         {{ __('Mahasiswa Per Prodi') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="user-circle" :href="route('fakultas.dpls.index')" :current="request()->routeIs('fakultas.dpls.*')" wire:navigate>
-                        {{ __('Dosen KKN (DPL)') }}
+                        {{ __('Dosen KKN') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="light-bulb" :href="route('fakultas.programs.index')" :current="request()->routeIs('fakultas.programs.*')" wire:navigate>
                         {{ __('Program Kerja') }}

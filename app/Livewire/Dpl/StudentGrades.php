@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Period;
 use App\Models\User;
 use App\Services\GradeExcelService;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -24,6 +25,8 @@ class StudentGrades extends Component
 
     public bool $showImportPanel = false;
 
+    public bool $showImportModal = false;
+
     public function updatedSelectedGroupId(): void
     {
         $this->resetPage();
@@ -39,11 +42,27 @@ class StudentGrades extends Component
      */
     public array $importErrors = [];
 
+    public function openImportModal(): void
+    {
+        $this->reset(['gradeFile', 'importErrors']);
+        $this->showImportModal = true;
+        $this->showImportPanel = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->showImportPanel = false;
+        $this->reset(['gradeFile', 'importErrors']);
+    }
+
     public function toggleImportPanel(): void
     {
-        $this->showImportPanel = ! $this->showImportPanel;
-        $this->importErrors = [];
-        $this->reset('gradeFile');
+        if ($this->showImportModal || $this->showImportPanel) {
+            $this->closeImportModal();
+        } else {
+            $this->openImportModal();
+        }
     }
 
     public function exportExcel(GradeExcelService $excelService)
@@ -121,17 +140,18 @@ class StudentGrades extends Component
         }
 
         if ($result['success']) {
-            $this->reset(['gradeFile', 'importErrors']);
-            $this->showImportPanel = false;
+            $this->closeImportModal();
 
             $msg = 'Berhasil mengimpor '.$result['imported_count'].' nilai mahasiswa.';
             if ($result['skipped_count'] > 0) {
                 $msg .= ' ('.$result['skipped_count'].' mahasiswa dilewati karena belum diisi).';
             }
 
+            Flux::toast($msg, variant: 'success');
             $this->dispatch('toast', message: $msg, type: 'success');
         } else {
             $this->importErrors = $result['errors'];
+            Flux::toast('Gagal mengimpor file. Periksa daftar kesalahan.', variant: 'danger');
             $this->dispatch('toast', message: 'Gagal mengimpor file. Periksa daftar kesalahan.', type: 'danger');
         }
     }

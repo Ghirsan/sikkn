@@ -339,4 +339,15 @@ class StudentGradesExcelTest extends TestCase
 
         unlink($tempPath);
     }
+
+    public function test_dpl_can_open_and_close_import_modal(): void
+    {
+        Livewire::actingAs($this->dpl)
+            ->test(StudentGrades::class)
+            ->assertSet('showImportModal', false)
+            ->call('openImportModal')
+            ->assertSet('showImportModal', true)
+            ->call('closeImportModal')
+            ->assertSet('showImportModal', false);
+    }
 }
