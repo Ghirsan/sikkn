@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\DocumentStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\UserRole;
+use App\Models\Concerns\HasUlid;
 use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -17,9 +18,10 @@ use Illuminate\Support\Carbon;
 
 class Group extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlid;
 
     protected $fillable = [
+        'ulid',
         'period_id',
         'name',
         'group_type_id',

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use App\Models\Concerns\HasUlid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -19,12 +20,12 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone', 'emergency_name', 'emergency_relationship'])]
+#[Fillable(['ulid', 'name', 'email', 'password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone', 'emergency_name', 'emergency_relationship'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasUlid, Notifiable, TwoFactorAuthenticatable;
 
     public const EMERGENCY_RELATIONSHIPS = [
         'Orang Tua',

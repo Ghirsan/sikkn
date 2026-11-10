@@ -25,7 +25,7 @@
             </flux:select>
             <flux:button wire:click="exportExcel" variant="ghost" size="sm" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Format Excel') }}</flux:button>
             <flux:button wire:click="openImportModal" variant="outline" size="sm" icon="arrow-up-tray" class="w-full sm:w-auto">{{ __('Import Excel') }}</flux:button>
-            <flux:button variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Buat Kelompok') }}</flux:button>
+            <flux:button wire:click="openCreateModal" variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Buat Kelompok') }}</flux:button>
         </div>
     </div>
 
@@ -201,6 +201,62 @@
                     <span wire:loading.remove wire:target="importExcel">{{ __('Unggah & Proses') }}</span>
                     <span wire:loading wire:target="importExcel">{{ __('Memproses...') }}</span>
                 </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Create Group Modal --}}
+    <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
+        <form wire:submit.prevent="createGroup" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Buat Kelompok KKN Baru') }}</flux:heading>
+                <flux:subheading>{{ __('Tambahkan kelompok kerja mahasiswa baru pada periode KKN.') }}</flux:subheading>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:select wire:model="create_period_id" label="{{ __('Periode KKN') }}" required>
+                        @foreach($periods as $p)
+                            <flux:select.option value="{{ $p->id }}">{{ $p->display_name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:select wire:model="create_group_type_id" label="{{ __('Jenis Kelompok') }}">
+                        <flux:select.option value="">{{ __('Pilih Jenis Kelompok') }}</flux:select.option>
+                        @foreach($groupTypes as $gt)
+                            <flux:select.option value="{{ $gt->id }}">{{ $gt->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                <flux:input wire:model="create_name" label="{{ __('Nama Kelompok') }}" placeholder="{{ __('Contoh: Kelompok 1') }}" required />
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="create_village" label="{{ __('Desa / Kelurahan') }}" placeholder="{{ __('Contoh: Sukamaju') }}" required />
+                    <flux:input wire:model="create_district" label="{{ __('Kecamatan') }}" placeholder="{{ __('Contoh: Karanganyar') }}" required />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="create_regency" label="{{ __('Kabupaten / Kota (Opsional)') }}" placeholder="{{ __('Contoh: Semarang') }}" />
+                    <flux:input wire:model="create_province" label="{{ __('Provinsi (Opsional)') }}" placeholder="{{ __('Contoh: Jawa Tengah') }}" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="create_partner_name" label="{{ __('Mitra Lapangan (Opsional)') }}" placeholder="{{ __('Contoh: BUMDes Maju Bersama') }}" />
+                    <flux:input wire:model="create_village_head" label="{{ __('Kepala Desa / Lurah (Opsional)') }}" placeholder="{{ __('Contoh: Bpk. Suparno') }}" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input type="date" wire:model="create_start_date" label="{{ __('Tanggal Mulai (Opsional)') }}" />
+                    <flux:input type="date" wire:model="create_end_date" label="{{ __('Tanggal Selesai (Opsional)') }}" />
+                </div>
+                <flux:text class="text-xs text-zinc-500">{{ __('Kosongkan tanggal untuk menggunakan jadwal default periode KKN.') }}</flux:text>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button wire:click="closeCreateModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Kelompok') }}</flux:button>
             </div>
         </form>
     </flux:modal>

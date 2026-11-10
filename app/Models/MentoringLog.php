@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LogStatus;
+use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,9 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MentoringLog extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlid;
 
     protected $fillable = [
+        'ulid',
         'group_id',
         'student_id',
         'program_id',

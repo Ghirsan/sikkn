@@ -23,7 +23,7 @@
             </flux:select>
             <flux:button wire:click="exportExcel" variant="ghost" size="sm" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Format Excel') }}</flux:button>
             <flux:button wire:click="openImportModal" variant="outline" size="sm" icon="arrow-up-tray" class="w-full sm:w-auto">{{ __('Import Excel') }}</flux:button>
-            <flux:button variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Tambah Peserta') }}</flux:button>
+            <flux:button wire:click="openCreateModal" variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Tambah Peserta') }}</flux:button>
         </div>
     </div>
 
@@ -161,6 +161,52 @@
                     <span wire:loading.remove wire:target="importExcel">{{ __('Unggah & Proses') }}</span>
                     <span wire:loading wire:target="importExcel">{{ __('Memproses...') }}</span>
                 </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Create Student Modal --}}
+    <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
+        <form wire:submit.prevent="createStudent" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Tambah Peserta KKN') }}</flux:heading>
+                <flux:subheading>{{ __('Daftarkan mahasiswa dan alokasikan ke kelompok KKN.') }}</flux:subheading>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="nim" label="{{ __('NIM') }}" placeholder="{{ __('Contoh: 21120120120001') }}" required />
+                    <flux:input wire:model="name" label="{{ __('Nama Mahasiswa') }}" placeholder="{{ __('Contoh: Muhammad Budi') }}" required />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="email" label="{{ __('Email (Opsional)') }}" type="email" placeholder="{{ __('Otomatis: {nim}@student.sikkn.ac.id') }}" />
+                    <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp (Opsional)') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:select wire:model="study_program_id" label="{{ __('Program Studi (Opsional)') }}">
+                        <flux:select.option value="">{{ __('Pilih Program Studi') }}</flux:select.option>
+                        @foreach($studyPrograms as $sp)
+                            <flux:select.option value="{{ $sp->id }}">{{ $sp->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:select wire:model="group_id" label="{{ __('Kelompok KKN (Opsional)') }}">
+                        <flux:select.option value="">{{ __('Belum Ditempatkan') }}</flux:select.option>
+                        @foreach($availableGroups as $g)
+                            <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                <flux:input wire:model="password" label="{{ __('Password (Opsional)') }}" type="password" placeholder="{{ __('Default: password') }}" />
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button wire:click="closeCreateModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Peserta') }}</flux:button>
             </div>
         </form>
     </flux:modal>

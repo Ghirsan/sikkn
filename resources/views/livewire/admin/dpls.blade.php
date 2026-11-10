@@ -25,7 +25,7 @@
             </flux:select>
             <flux:button wire:click="exportExcel" variant="ghost" size="sm" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Format Excel') }}</flux:button>
             <flux:button wire:click="openImportModal" variant="outline" size="sm" icon="arrow-up-tray" class="w-full sm:w-auto">{{ __('Import Excel') }}</flux:button>
-            <flux:button variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Tambah Dosen KKN') }}</flux:button>
+            <flux:button wire:click="openCreateModal" variant="filled" size="sm" icon="plus" class="w-full sm:w-auto">{{ __('Tambah Dosen KKN') }}</flux:button>
         </div>
     </div>
 
@@ -115,6 +115,58 @@
                     <span wire:loading.remove wire:target="importExcel">{{ __('Unggah & Proses') }}</span>
                     <span wire:loading wire:target="importExcel">{{ __('Memproses...') }}</span>
                 </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Create DPL Modal --}}
+    <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
+        <form wire:submit.prevent="createDpl" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Tambah Dosen Pembimbing (DPL)') }}</flux:heading>
+                <flux:subheading>{{ __('Daftarkan dosen pembimbing dan tugaskan ke kelompok KKN.') }}</flux:subheading>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="nip" label="{{ __('NIP') }}" placeholder="{{ __('Contoh: 198001012005011001') }}" required />
+                    <flux:input wire:model="name" label="{{ __('Nama Dosen (Lengkap dengan Gelar)') }}" placeholder="{{ __('Contoh: Dr. Ir. Sutrisno, M.T.') }}" required />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="email" label="{{ __('Email (Opsional)') }}" type="email" placeholder="{{ __('Otomatis: {nip}@lecturer.sikkn.ac.id') }}" />
+                    <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp (Opsional)') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:select wire:model="study_program_id" label="{{ __('Program Studi (Opsional)') }}">
+                        <flux:select.option value="">{{ __('Pilih Program Studi') }}</flux:select.option>
+                        @foreach($studyPrograms as $sp)
+                            <flux:select.option value="{{ $sp->id }}">{{ $sp->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:select wire:model.live="group_id" label="{{ __('Tugaskan ke Kelompok (Opsional)') }}">
+                        <flux:select.option value="">{{ __('Belum Ditugaskan') }}</flux:select.option>
+                        @foreach($availableGroups as $g)
+                            <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                @if($group_id)
+                    <div class="rounded-lg bg-zinc-50 dark:bg-zinc-800/60 p-3 border border-zinc-200 dark:border-zinc-700/60">
+                        <flux:checkbox wire:model="is_lead" label="{{ __('Tetapkan sebagai DPL Utama / Ketua DPL pada kelompok ini') }}" />
+                    </div>
+                @endif
+
+                <flux:input wire:model="password" label="{{ __('Password (Opsional)') }}" type="password" placeholder="{{ __('Default: password') }}" />
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button wire:click="closeCreateModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Dosen') }}</flux:button>
             </div>
         </form>
     </flux:modal>

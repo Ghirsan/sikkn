@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LogStatus;
+use App\Models\Concerns\HasUlid;
 use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,9 +14,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DailyLog extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlid;
 
     protected $fillable = [
+        'ulid',
         'student_id',
         'date',
         'important_notes',

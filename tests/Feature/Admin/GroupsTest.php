@@ -153,4 +153,97 @@ class GroupsTest extends TestCase
                 'without_dpl' => 8,
             ]);
     }
+
+    public function test_admin_can_open_create_group_modal(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('openCreateModal')
+            ->assertSet('showCreateModal', true)
+            ->assertSet('create_period_id', $period->id);
+    }
+
+    public function test_admin_can_create_group_successfully(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('openCreateModal')
+            ->set('create_period_id', $period->id)
+            ->set('create_name', 'Kelompok 99')
+            ->set('create_village', 'Desa Sukamaju')
+            ->set('create_district', 'Kecamatan Makmur')
+            ->call('createGroup')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false);
+
+        $this->assertDatabaseHas('groups', [
+            'period_id' => $period->id,
+            'name' => 'Kelompok 99',
+            'village' => 'Desa Sukamaju',
+            'district' => 'Kecamatan Makmur',
+        ]);
+
+        $createdGroup = Group::where('name', 'Kelompok 99')->first();
+        $this->assertNotNull($createdGroup->ulid);
+        $this->assertEquals(26, strlen($createdGroup->ulid));
+    }
+
+    public function test_create_group_validates_required_fields(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('openCreateModal')
+            ->set('create_period_id', null)
+            ->set('create_name', '')
+            ->set('create_village', '')
+            ->set('create_district', '')
+            ->call('createGroup')
+            ->assertHasErrors(['create_period_id', 'create_name', 'create_village', 'create_district']);
+    }
+
+    public function test_create_group_enforces_unique_name_per_period(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 1',
+            'village' => 'Desa A',
+            'district' => 'Kecamatan B',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('openCreateModal')
+            ->set('create_period_id', $period->id)
+            ->set('create_name', 'Kelompok 1')
+            ->set('create_village', 'Desa Lain')
+            ->set('create_district', 'Kecamatan Lain')
+            ->call('createGroup')
+            ->assertHasErrors(['create_name']);
+    }
 }

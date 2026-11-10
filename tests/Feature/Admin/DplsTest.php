@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\Semester;
+use App\Enums\UserRole;
 use App\Livewire\Admin\Dpls;
 use App\Models\Group;
 use App\Models\Period;
@@ -115,5 +116,82 @@ class DplsTest extends TestCase
                 'assigned' => 3,
                 'unassigned' => 5,
             ]);
+    }
+
+    public function test_admin_can_open_create_dpl_modal(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openCreateModal')
+            ->assertSet('showCreateModal', true);
+    }
+
+    public function test_admin_can_create_dpl_successfully(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openCreateModal')
+            ->set('nip', '198001012005011001')
+            ->set('name', 'Dr. Budi Dosen, M.Kom.')
+            ->set('phone', '08123456789')
+            ->call('createDpl')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false);
+
+        $this->assertDatabaseHas('users', [
+            'nip' => '198001012005011001',
+            'name' => 'Dr. Budi Dosen, M.Kom.',
+            'role' => UserRole::Dpl->value,
+            'email' => '198001012005011001@lecturer.sikkn.ac.id',
+        ]);
+    }
+
+    public function test_create_dpl_validates_required_fields(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openCreateModal')
+            ->set('nip', '')
+            ->set('name', '')
+            ->call('createDpl')
+            ->assertHasErrors(['nip', 'name']);
+    }
+
+    public function test_create_dpl_can_assign_to_group_and_set_lead(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 1',
+            'village' => 'Desa Makmur',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openCreateModal')
+            ->set('nip', '198505052010011002')
+            ->set('name', 'Prof. Dr. Ir. Siti, M.T.')
+            ->set('group_id', $group->id)
+            ->set('is_lead', true)
+            ->call('createDpl')
+            ->assertHasNoErrors();
+
+        $dpl = User::where('nip', '198505052010011002')->first();
+        $this->assertNotNull($dpl);
+        $this->assertTrue($group->fresh()->dpls->contains($dpl->id));
+        $this->assertEquals($dpl->id, $group->fresh()->lead_dpl_id);
     }
 }

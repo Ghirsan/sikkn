@@ -4,11 +4,13 @@ namespace App\Livewire\Admin;
 
 use App\Enums\UserRole;
 use App\Models\Group;
+use App\Models\GroupType;
 use App\Models\Period;
 use App\Models\User;
 use App\Services\GroupAllocationExcelService;
 use Carbon\Carbon;
 use Flux\Flux;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -26,6 +28,30 @@ class Groups extends Component
     public bool $showImportModal = false;
 
     public array $importErrors = [];
+
+    public bool $showCreateModal = false;
+
+    public ?int $create_period_id = null;
+
+    public string $create_name = '';
+
+    public ?int $create_group_type_id = null;
+
+    public string $create_village = '';
+
+    public string $create_district = '';
+
+    public string $create_regency = '';
+
+    public string $create_province = '';
+
+    public string $create_partner_name = '';
+
+    public string $create_village_head = '';
+
+    public ?string $create_start_date = null;
+
+    public ?string $create_end_date = null;
 
     public function mount()
     {
@@ -216,6 +242,94 @@ class Groups extends Component
         }
     }
 
+    public function openCreateModal(): void
+    {
+        $this->resetValidation();
+        $this->create_period_id = $this->periodId ?? Period::active()->first()?->id ?? Period::latest('start_date')->first()?->id;
+        $this->create_name = '';
+        $this->create_group_type_id = GroupType::first()?->id;
+        $this->create_village = '';
+        $this->create_district = '';
+        $this->create_regency = '';
+        $this->create_province = '';
+        $this->create_partner_name = '';
+        $this->create_village_head = '';
+        $this->create_start_date = null;
+        $this->create_end_date = null;
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreateModal(): void
+    {
+        $this->showCreateModal = false;
+        $this->resetValidation();
+    }
+
+    public function createGroup(): void
+    {
+        $period = Period::find($this->create_period_id);
+
+        $this->validate([
+            'create_period_id' => ['required', 'exists:periods,id'],
+            'create_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('groups', 'name')->where(fn ($query) => $query->where('period_id', $this->create_period_id)),
+            ],
+            'create_group_type_id' => ['nullable', 'exists:group_types,id'],
+            'create_village' => ['required', 'string', 'max:255'],
+            'create_district' => ['required', 'string', 'max:255'],
+            'create_regency' => ['nullable', 'string', 'max:255'],
+            'create_province' => ['nullable', 'string', 'max:255'],
+            'create_partner_name' => ['nullable', 'string', 'max:255'],
+            'create_village_head' => ['nullable', 'string', 'max:255'],
+            'create_start_date' => [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) use ($period) {
+                    if ($value && $period && Carbon::parse($value)->lt($period->start_date)) {
+                        $fail('Tanggal mulai tidak boleh sebelum tanggal mulai periode ('.$period->start_date->format('d/m/Y').').');
+                    }
+                },
+            ],
+            'create_end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:create_start_date',
+                function ($attribute, $value, $fail) use ($period) {
+                    if ($value && $period && Carbon::parse($value)->gt($period->end_date)) {
+                        $fail('Tanggal selesai tidak boleh setelah tanggal selesai periode ('.$period->end_date->format('d/m/Y').').');
+                    }
+                },
+            ],
+        ], [
+            'create_period_id.required' => 'Pilih periode KKN.',
+            'create_name.required' => 'Nama kelompok wajib diisi.',
+            'create_name.unique' => 'Nama kelompok sudah digunakan pada periode ini.',
+            'create_village.required' => 'Nama desa wajib diisi.',
+            'create_district.required' => 'Nama kecamatan wajib diisi.',
+            'create_end_date.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
+        ]);
+
+        Group::create([
+            'period_id' => $this->create_period_id,
+            'name' => $this->create_name,
+            'group_type_id' => $this->create_group_type_id ?: null,
+            'village' => $this->create_village,
+            'district' => $this->create_district,
+            'regency' => $this->create_regency ?: null,
+            'province' => $this->create_province ?: null,
+            'partner_name' => $this->create_partner_name ?: null,
+            'village_head' => $this->create_village_head ?: null,
+            'start_date' => $this->create_start_date ?: null,
+            'end_date' => $this->create_end_date ?: null,
+        ]);
+
+        $this->closeCreateModal();
+        Flux::toast('Kelompok KKN berhasil dibuat.', variant: 'success');
+    }
+
     public function render()
     {
         $query = Group::query();
@@ -243,6 +357,7 @@ class Groups extends Component
         return view('livewire.admin.groups', [
             'groups' => $groups,
             'availableDpls' => $availableDpls,
+            'groupTypes' => GroupType::orderBy('name')->get(),
             'periods' => Period::orderByDesc('start_date')->get(),
             'stats' => [
                 'total' => $groups->total(),

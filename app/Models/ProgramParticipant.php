@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProgramStatus;
+use App\Models\Concerns\HasUlid;
 use App\Services\ExternalImagePreviewUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProgramParticipant extends Model
 {
+    use HasUlid;
+
     protected $fillable = [
+        'ulid',
         'program_id',
         'student_id',
         'participant_code',

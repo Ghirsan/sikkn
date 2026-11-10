@@ -53,7 +53,7 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if($data->allApproved)
-                                    <flux:button size="sm" variant="ghost" icon="arrow-down-tray" inset="top bottom">{{ __('Unduh LRK') }}</flux:button>
+                                    <flux:button href="{{ route('lrk.pdf', $data->group) }}" target="_blank" size="sm" variant="ghost" icon="arrow-down-tray" inset="top bottom">{{ __('Unduh LRK') }}</flux:button>
                                 @endif
                             </flux:table.cell>
                         </flux:table.row>
