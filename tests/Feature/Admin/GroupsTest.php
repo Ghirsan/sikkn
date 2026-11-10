@@ -246,4 +246,43 @@ class GroupsTest extends TestCase
             ->call('createGroup')
             ->assertHasErrors(['create_name']);
     }
+
+    public function test_admin_can_edit_group(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Lama',
+            'village' => 'Desa Lama',
+            'district' => 'Kecamatan Lama',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('openEditModal', $group->id)
+            ->assertSet('isEditing', true)
+            ->assertSet('editingGroupId', $group->id)
+            ->assertSet('create_name', 'Kelompok Lama')
+            ->assertSet('create_village', 'Desa Lama')
+            ->set('create_name', 'Kelompok Baru Diedit')
+            ->set('create_village', 'Desa Baru')
+            ->call('saveGroup')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false)
+            ->assertSet('isEditing', false)
+            ->assertSet('editingGroupId', null);
+
+        $this->assertDatabaseHas('groups', [
+            'id' => $group->id,
+            'name' => 'Kelompok Baru Diedit',
+            'village' => 'Desa Baru',
+        ]);
+    }
 }

@@ -30,6 +30,10 @@ class Dpls extends Component
 
     public bool $showCreateModal = false;
 
+    public bool $isEditing = false;
+
+    public ?int $editingDplId = null;
+
     public string $nip = '';
 
     public string $name = '';
@@ -125,7 +129,28 @@ class Dpls extends Component
     public function openCreateModal(): void
     {
         $this->resetValidation();
-        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'is_lead']);
+        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'is_lead', 'isEditing', 'editingDplId']);
+        $this->showCreateModal = true;
+    }
+
+    public function openEditModal(User $dpl): void
+    {
+        $this->resetValidation();
+        $this->isEditing = true;
+        $this->editingDplId = $dpl->id;
+        $this->nip = $dpl->nip ?? '';
+        $this->name = $dpl->name ?? '';
+        $this->email = $dpl->email ?? '';
+        $this->study_program_id = $dpl->study_program_id;
+        $this->phone = $dpl->phone ?? '';
+        $this->password = '';
+
+        $group = $this->periodId
+            ? $dpl->dplGroups()->where('period_id', $this->periodId)->first()
+            : $dpl->dplGroups()->first();
+        $this->group_id = $group?->id;
+        $this->is_lead = $group ? ($group->lead_dpl_id === $dpl->id) : false;
+
         $this->showCreateModal = true;
     }
 
@@ -133,10 +158,10 @@ class Dpls extends Component
     {
         $this->showCreateModal = false;
         $this->resetValidation();
-        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'is_lead']);
+        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'is_lead', 'isEditing', 'editingDplId']);
     }
 
-    public function createDpl(): void
+    public function saveDpl(): void
     {
         $this->validate([
             'nip' => ['required', 'string', 'max:30'],
@@ -156,6 +181,60 @@ class Dpls extends Component
 
         $nip = trim($this->nip);
         $email = trim($this->email) ?: strtolower($nip).'@lecturer.sikkn.ac.id';
+
+        if ($this->isEditing && $this->editingDplId) {
+            $dpl = User::where('id', $this->editingDplId)->where('role', UserRole::Dpl)->firstOrFail();
+
+            $duplicateNip = User::where('nip', $nip)->where('id', '!=', $dpl->id)->exists();
+            if ($duplicateNip) {
+                $this->addError('nip', 'NIP ini sudah terdaftar untuk pengguna lain.');
+
+                return;
+            }
+
+            $duplicateEmail = User::where('email', $email)->where('id', '!=', $dpl->id)->exists();
+            if ($duplicateEmail) {
+                $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+
+                return;
+            }
+
+            $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
+            $facultyId = $studyProgram?->faculty_id;
+
+            $updateData = [
+                'nip' => $nip,
+                'name' => $this->name,
+                'email' => $email,
+                'phone' => $this->phone ?: null,
+                'study_program_id' => $studyProgram?->id,
+                'faculty_id' => $facultyId,
+            ];
+
+            if (! empty($this->password)) {
+                $updateData['password'] = Hash::make($this->password);
+            }
+
+            $dpl->update($updateData);
+
+            if ($this->group_id) {
+                $group = Group::find($this->group_id);
+                if ($group) {
+                    $group->dpls()->syncWithoutDetaching([$dpl->id]);
+                    if ($this->is_lead) {
+                        $group->update(['lead_dpl_id' => $dpl->id]);
+                    } elseif ($group->lead_dpl_id === $dpl->id) {
+                        $group->update(['lead_dpl_id' => null]);
+                    }
+                }
+            }
+
+            $this->closeCreateModal();
+            Flux::toast('Data Dosen KKN berhasil diperbarui.', variant: 'success');
+
+            return;
+        }
+
         $existingUser = User::where('nip', $nip)->first();
 
         $emailOwner = User::where('email', $email)->first();
@@ -216,6 +295,11 @@ class Dpls extends Component
         }
 
         $this->closeCreateModal();
+    }
+
+    public function createDpl(): void
+    {
+        $this->saveDpl();
     }
 
     public function render()

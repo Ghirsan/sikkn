@@ -53,6 +53,10 @@ class Groups extends Component
 
     public ?string $create_end_date = null;
 
+    public bool $isEditing = false;
+
+    public ?int $editingGroupId = null;
+
     public function mount()
     {
         $this->periodId = Period::active()->first()?->id ?? Period::latest('start_date')->first()?->id;
@@ -245,6 +249,8 @@ class Groups extends Component
     public function openCreateModal(): void
     {
         $this->resetValidation();
+        $this->isEditing = false;
+        $this->editingGroupId = null;
         $this->create_period_id = $this->periodId ?? Period::active()->first()?->id ?? Period::latest('start_date')->first()?->id;
         $this->create_name = '';
         $this->create_group_type_id = GroupType::first()?->id;
@@ -259,15 +265,43 @@ class Groups extends Component
         $this->showCreateModal = true;
     }
 
+    public function openEditModal(Group $group): void
+    {
+        $this->resetValidation();
+        $this->isEditing = true;
+        $this->editingGroupId = $group->id;
+        $this->create_period_id = $group->period_id;
+        $this->create_name = $group->name;
+        $this->create_group_type_id = $group->group_type_id;
+        $this->create_village = $group->village ?? '';
+        $this->create_district = $group->district ?? '';
+        $this->create_regency = $group->regency ?? '';
+        $this->create_province = $group->province ?? '';
+        $this->create_partner_name = $group->partner_name ?? '';
+        $this->create_village_head = $group->village_head ?? '';
+        $this->create_start_date = $group->start_date?->format('Y-m-d');
+        $this->create_end_date = $group->end_date?->format('Y-m-d');
+        $this->showCreateModal = true;
+    }
+
     public function closeCreateModal(): void
     {
         $this->showCreateModal = false;
+        $this->isEditing = false;
+        $this->editingGroupId = null;
         $this->resetValidation();
     }
 
-    public function createGroup(): void
+    public function saveGroup(): void
     {
         $period = Period::find($this->create_period_id);
+
+        $nameRule = Rule::unique('groups', 'name')
+            ->where(fn ($query) => $query->where('period_id', $this->create_period_id));
+
+        if ($this->isEditing && $this->editingGroupId) {
+            $nameRule->ignore($this->editingGroupId);
+        }
 
         $this->validate([
             'create_period_id' => ['required', 'exists:periods,id'],
@@ -275,7 +309,7 @@ class Groups extends Component
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('groups', 'name')->where(fn ($query) => $query->where('period_id', $this->create_period_id)),
+                $nameRule,
             ],
             'create_group_type_id' => ['nullable', 'exists:group_types,id'],
             'create_village' => ['required', 'string', 'max:255'],
@@ -312,7 +346,7 @@ class Groups extends Component
             'create_end_date.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
         ]);
 
-        Group::create([
+        $data = [
             'period_id' => $this->create_period_id,
             'name' => $this->create_name,
             'group_type_id' => $this->create_group_type_id ?: null,
@@ -324,10 +358,24 @@ class Groups extends Component
             'village_head' => $this->create_village_head ?: null,
             'start_date' => $this->create_start_date ?: null,
             'end_date' => $this->create_end_date ?: null,
-        ]);
+        ];
+
+        if ($this->isEditing && $this->editingGroupId) {
+            $group = Group::findOrFail($this->editingGroupId);
+            $group->update($data);
+            $msg = 'Data kelompok berhasil diperbarui.';
+        } else {
+            Group::create($data);
+            $msg = 'Kelompok KKN berhasil dibuat.';
+        }
 
         $this->closeCreateModal();
-        Flux::toast('Kelompok KKN berhasil dibuat.', variant: 'success');
+        Flux::toast($msg, variant: 'success');
+    }
+
+    public function createGroup(): void
+    {
+        $this->saveGroup();
     }
 
     public function render()

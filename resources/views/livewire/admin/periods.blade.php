@@ -45,6 +45,7 @@
                     <flux:table.column>{{ __('Rentang Tanggal') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column>{{ __('Kelompok') }}</flux:table.column>
+                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($periods as $period)
@@ -56,6 +57,9 @@
                                 <flux:badge size="sm" :color="$period->status->color()">{{ $period->status->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>{{ $period->groups_count }} {{ __('Kelompok') }}</flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button wire:click="editPeriod({{ $period->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
+                            </flux:table.cell>
                         </flux:table.row>
                     @endforeach
                 </flux:table.rows>
@@ -63,10 +67,10 @@
         @endif
     </flux:card>
 
-    {{-- Create Period Modal --}}
+    {{-- Period Modal --}}
     <flux:modal name="period-modal" class="md:w-[40rem]">
-        <form wire:submit.prevent="createPeriod">
-            <flux:heading size="lg">{{ __('Buat Periode Baru') }}</flux:heading>
+        <form wire:submit.prevent="savePeriod">
+            <flux:heading size="lg">{{ $isEditing ? __('Edit Periode KKN') : __('Buat Periode Baru') }}</flux:heading>
             
             <div class="space-y-6 my-4">
                 <flux:input wire:model="name" label="{{ __('Nama Periode') }}" placeholder="KKN TIM I TA 2026/2027" />
@@ -84,11 +88,11 @@
                 </div>
             </div>
 
-            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
                 <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
                     <flux:button variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ $isEditing ? __('Simpan Perubahan') : __('Simpan') }}</flux:button>
             </div>
         </form>
     </flux:modal>

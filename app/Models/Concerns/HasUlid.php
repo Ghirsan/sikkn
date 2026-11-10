@@ -26,4 +26,3 @@ trait HasUlid
         return $query->where('ulid', $ulid);
     }
 }
-

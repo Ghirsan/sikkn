@@ -39,6 +39,7 @@
                     <flux:table.column>{{ __('Program Studi') }}</flux:table.column>
                     <flux:table.column>{{ __('Kontak') }}</flux:table.column>
                     <flux:table.column>{{ __('Kelompok / Status') }}</flux:table.column>
+                    <flux:table.column>{{ __('Aksi') }}</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach($students as $student)
@@ -107,6 +108,9 @@
                                     <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Belum Punya Kelompok') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button wire:click="openEditModal({{ $student->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
+                            </flux:table.cell>
                         </flux:table.row>
                     @endforeach
                 </flux:table.rows>
@@ -165,12 +169,12 @@
         </form>
     </flux:modal>
 
-    {{-- Create Student Modal --}}
+    {{-- Create/Edit Student Modal --}}
     <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
-        <form wire:submit.prevent="createStudent" class="space-y-6">
+        <form wire:submit.prevent="saveStudent" class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ __('Tambah Peserta KKN') }}</flux:heading>
-                <flux:subheading>{{ __('Daftarkan mahasiswa dan alokasikan ke kelompok KKN.') }}</flux:subheading>
+                <flux:heading size="lg">{{ $isEditing ? __('Edit Data Mahasiswa') : __('Tambah Peserta KKN') }}</flux:heading>
+                <flux:subheading>{{ $isEditing ? __('Perbarui data mahasiswa dan alokasi kelompok KKN.') : __('Daftarkan mahasiswa dan alokasikan ke kelompok KKN.') }}</flux:subheading>
             </div>
 
             <div class="space-y-4">
@@ -180,18 +184,18 @@
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="email" label="{{ __('Email (Opsional)') }}" type="email" placeholder="{{ __('Otomatis: {nim}@student.sikkn.ac.id') }}" />
-                    <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp (Opsional)') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
+                    <flux:input wire:model="email" label="{{ __('Email') }}" type="email" placeholder="{{ __('Otomatis: {nim}@student.sikkn.ac.id') }}" />
+                    <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:select wire:model="study_program_id" label="{{ __('Program Studi (Opsional)') }}">
+                    <flux:select wire:model="study_program_id" label="{{ __('Program Studi') }}">
                         <flux:select.option value="">{{ __('Pilih Program Studi') }}</flux:select.option>
                         @foreach($studyPrograms as $sp)
                             <flux:select.option value="{{ $sp->id }}">{{ $sp->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model="group_id" label="{{ __('Kelompok KKN (Opsional)') }}">
+                    <flux:select wire:model="group_id" label="{{ __('Kelompok KKN') }}">
                         <flux:select.option value="">{{ __('Belum Ditempatkan') }}</flux:select.option>
                         @foreach($availableGroups as $g)
                             <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
@@ -199,14 +203,14 @@
                     </flux:select>
                 </div>
 
-                <flux:input wire:model="password" label="{{ __('Password (Opsional)') }}" type="password" placeholder="{{ __('Default: password') }}" />
+                <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ $isEditing ? __('Kosongkan jika tidak ingin mengubah') : __('Default: password') }}" />
             </div>
 
             <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
                 <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
                     <flux:button wire:click="closeCreateModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Peserta') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ $isEditing ? __('Simpan Perubahan') : __('Simpan Peserta') }}</flux:button>
             </div>
         </form>
     </flux:modal>

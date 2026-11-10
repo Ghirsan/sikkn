@@ -166,4 +166,50 @@ class StudentsTest extends TestCase
             'group_id' => $group->id,
         ]);
     }
+
+    public function test_admin_can_edit_student_via_modal(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $student = User::factory()->mahasiswa()->create([
+            'nim' => '21120120120003',
+            'name' => 'Original Name',
+            'phone' => '0811111111',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openEditModal', $student->id)
+            ->assertSet('isEditing', true)
+            ->assertSet('editingStudentId', $student->id)
+            ->assertSet('nim', '21120120120003')
+            ->assertSet('name', 'Original Name')
+            ->assertSet('phone', '0811111111')
+            ->set('name', 'New Student Name')
+            ->set('phone', '0822222222')
+            ->call('saveStudent')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false)
+            ->assertSet('isEditing', false)
+            ->assertSet('editingStudentId', null);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $student->id,
+            'name' => 'New Student Name',
+            'phone' => '0822222222',
+        ]);
+    }
+
+    public function test_edit_student_validates_duplicate_nim(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $studentA = User::factory()->mahasiswa()->create(['nim' => '11111111']);
+        $studentB = User::factory()->mahasiswa()->create(['nim' => '22222222']);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openEditModal', $studentA->id)
+            ->set('nim', '22222222')
+            ->call('saveStudent')
+            ->assertHasErrors(['nim']);
+    }
 }

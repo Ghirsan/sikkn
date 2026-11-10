@@ -26,6 +26,10 @@ class Periods extends Component
 
     public string $end_date = '';
 
+    public bool $isEditing = false;
+
+    public ?int $editingId = null;
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -38,13 +42,33 @@ class Periods extends Component
 
     public function startCreating()
     {
-        $this->reset(['name', 'year', 'start_date', 'end_date']);
+        $this->reset(['name', 'year', 'start_date', 'end_date', 'isEditing', 'editingId']);
         $this->semester = Semester::Ganjil;
         $this->year = date('Y');
+        $this->resetValidation();
+        $this->dispatch('modal-show', name: 'period-modal');
+    }
+
+    public function editPeriod(int $id)
+    {
+        $this->resetValidation();
+        $period = Period::findOrFail($id);
+        $this->editingId = $period->id;
+        $this->isEditing = true;
+        $this->name = $period->name ?? '';
+        $this->semester = $period->semester;
+        $this->year = (string) $period->year;
+        $this->start_date = $period->start_date->format('Y-m-d');
+        $this->end_date = $period->end_date->format('Y-m-d');
         $this->dispatch('modal-show', name: 'period-modal');
     }
 
     public function createPeriod()
+    {
+        $this->savePeriod();
+    }
+
+    public function savePeriod()
     {
         $this->validate([
             'name' => 'required|string|max:255',
@@ -69,16 +93,30 @@ class Periods extends Component
             'end_date.before_or_equal' => 'Tanggal selesai harus berada pada tahun '.$this->year.'.',
         ]);
 
-        Period::create([
-            'name' => $this->name,
-            'semester' => $this->semester,
-            'year' => $this->year,
-            'start_date' => $this->start_date,
-            'end_date' => $this->end_date,
-        ]);
+        if ($this->isEditing && $this->editingId) {
+            $period = Period::findOrFail($this->editingId);
+            $period->update([
+                'name' => $this->name,
+                'semester' => $this->semester,
+                'year' => $this->year,
+                'start_date' => $this->start_date,
+                'end_date' => $this->end_date,
+            ]);
+            $message = 'Periode berhasil diperbarui.';
+        } else {
+            Period::create([
+                'name' => $this->name,
+                'semester' => $this->semester,
+                'year' => $this->year,
+                'start_date' => $this->start_date,
+                'end_date' => $this->end_date,
+            ]);
+            $message = 'Periode berhasil ditambahkan.';
+        }
 
         $this->dispatch('modal-close', name: 'period-modal');
-        Flux::toast('Periode berhasil ditambahkan.', variant: 'success');
+        $this->reset(['name', 'year', 'start_date', 'end_date', 'isEditing', 'editingId']);
+        Flux::toast($message, variant: 'success');
     }
 
     public function render()

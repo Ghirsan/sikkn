@@ -78,6 +78,7 @@
                                 </div>
                             </flux:table.cell>
                             <flux:table.cell>
+                                <flux:button wire:click="openEditModal({{ $group->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
                                 <flux:button wire:click="openAssignModal({{ $group->id }})" size="sm" variant="ghost" icon="user-plus">{{ __('Atur DPL') }}</flux:button>
                                 <flux:button wire:click="openDatesModal({{ $group->id }})" size="sm" variant="ghost" icon="calendar">{{ __('Atur Waktu') }}</flux:button>
                             </flux:table.cell>
@@ -105,7 +106,7 @@
                     </flux:checkbox.group>
 
                     @if(count($selectedDpls) > 0)
-                        <flux:radio.group wire:model="leadDplId" label="{{ __('Pilih Ketua DPL (Opsional)') }}">
+                        <flux:radio.group wire:model="leadDplId" label="{{ __('Pilih Ketua DPL') }}">
                             <flux:radio value="" label="{{ __('Tidak Ada Ketua') }}" />
                             @foreach($availableDpls->whereIn('id', $selectedDpls) as $dpl)
                                 <flux:radio value="{{ $dpl->id }}" label="{{ $dpl->name }}" />
@@ -139,8 +140,8 @@
                         {{ $editingGroup->period->start_date->format('d/m/Y') }} - {{ $editingGroup->period->end_date->format('d/m/Y') }}
                     </div>
 
-                    <flux:input type="date" wire:model="startDate" label="{{ __('Tanggal Mulai (Opsional)') }}" />
-                    <flux:input type="date" wire:model="endDate" label="{{ __('Tanggal Selesai (Opsional)') }}" />
+                    <flux:input type="date" wire:model="startDate" label="{{ __('Tanggal Mulai') }}" />
+                    <flux:input type="date" wire:model="endDate" label="{{ __('Tanggal Selesai') }}" />
                     
                     <flux:text class="text-xs">{{ __('Biarkan kosong untuk menggunakan waktu periode KKN.') }}</flux:text>
                 </div>
@@ -205,12 +206,12 @@
         </form>
     </flux:modal>
 
-    {{-- Create Group Modal --}}
+    {{-- Group Modal --}}
     <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
-        <form wire:submit.prevent="createGroup" class="space-y-6">
+        <form wire:submit.prevent="saveGroup" class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ __('Buat Kelompok KKN Baru') }}</flux:heading>
-                <flux:subheading>{{ __('Tambahkan kelompok kerja mahasiswa baru pada periode KKN.') }}</flux:subheading>
+                <flux:heading size="lg">{{ $isEditing ? __('Edit Kelompok KKN') : __('Buat Kelompok KKN Baru') }}</flux:heading>
+                <flux:subheading>{{ $isEditing ? __('Perbarui data kelompok kerja mahasiswa dan lokasi.') : __('Tambahkan kelompok kerja mahasiswa baru pada periode KKN.') }}</flux:subheading>
             </div>
 
             <div class="space-y-4">
@@ -236,18 +237,18 @@
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="create_regency" label="{{ __('Kabupaten / Kota (Opsional)') }}" placeholder="{{ __('Contoh: Semarang') }}" />
-                    <flux:input wire:model="create_province" label="{{ __('Provinsi (Opsional)') }}" placeholder="{{ __('Contoh: Jawa Tengah') }}" />
+                    <flux:input wire:model="create_regency" label="{{ __('Kabupaten / Kota') }}" placeholder="{{ __('Contoh: Semarang') }}" />
+                    <flux:input wire:model="create_province" label="{{ __('Provinsi') }}" placeholder="{{ __('Contoh: Jawa Tengah') }}" />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="create_partner_name" label="{{ __('Mitra Lapangan (Opsional)') }}" placeholder="{{ __('Contoh: BUMDes Maju Bersama') }}" />
-                    <flux:input wire:model="create_village_head" label="{{ __('Kepala Desa / Lurah (Opsional)') }}" placeholder="{{ __('Contoh: Bpk. Suparno') }}" />
+                    <flux:input wire:model="create_partner_name" label="{{ __('Mitra Lapangan') }}" placeholder="{{ __('Contoh: BUMDes Maju Bersama') }}" />
+                    <flux:input wire:model="create_village_head" label="{{ __('Kepala Desa / Lurah') }}" placeholder="{{ __('Contoh: Bpk. Suparno') }}" />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input type="date" wire:model="create_start_date" label="{{ __('Tanggal Mulai (Opsional)') }}" />
-                    <flux:input type="date" wire:model="create_end_date" label="{{ __('Tanggal Selesai (Opsional)') }}" />
+                    <flux:input type="date" wire:model="create_start_date" label="{{ __('Tanggal Mulai') }}" />
+                    <flux:input type="date" wire:model="create_end_date" label="{{ __('Tanggal Selesai') }}" />
                 </div>
                 <flux:text class="text-xs text-zinc-500">{{ __('Kosongkan tanggal untuk menggunakan jadwal default periode KKN.') }}</flux:text>
             </div>
@@ -256,7 +257,7 @@
                 <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
                     <flux:button wire:click="closeCreateModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan Kelompok') }}</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ $isEditing ? __('Simpan Perubahan') : __('Simpan Kelompok') }}</flux:button>
             </div>
         </form>
     </flux:modal>

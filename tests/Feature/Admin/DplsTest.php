@@ -194,4 +194,50 @@ class DplsTest extends TestCase
         $this->assertTrue($group->fresh()->dpls->contains($dpl->id));
         $this->assertEquals($dpl->id, $group->fresh()->lead_dpl_id);
     }
+
+    public function test_admin_can_edit_dpl_via_modal(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $dpl = User::factory()->dpl()->create([
+            'nip' => '198101012006011003',
+            'name' => 'Original Lecturer Name',
+            'phone' => '081234567890',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openEditModal', $dpl->id)
+            ->assertSet('isEditing', true)
+            ->assertSet('editingDplId', $dpl->id)
+            ->assertSet('nip', '198101012006011003')
+            ->assertSet('name', 'Original Lecturer Name')
+            ->assertSet('phone', '081234567890')
+            ->set('name', 'Updated Lecturer Name')
+            ->set('phone', '089876543210')
+            ->call('saveDpl')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false)
+            ->assertSet('isEditing', false)
+            ->assertSet('editingDplId', null);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $dpl->id,
+            'name' => 'Updated Lecturer Name',
+            'phone' => '089876543210',
+        ]);
+    }
+
+    public function test_edit_dpl_validates_duplicate_nip(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $dplA = User::factory()->dpl()->create(['nip' => '19800000001']);
+        $dplB = User::factory()->dpl()->create(['nip' => '19800000002']);
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openEditModal', $dplA->id)
+            ->set('nip', '19800000002')
+            ->call('saveDpl')
+            ->assertHasErrors(['nip']);
+    }
 }

@@ -30,6 +30,10 @@ class Students extends Component
 
     public bool $showCreateModal = false;
 
+    public bool $isEditing = false;
+
+    public ?int $editingStudentId = null;
+
     public string $nim = '';
 
     public string $name = '';
@@ -123,7 +127,22 @@ class Students extends Component
     public function openCreateModal(): void
     {
         $this->resetValidation();
-        $this->reset(['nim', 'name', 'email', 'study_program_id', 'group_id', 'phone', 'password']);
+        $this->reset(['nim', 'name', 'email', 'study_program_id', 'group_id', 'phone', 'password', 'isEditing', 'editingStudentId']);
+        $this->showCreateModal = true;
+    }
+
+    public function openEditModal(User $student): void
+    {
+        $this->resetValidation();
+        $this->isEditing = true;
+        $this->editingStudentId = $student->id;
+        $this->nim = $student->nim ?? '';
+        $this->name = $student->name ?? '';
+        $this->email = $student->email ?? '';
+        $this->study_program_id = $student->study_program_id;
+        $this->group_id = $student->group_id;
+        $this->phone = $student->phone ?? '';
+        $this->password = '';
         $this->showCreateModal = true;
     }
 
@@ -131,10 +150,10 @@ class Students extends Component
     {
         $this->showCreateModal = false;
         $this->resetValidation();
-        $this->reset(['nim', 'name', 'email', 'study_program_id', 'group_id', 'phone', 'password']);
+        $this->reset(['nim', 'name', 'email', 'study_program_id', 'group_id', 'phone', 'password', 'isEditing', 'editingStudentId']);
     }
 
-    public function createStudent(): void
+    public function saveStudent(): void
     {
         $this->validate([
             'nim' => ['required', 'string', 'max:20'],
@@ -153,6 +172,49 @@ class Students extends Component
 
         $nim = trim($this->nim);
         $email = trim($this->email) ?: strtolower($nim).'@student.sikkn.ac.id';
+
+        if ($this->isEditing && $this->editingStudentId) {
+            $student = User::where('id', $this->editingStudentId)->where('role', UserRole::Mahasiswa)->firstOrFail();
+
+            $duplicateNim = User::where('nim', $nim)->where('id', '!=', $student->id)->exists();
+            if ($duplicateNim) {
+                $this->addError('nim', 'NIM ini sudah terdaftar untuk pengguna lain.');
+
+                return;
+            }
+
+            $duplicateEmail = User::where('email', $email)->where('id', '!=', $student->id)->exists();
+            if ($duplicateEmail) {
+                $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+
+                return;
+            }
+
+            $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
+            $facultyId = $studyProgram?->faculty_id;
+
+            $updateData = [
+                'nim' => $nim,
+                'name' => $this->name,
+                'email' => $email,
+                'phone' => $this->phone ?: null,
+                'study_program_id' => $studyProgram?->id,
+                'faculty_id' => $facultyId,
+                'group_id' => $this->group_id ?: null,
+            ];
+
+            if (! empty($this->password)) {
+                $updateData['password'] = Hash::make($this->password);
+            }
+
+            $student->update($updateData);
+
+            $this->closeCreateModal();
+            Flux::toast('Data mahasiswa berhasil diperbarui.', variant: 'success');
+
+            return;
+        }
+
         $existingUser = User::where('nim', $nim)->first();
 
         $emailOwner = User::where('email', $email)->first();
@@ -205,6 +267,11 @@ class Students extends Component
             $this->closeCreateModal();
             Flux::toast('Peserta KKN berhasil ditambahkan.', variant: 'success');
         }
+    }
+
+    public function createStudent(): void
+    {
+        $this->saveStudent();
     }
 
     public function render()
