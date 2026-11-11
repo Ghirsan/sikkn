@@ -74,10 +74,10 @@ class StatsCardCoverageTest extends TestCase
         // Admin Users
         Livewire::actingAs($admin)
             ->test(AdminUsers::class)
-            ->assertSee('Total Pengguna')
-            ->assertSee('Mahasiswa')
-            ->assertSee('Dosen KKN')
-            ->assertSee('Admin & Observer');
+            ->assertSee('Total Pengelola')
+            ->assertSee('Admin P2KKN')
+            ->assertSee('Akun Fakultas')
+            ->assertSee('Akun Program Studi');
 
         // Admin Periods
         Livewire::actingAs($admin)

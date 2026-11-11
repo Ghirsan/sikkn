@@ -2,23 +2,19 @@
 
 namespace App\Livewire\Admin;
 
+use App\Concerns\PasswordValidationRules;
 use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Flux\Flux;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Users extends Component
 {
-    use WithPagination;
-
-    public $faculties;
-
-    public $studyPrograms;
+    use PasswordValidationRules, WithPagination;
 
     public $roles;
 
@@ -35,12 +31,6 @@ class Users extends Component
 
     public $role = '';
 
-    public $nim = '';
-
-    public $nip = '';
-
-    public $phone = '';
-
     public $faculty_id = '';
 
     public $study_program_id = '';
@@ -53,9 +43,7 @@ class Users extends Component
 
     public function mount()
     {
-        $this->faculties = Faculty::orderBy('name')->get();
-        $this->studyPrograms = StudyProgram::orderBy('name')->get();
-        $this->roles = UserRole::cases();
+        $this->roles = [UserRole::P2kkn, UserRole::Fakultas, UserRole::Prodi];
     }
 
     public function updatedSearch()
@@ -68,10 +56,42 @@ class Users extends Component
         $this->resetPage();
     }
 
+    public function updatedRole($value)
+    {
+        if ($value === UserRole::P2kkn->value) {
+            $this->faculty_id = '';
+            $this->study_program_id = '';
+        } elseif ($value === UserRole::Fakultas->value) {
+            $this->study_program_id = '';
+        } elseif ($value === UserRole::Prodi->value) {
+            $this->faculty_id = '';
+        }
+    }
+
+    public function updatedFacultyId($value): void
+    {
+        if ($value && ! $this->isEditing) {
+            $faculty = Faculty::find($value);
+            if ($faculty) {
+                $this->name = $faculty->defaultObserverAccountName();
+            }
+        }
+    }
+
+    public function updatedStudyProgramId($value): void
+    {
+        if ($value && ! $this->isEditing) {
+            $prodi = StudyProgram::find($value);
+            if ($prodi) {
+                $this->name = $prodi->defaultObserverAccountName();
+            }
+        }
+    }
+
     public function resetForm()
     {
         $this->reset([
-            'name', 'email', 'password', 'role', 'nim', 'nip', 'phone',
+            'name', 'email', 'password', 'role',
             'faculty_id', 'study_program_id', 'isEditing', 'editingId',
         ]);
         $this->resetValidation();
@@ -80,7 +100,7 @@ class Users extends Component
     public function create()
     {
         $this->resetForm();
-        $this->dispatch('modal-show', name: 'user-modal');
+        Flux::modal('user-modal')->show();
     }
 
     public function edit($id)
@@ -89,51 +109,87 @@ class Users extends Component
         $this->isEditing = true;
         $this->editingId = $id;
 
-        $user = User::findOrFail($id);
+        $user = User::whereIn('role', [UserRole::P2kkn, UserRole::Fakultas, UserRole::Prodi])
+            ->findOrFail($id);
+
         $this->name = $user->name;
         $this->email = $user->email;
         $this->role = $user->role->value;
-        $this->nim = $user->nim;
-        $this->nip = $user->nip;
-        $this->phone = $user->phone;
-        $this->faculty_id = $user->faculty_id;
-        $this->study_program_id = $user->study_program_id;
+        $this->faculty_id = $user->faculty_id ? (string) $user->faculty_id : '';
+        $this->study_program_id = $user->study_program_id ? (string) $user->study_program_id : '';
 
-        $this->dispatch('modal-show', name: 'user-modal');
+        Flux::modal('user-modal')->show();
     }
 
     public function save()
     {
+        $allowedRoles = [UserRole::P2kkn->value, UserRole::Fakultas->value, UserRole::Prodi->value];
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->editingId)],
-            'role' => ['required', new Enum(UserRole::class)],
-            'nim' => ['nullable', 'string', 'max:50'],
-            'nip' => ['nullable', 'string', 'max:50'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'faculty_id' => ['nullable', 'exists:faculties,id'],
-            'study_program_id' => ['nullable', 'exists:study_programs,id'],
+            'role' => ['required', Rule::in($allowedRoles)],
+            'faculty_id' => [
+                Rule::requiredIf($this->role === UserRole::Fakultas->value),
+                'nullable',
+                'exists:faculties,id',
+            ],
+            'study_program_id' => [
+                Rule::requiredIf($this->role === UserRole::Prodi->value),
+                'nullable',
+                'exists:study_programs,id',
+            ],
+            'password' => $this->optionalDefaultPasswordRules(),
         ];
 
-        if (! $this->isEditing || ! empty($this->password)) {
-            $rules['password'] = ['required', 'string', 'min:8'];
+        $this->validate($rules, [
+            'password.min' => 'Password minimal 6 karakter.',
+        ]);
+
+        // 1-to-1 account enforcement: verify no other user has this faculty / study program
+        if ($this->role === UserRole::Fakultas->value) {
+            $duplicate = User::where('role', UserRole::Fakultas)
+                ->where('faculty_id', $this->faculty_id)
+                ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId))
+                ->exists();
+
+            if ($duplicate) {
+                $this->addError('faculty_id', 'Fakultas ini sudah memiliki akun pengelola/observer.');
+
+                return;
+            }
         }
 
-        $this->validate($rules);
+        if ($this->role === UserRole::Prodi->value) {
+            $duplicate = User::where('role', UserRole::Prodi)
+                ->where('study_program_id', $this->study_program_id)
+                ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId))
+                ->exists();
+
+            if ($duplicate) {
+                $this->addError('study_program_id', 'Program studi ini sudah memiliki akun pengelola/observer.');
+
+                return;
+            }
+        }
+
+        $facultyId = null;
+        if ($this->role === UserRole::Fakultas->value) {
+            $facultyId = $this->faculty_id;
+        } elseif ($this->role === UserRole::Prodi->value) {
+            $facultyId = StudyProgram::find($this->study_program_id)?->faculty_id;
+        }
 
         $data = [
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
-            'nim' => $this->nim ?: null,
-            'nip' => $this->nip ?: null,
-            'phone' => $this->phone ?: null,
-            'faculty_id' => $this->faculty_id ?: null,
-            'study_program_id' => $this->study_program_id ?: null,
+            'faculty_id' => $facultyId,
+            'study_program_id' => $this->role === UserRole::Prodi->value ? $this->study_program_id : null,
         ];
 
-        if (! empty($this->password)) {
-            $data['password'] = Hash::make($this->password);
+        if ($hashedPassword = $this->resolvePasswordHash($this->password, (bool) $this->isEditing)) {
+            $data['password'] = $hashedPassword;
         }
 
         if ($this->isEditing) {
@@ -145,14 +201,14 @@ class Users extends Component
             $message = 'Pengguna berhasil ditambahkan.';
         }
 
-        $this->dispatch('modal-close', name: 'user-modal');
+        Flux::modal('user-modal')->close();
         $this->dispatch('toast', message: $message, type: 'success');
     }
 
     public function confirmDelete($id)
     {
         $this->deletingId = $id;
-        $this->dispatch('modal-show', name: 'delete-user-modal');
+        Flux::modal('delete-user-modal')->show();
     }
 
     public function delete()
@@ -161,7 +217,7 @@ class Users extends Component
 
         // Prevent deleting oneself
         if ($user->id === auth()->id()) {
-            $this->dispatch('modal-close', name: 'delete-user-modal');
+            Flux::modal('delete-user-modal')->close();
             $this->dispatch('toast', message: 'Anda tidak dapat menghapus akun Anda sendiri.', type: 'error');
 
             return;
@@ -169,37 +225,52 @@ class Users extends Component
 
         $user->delete();
 
-        $this->dispatch('modal-close', name: 'delete-user-modal');
+        Flux::modal('delete-user-modal')->close();
         $this->dispatch('toast', message: 'Pengguna berhasil dihapus.', type: 'success');
     }
 
     public function render()
     {
-        $query = User::with(['faculty', 'studyProgram'])->orderBy('name');
+        $allowedRoles = [UserRole::P2kkn, UserRole::Fakultas, UserRole::Prodi];
+
+        $query = User::with(['faculty', 'studyProgram'])
+            ->whereIn('role', $allowedRoles)
+            ->orderBy('name');
 
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('email', 'like', '%'.$this->search.'%')
-                    ->orWhere('nim', 'like', '%'.$this->search.'%')
-                    ->orWhere('nip', 'like', '%'.$this->search.'%');
+                    ->orWhere('email', 'like', '%'.$this->search.'%');
             });
         }
 
-        if ($this->filterRole) {
+        if ($this->filterRole && in_array(UserRole::tryFrom($this->filterRole), $allowedRoles, true)) {
             $query->where('role', $this->filterRole);
         }
 
         $stats = [
-            'total' => User::count(),
-            'mahasiswa' => User::where('role', UserRole::Mahasiswa)->count(),
-            'dpl' => User::where('role', UserRole::Dpl)->count(),
-            'staff' => User::whereIn('role', [UserRole::P2kkn, UserRole::Prodi, UserRole::Fakultas])->count(),
+            'total' => User::whereIn('role', $allowedRoles)->count(),
+            'p2kkn' => User::where('role', UserRole::P2kkn)->count(),
+            'fakultas' => User::where('role', UserRole::Fakultas)->count(),
+            'prodi' => User::where('role', UserRole::Prodi)->count(),
         ];
+
+        // Available faculties for dropdown (unassigned or currently assigned to editing user)
+        $availableFaculties = Faculty::whereDoesntHave('observerUsers', function ($q) {
+            $q->when($this->editingId, fn ($subQ) => $subQ->where('id', '!=', $this->editingId));
+        })->orderBy('name')->get();
+
+        // Available study programs for dropdown (unassigned or currently assigned to editing user)
+        $availableStudyPrograms = StudyProgram::with('faculty')
+            ->whereDoesntHave('observerUsers', function ($q) {
+                $q->when($this->editingId, fn ($subQ) => $subQ->where('id', '!=', $this->editingId));
+            })->orderBy('name')->get();
 
         return view('livewire.admin.users', [
             'users' => $query->paginate(10),
             'stats' => $stats,
+            'availableFaculties' => $availableFaculties,
+            'availableStudyPrograms' => $availableStudyPrograms,
         ]);
     }
 }

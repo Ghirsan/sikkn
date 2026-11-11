@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class StudyProgram extends Model
 {
@@ -34,6 +35,33 @@ class StudyProgram extends Model
     public function dpls(): HasMany
     {
         return $this->users()->where('role', UserRole::Dpl);
+    }
+
+    public function observerUsers(): HasMany
+    {
+        return $this->users()->where('role', UserRole::Prodi);
+    }
+
+    public function observerUser(): HasOne
+    {
+        return $this->hasOne(User::class)->ofMany(
+            ['id' => 'max'],
+            fn (Builder $query) => $query->where('role', UserRole::Prodi)
+        );
+    }
+
+    /**
+     * Build the default display name for a newly provisioned study program account.
+     */
+    public function defaultObserverAccountName(): string
+    {
+        $cleanName = trim((string) preg_replace('/\s+(S1|S2|S3|D3|D4)$/i', '', trim($this->name)));
+
+        if (preg_match('/^prodi\b/i', $cleanName)) {
+            return $cleanName;
+        }
+
+        return 'Prodi '.$cleanName;
     }
 
     public function scopeForFaculty(Builder $query, int $facultyId): Builder

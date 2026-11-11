@@ -2,17 +2,19 @@
 
 namespace App\Livewire\Admin;
 
+use App\Concerns\PasswordValidationRules;
 use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
 use App\Models\User;
+use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class StudyPrograms extends Component
 {
-    use WithPagination;
+    use PasswordValidationRules, WithPagination;
 
     public $faculties;
 
@@ -31,6 +33,21 @@ class StudyPrograms extends Component
     public string $facultyFilter = '';
 
     public $deletingId = null;
+
+    // Account management state
+    public ?int $selectedProdiId = null;
+
+    public string $selectedProdiName = '';
+
+    public ?int $accountUserId = null;
+
+    public string $accountName = '';
+
+    public string $accountEmail = '';
+
+    public string $accountPassword = '';
+
+    public array $duplicateAccounts = [];
 
     public function updatedSearch(): void
     {
@@ -56,7 +73,7 @@ class StudyPrograms extends Component
     public function create()
     {
         $this->resetForm();
-        $this->dispatch('modal-show', name: 'study-program-modal');
+        Flux::modal('study-program-modal')->show();
     }
 
     public function edit($id)
@@ -70,7 +87,7 @@ class StudyPrograms extends Component
         $this->code = $prodi->code;
         $this->faculty_id = $prodi->faculty_id;
 
-        $this->dispatch('modal-show', name: 'study-program-modal');
+        Flux::modal('study-program-modal')->show();
     }
 
     public function save()
@@ -103,14 +120,14 @@ class StudyPrograms extends Component
             $message = 'Program studi berhasil ditambahkan.';
         }
 
-        $this->dispatch('modal-close', name: 'study-program-modal');
+        Flux::modal('study-program-modal')->close();
         $this->dispatch('toast', message: $message, type: 'success');
     }
 
     public function confirmDelete($id)
     {
         $this->deletingId = $id;
-        $this->dispatch('modal-show', name: 'delete-study-program-modal');
+        Flux::modal('delete-study-program-modal')->show();
     }
 
     public function delete()
@@ -119,7 +136,7 @@ class StudyPrograms extends Component
 
         // Safeguard: Check if it's used
         if (User::where('study_program_id', $prodi->id)->exists()) {
-            $this->dispatch('modal-close', name: 'delete-study-program-modal');
+            Flux::modal('delete-study-program-modal')->close();
             $this->dispatch('toast', message: 'Tidak dapat menghapus program studi yang sudah memiliki pengguna terkait.', type: 'error');
 
             return;
@@ -127,13 +144,133 @@ class StudyPrograms extends Component
 
         $prodi->delete();
 
-        $this->dispatch('modal-close', name: 'delete-study-program-modal');
+        Flux::modal('delete-study-program-modal')->close();
         $this->dispatch('toast', message: 'Program studi berhasil dihapus.', type: 'success');
+    }
+
+    public function manageAccount(int $prodiId): void
+    {
+        $this->resetValidation();
+        $this->selectedProdiId = $prodiId;
+
+        $prodi = StudyProgram::with(['faculty', 'observerUser', 'observerUsers'])->findOrFail($prodiId);
+        $this->selectedProdiName = $prodi->name.' ('.($prodi->faculty->short_name ?: $prodi->faculty->code).')';
+
+        // Check for duplicates
+        if ($prodi->observerUsers->count() > 1) {
+            $this->duplicateAccounts = $prodi->observerUsers->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+            ])->toArray();
+        } else {
+            $this->duplicateAccounts = [];
+        }
+
+        $observer = $prodi->observerUser;
+        if ($observer) {
+            $this->accountUserId = $observer->id;
+            $this->accountName = $observer->name;
+            $this->accountEmail = $observer->email;
+            $this->accountPassword = '';
+        } else {
+            $this->accountUserId = null;
+            $this->accountName = $prodi->defaultObserverAccountName();
+            $this->accountEmail = '';
+            $this->accountPassword = '';
+        }
+
+        Flux::modal('prodi-account-modal')->show();
+    }
+
+    public function saveAccount(): void
+    {
+        $this->validate([
+            'accountName' => ['required', 'string', 'max:255'],
+            'accountEmail' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($this->accountUserId),
+            ],
+            'accountPassword' => $this->optionalDefaultPasswordRules(),
+        ], [
+            'accountPassword.min' => 'Password minimal 6 karakter.',
+        ]);
+
+        $prodi = StudyProgram::findOrFail($this->selectedProdiId);
+
+        $data = [
+            'name' => $this->accountName,
+            'email' => $this->accountEmail,
+            'role' => UserRole::Prodi,
+            'study_program_id' => $this->selectedProdiId,
+            'faculty_id' => $prodi->faculty_id,
+        ];
+
+        $isUpdating = (bool) $this->accountUserId;
+        if ($hashedPassword = $this->resolvePasswordHash($this->accountPassword, $isUpdating)) {
+            $data['password'] = $hashedPassword;
+        }
+
+        if ($isUpdating) {
+            $user = User::findOrFail($this->accountUserId);
+            $user->update($data);
+            $message = 'Akun program studi berhasil diperbarui.';
+        } else {
+            $user = User::create($data);
+            $this->accountUserId = $user->id;
+            $message = 'Akun program studi berhasil dibuat.';
+        }
+
+        Flux::modal('prodi-account-modal')->close();
+        $this->dispatch('toast', message: $message, type: 'success');
+    }
+
+    public function confirmDeleteAccount(): void
+    {
+        Flux::modal('delete-prodi-account-modal')->show();
+    }
+
+    public function deleteAccount(): void
+    {
+        if (! $this->accountUserId) {
+            return;
+        }
+
+        $user = User::findOrFail($this->accountUserId);
+
+        if ($user->id === auth()->id()) {
+            Flux::modal('delete-prodi-account-modal')->close();
+            $this->dispatch('toast', message: 'Anda tidak dapat menghapus akun Anda sendiri.', type: 'error');
+
+            return;
+        }
+
+        $user->delete();
+        $this->accountUserId = null;
+
+        Flux::modal('delete-prodi-account-modal')->close();
+        Flux::modal('prodi-account-modal')->close();
+        $this->dispatch('toast', message: 'Akun program studi berhasil dihapus.', type: 'success');
+    }
+
+    public function resolveDuplicateAccount(int $keepUserId): void
+    {
+        // Delete duplicates except the chosen one
+        User::where('role', UserRole::Prodi)
+            ->where('study_program_id', $this->selectedProdiId)
+            ->where('id', '!=', $keepUserId)
+            ->delete();
+
+        $this->manageAccount($this->selectedProdiId);
+        $this->dispatch('toast', message: 'Duplikasi akun berhasil dibersihkan.', type: 'success');
     }
 
     public function render()
     {
-        $studyPrograms = StudyProgram::with('faculty')
+        $studyPrograms = StudyProgram::with(['faculty', 'observerUser'])
+            ->withCount(['observerUsers'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%'.$this->search.'%')

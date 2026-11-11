@@ -2,17 +2,19 @@
 
 namespace App\Livewire\Admin;
 
+use App\Concerns\PasswordValidationRules;
 use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
 use App\Models\User;
+use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Faculties extends Component
 {
-    use WithPagination;
+    use PasswordValidationRules, WithPagination;
 
     public $isEditing = false;
 
@@ -28,6 +30,21 @@ class Faculties extends Component
 
     public $deletingId = null;
 
+    // Account management state
+    public ?int $selectedFacultyId = null;
+
+    public string $selectedFacultyName = '';
+
+    public ?int $accountUserId = null;
+
+    public string $accountName = '';
+
+    public string $accountEmail = '';
+
+    public string $accountPassword = '';
+
+    public array $duplicateAccounts = [];
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -42,7 +59,7 @@ class Faculties extends Component
     public function create()
     {
         $this->resetForm();
-        $this->dispatch('modal-show', name: 'faculty-modal');
+        Flux::modal('faculty-modal')->show();
     }
 
     public function edit($id)
@@ -56,7 +73,7 @@ class Faculties extends Component
         $this->code = $faculty->code;
         $this->short_name = $faculty->short_name;
 
-        $this->dispatch('modal-show', name: 'faculty-modal');
+        Flux::modal('faculty-modal')->show();
     }
 
     public function save()
@@ -89,14 +106,14 @@ class Faculties extends Component
             $message = 'Fakultas berhasil ditambahkan.';
         }
 
-        $this->dispatch('modal-close', name: 'faculty-modal');
+        Flux::modal('faculty-modal')->close();
         $this->dispatch('toast', message: $message, type: 'success');
     }
 
     public function confirmDelete($id)
     {
         $this->deletingId = $id;
-        $this->dispatch('modal-show', name: 'delete-faculty-modal');
+        Flux::modal('delete-faculty-modal')->show();
     }
 
     public function delete()
@@ -105,7 +122,7 @@ class Faculties extends Component
 
         // Safeguard: Check if it's used
         if (StudyProgram::where('faculty_id', $faculty->id)->exists() || User::where('faculty_id', $faculty->id)->exists()) {
-            $this->dispatch('modal-close', name: 'delete-faculty-modal');
+            Flux::modal('delete-faculty-modal')->close();
             $this->dispatch('toast', message: 'Tidak dapat menghapus fakultas yang sudah memiliki prodi atau pengguna terkait.', type: 'error');
 
             return;
@@ -113,13 +130,131 @@ class Faculties extends Component
 
         $faculty->delete();
 
-        $this->dispatch('modal-close', name: 'delete-faculty-modal');
+        Flux::modal('delete-faculty-modal')->close();
         $this->dispatch('toast', message: 'Fakultas berhasil dihapus.', type: 'success');
+    }
+
+    public function manageAccount(int $facultyId): void
+    {
+        $this->resetValidation();
+        $this->selectedFacultyId = $facultyId;
+
+        $faculty = Faculty::with(['observerUser', 'observerUsers'])->findOrFail($facultyId);
+        $this->selectedFacultyName = $faculty->name;
+
+        // Check for duplicates
+        if ($faculty->observerUsers->count() > 1) {
+            $this->duplicateAccounts = $faculty->observerUsers->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+            ])->toArray();
+        } else {
+            $this->duplicateAccounts = [];
+        }
+
+        $observer = $faculty->observerUser;
+        if ($observer) {
+            $this->accountUserId = $observer->id;
+            $this->accountName = $observer->name;
+            $this->accountEmail = $observer->email;
+            $this->accountPassword = '';
+        } else {
+            $this->accountUserId = null;
+            $this->accountName = $faculty->defaultObserverAccountName();
+            $this->accountEmail = '';
+            $this->accountPassword = '';
+        }
+
+        Flux::modal('faculty-account-modal')->show();
+    }
+
+    public function saveAccount(): void
+    {
+        $this->validate([
+            'accountName' => ['required', 'string', 'max:255'],
+            'accountEmail' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($this->accountUserId),
+            ],
+            'accountPassword' => $this->optionalDefaultPasswordRules(),
+        ], [
+            'accountPassword.min' => 'Password minimal 6 karakter.',
+        ]);
+
+        $data = [
+            'name' => $this->accountName,
+            'email' => $this->accountEmail,
+            'role' => UserRole::Fakultas,
+            'faculty_id' => $this->selectedFacultyId,
+        ];
+
+        $isUpdating = (bool) $this->accountUserId;
+        if ($hashedPassword = $this->resolvePasswordHash($this->accountPassword, $isUpdating)) {
+            $data['password'] = $hashedPassword;
+        }
+
+        if ($isUpdating) {
+            $user = User::findOrFail($this->accountUserId);
+            $user->update($data);
+            $message = 'Akun fakultas berhasil diperbarui.';
+        } else {
+            $user = User::create($data);
+            $this->accountUserId = $user->id;
+            $message = 'Akun fakultas berhasil dibuat.';
+        }
+
+        Flux::modal('faculty-account-modal')->close();
+        $this->dispatch('toast', message: $message, type: 'success');
+    }
+
+    public function confirmDeleteAccount(): void
+    {
+        Flux::modal('delete-faculty-account-modal')->show();
+    }
+
+    public function deleteAccount(): void
+    {
+        if (! $this->accountUserId) {
+            return;
+        }
+
+        $user = User::findOrFail($this->accountUserId);
+
+        if ($user->id === auth()->id()) {
+            Flux::modal('delete-faculty-account-modal')->close();
+            $this->dispatch('toast', message: 'Anda tidak dapat menghapus akun Anda sendiri.', type: 'error');
+
+            return;
+        }
+
+        $user->delete();
+        $this->accountUserId = null;
+
+        Flux::modal('delete-faculty-account-modal')->close();
+        Flux::modal('faculty-account-modal')->close();
+        $this->dispatch('toast', message: 'Akun fakultas berhasil dihapus.', type: 'success');
+    }
+
+    public function resolveDuplicateAccount(int $keepUserId): void
+    {
+        // Delete duplicates except the chosen one
+        User::where('role', UserRole::Fakultas)
+            ->where('faculty_id', $this->selectedFacultyId)
+            ->where('id', '!=', $keepUserId)
+            ->delete();
+
+        $this->manageAccount($this->selectedFacultyId);
+        $this->dispatch('toast', message: 'Duplikasi akun berhasil dibersihkan.', type: 'success');
     }
 
     public function render()
     {
         $faculties = Faculty::query()
+            ->with(['observerUser'])
+            ->withCount(['observerUsers'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%'.$this->search.'%')
