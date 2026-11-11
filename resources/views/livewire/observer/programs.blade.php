@@ -19,10 +19,10 @@
         </div>
         <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
-            <flux:select wire:model.live="studyProgramId" placeholder="{{ __('Semua Program Studi') }}" size="sm" class="w-full sm:w-48">
-                <option value="">{{ __('Semua Program Studi') }}</option>
+            <flux:select wire:model.live="studyProgramId" size="sm" class="w-full sm:w-48">
+                <flux:select.option value="">{{ __('Semua Program Studi') }}</flux:select.option>
                 @foreach($studyPrograms as $prodi)
-                    <option value="{{ $prodi->id }}">{{ $prodi->name }}</option>
+                    <flux:select.option value="{{ $prodi->id }}">{{ $prodi->name }}</flux:select.option>
                 @endforeach
             </flux:select>
             @endif

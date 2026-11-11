@@ -43,4 +43,18 @@ trait ScopesObserverQuery
             $this->applyObserverScope($q);
         });
     }
+
+    public function updatedSearch(): void
+    {
+        if (method_exists($this, 'resetPage')) {
+            $this->resetPage();
+        }
+    }
+
+    public function updatedStudyProgramId(): void
+    {
+        if (method_exists($this, 'resetPage')) {
+            $this->resetPage();
+        }
+    }
 }

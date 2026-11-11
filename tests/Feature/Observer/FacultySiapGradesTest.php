@@ -122,4 +122,89 @@ class FacultySiapGradesTest extends TestCase
             ->test(Grades::class)
             ->assertDontSee(__('Export Nilai SIAP'));
     }
+
+    public function test_grades_stats_computes_average_grade_using_final_grade(): void
+    {
+        Livewire::actingAs($this->facultyUser)
+            ->test(Grades::class)
+            ->assertViewHas('stats', function ($stats) {
+                return $stats['total'] === 1
+                    && $stats['graded'] === 1
+                    && $stats['average'] === '80.0';
+            });
+    }
+
+    public function test_grades_filter_by_study_program_updates_stats_and_list(): void
+    {
+        $prodiA2 = StudyProgram::create([
+            'faculty_id' => $this->facultyA->id,
+            'name' => 'Statistika',
+            'code' => 'STAT',
+        ]);
+
+        $studentA2 = User::factory()->mahasiswa()->create([
+            'name' => 'Citra FSM',
+            'nim' => '24060120120099',
+            'faculty_id' => $this->facultyA->id,
+            'study_program_id' => $prodiA2->id,
+        ]);
+
+        Livewire::actingAs($this->facultyUser)
+            ->test(Grades::class)
+            ->set('studyProgramId', (string) $this->prodiA->id)
+            ->assertSee('Budi FSM')
+            ->assertDontSee('Citra FSM')
+            ->assertViewHas('stats', function ($stats) {
+                return $stats['total'] === 1
+                    && $stats['graded'] === 1
+                    && $stats['ungraded'] === 0
+                    && $stats['average'] === '80.0';
+            })
+            ->set('studyProgramId', (string) $prodiA2->id)
+            ->assertSee('Citra FSM')
+            ->assertDontSee('Budi FSM')
+            ->assertViewHas('stats', function ($stats) {
+                return $stats['total'] === 1
+                    && $stats['graded'] === 0
+                    && $stats['ungraded'] === 1
+                    && $stats['average'] === '-';
+            });
+    }
+
+    public function test_grades_filter_by_status_filter(): void
+    {
+        $studentUngraded = User::factory()->mahasiswa()->create([
+            'name' => 'Dewi Belum Dinilai',
+            'nim' => '24060120120088',
+            'faculty_id' => $this->facultyA->id,
+            'study_program_id' => $this->prodiA->id,
+        ]);
+
+        Livewire::actingAs($this->facultyUser)
+            ->test(Grades::class)
+            ->set('statusFilter', 'graded')
+            ->assertSee('Budi FSM')
+            ->assertDontSee('Dewi Belum Dinilai')
+            ->set('statusFilter', 'ungraded')
+            ->assertSee('Dewi Belum Dinilai')
+            ->assertDontSee('Budi FSM')
+            ->set('statusFilter', 'all')
+            ->assertSee('Budi FSM')
+            ->assertSee('Dewi Belum Dinilai');
+    }
+
+    public function test_filter_changes_reset_pagination(): void
+    {
+        Livewire::actingAs($this->facultyUser)
+            ->test(Grades::class)
+            ->set('paginators.page', 2)
+            ->set('studyProgramId', (string) $this->prodiA->id)
+            ->assertSet('paginators.page', 1)
+            ->set('paginators.page', 2)
+            ->set('statusFilter', 'graded')
+            ->assertSet('paginators.page', 1)
+            ->set('paginators.page', 2)
+            ->set('search', 'Budi')
+            ->assertSet('paginators.page', 1);
+    }
 }

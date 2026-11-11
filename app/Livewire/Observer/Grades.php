@@ -20,6 +20,13 @@ class Grades extends Component
 
     public string $studyProgramId = '';
 
+    public string $statusFilter = 'all';
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function exportSiapExcel(GradeExcelService $excelService)
     {
         $user = auth()->user();
@@ -38,6 +45,12 @@ class Grades extends Component
 
         if ($this->studyProgramId) {
             $query->where('study_program_id', $this->studyProgramId);
+        }
+
+        if ($this->statusFilter === 'graded') {
+            $query->whereHas('grade');
+        } elseif ($this->statusFilter === 'ungraded') {
+            $query->whereDoesntHave('grade');
         }
 
         $students = $query->orderBy('name')->get();
@@ -64,6 +77,12 @@ class Grades extends Component
             $query->where('study_program_id', $this->studyProgramId);
         }
 
+        if ($this->statusFilter === 'graded') {
+            $query->whereHas('grade');
+        } elseif ($this->statusFilter === 'ungraded') {
+            $query->whereDoesntHave('grade');
+        }
+
         $studyPrograms = collect();
         if (auth()->user()->hasRole(UserRole::Fakultas)) {
             $studyPrograms = StudyProgram::where('faculty_id', auth()->user()->faculty_id)->orderBy('name')->get();
@@ -72,12 +91,16 @@ class Grades extends Component
         $baseQuery = User::where('role', UserRole::Mahasiswa);
         $baseQuery = $this->applyObserverScope($baseQuery);
 
+        if ($this->studyProgramId) {
+            $baseQuery->where('study_program_id', $this->studyProgramId);
+        }
+
         $totalStudents = (clone $baseQuery)->count();
         $gradedCount = (clone $baseQuery)->whereHas('grade')->count();
         $ungradedCount = max(0, $totalStudents - $gradedCount);
 
         $studentIds = (clone $baseQuery)->pluck('id');
-        $averageGrade = Grade::whereIn('student_id', $studentIds)->avg('nilai_akhir');
+        $averageGrade = Grade::whereIn('student_id', $studentIds)->avg('final_grade');
         $averageGradeStr = $averageGrade ? number_format($averageGrade, 1) : '-';
 
         return view('livewire.observer.grades', [

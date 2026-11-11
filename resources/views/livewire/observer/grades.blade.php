@@ -19,13 +19,19 @@
         </div>
         <div class="flex flex-col gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
             @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
-            <flux:select wire:model.live="studyProgramId" placeholder="{{ __('Semua Program Studi') }}" size="sm" class="w-full sm:w-48">
-                <option value="">{{ __('Semua Program Studi') }}</option>
+            <flux:select wire:model.live="studyProgramId" size="sm" class="w-full sm:w-48">
+                <flux:select.option value="">{{ __('Semua Program Studi') }}</flux:select.option>
                 @foreach($studyPrograms as $prodi)
-                    <option value="{{ $prodi->id }}">{{ $prodi->name }}</option>
+                    <flux:select.option value="{{ $prodi->id }}">{{ $prodi->name }}</flux:select.option>
                 @endforeach
             </flux:select>
             @endif
+
+            <flux:select wire:model.live="statusFilter" size="sm" class="w-full sm:w-40">
+                <flux:select.option value="all">{{ __('Semua Status') }}</flux:select.option>
+                <flux:select.option value="graded">{{ __('Sudah Dinilai') }}</flux:select.option>
+                <flux:select.option value="ungraded">{{ __('Belum Dinilai') }}</flux:select.option>
+            </flux:select>
 
             @if(auth()->user()->hasRole(\App\Enums\UserRole::Fakultas))
             <flux:button wire:click="exportSiapExcel" icon="document-arrow-down" variant="primary" size="sm" class="w-full sm:w-auto">

@@ -43,6 +43,9 @@ class Students extends Component
         }
 
         $baseQuery = $this->applyObserverScope(User::where('role', UserRole::Mahasiswa));
+        if ($this->studyProgramId) {
+            $baseQuery->where('study_program_id', $this->studyProgramId);
+        }
         $totalStudents = (clone $baseQuery)->count();
         $assignedCount = (clone $baseQuery)->whereNotNull('group_id')->count();
         $unassignedCount = max(0, $totalStudents - $assignedCount);

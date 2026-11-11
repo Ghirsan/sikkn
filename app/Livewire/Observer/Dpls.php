@@ -42,6 +42,9 @@ class Dpls extends Component
         $dpls = $query->latest()->paginate(10);
 
         $baseQuery = $this->applyObserverScope(User::where('role', UserRole::Dpl));
+        if ($this->studyProgramId) {
+            $baseQuery->where('study_program_id', $this->studyProgramId);
+        }
         $totalDpls = (clone $baseQuery)->count();
         $assignedCount = (clone $baseQuery)->whereHas('dplGroups')->count();
         $unassignedCount = max(0, $totalDpls - $assignedCount);

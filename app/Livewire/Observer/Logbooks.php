@@ -48,6 +48,9 @@ class Logbooks extends Component
 
         $baseQuery = DailyLog::whereHas('student', function ($q) {
             $this->applyObserverScope($q, '');
+            if ($this->studyProgramId) {
+                $q->where('study_program_id', $this->studyProgramId);
+            }
         });
 
         $totalLogs = (clone $baseQuery)->count();
