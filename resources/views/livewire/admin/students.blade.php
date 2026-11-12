@@ -109,7 +109,19 @@
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:button wire:click="openEditModal({{ $student->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
+                                @php($canDelete = ! $student->hasStudentActivityRecords())
+                                <div class="flex items-center gap-2">
+                                    <flux:button wire:click="openEditModal({{ $student->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
+                                    <flux:button
+                                        wire:click="confirmDelete({{ $student->id }})"
+                                        size="sm"
+                                        variant="danger"
+                                        icon="trash"
+                                        class="{{ $canDelete ? '' : 'cursor-pointer opacity-50 hover:bg-red-500! dark:hover:bg-red-600!' }}"
+                                        aria-disabled="{{ $canDelete ? 'false' : 'true' }}"
+                                        tooltip="{{ $canDelete ? __('Hapus Mahasiswa') : __('Tidak dapat dihapus: sudah memiliki riwayat aktivitas/nilai') }}"
+                                    >{{ __('Hapus') }}</flux:button>
+                                </div>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
@@ -213,5 +225,24 @@
                 <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ $isEditing ? __('Simpan Perubahan') : __('Simpan Peserta') }}</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    {{-- Delete Student Confirmation Modal --}}
+    <flux:modal name="delete-student-modal" @close="cancelDelete" class="max-w-md w-full">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Hapus Peserta KKN?') }}</flux:heading>
+                <flux:text class="mt-2 text-sm text-zinc-500">
+                    {{ __('Apakah Anda yakin ingin menghapus akun mahasiswa') }} <strong class="text-zinc-900 dark:text-zinc-100">{{ $deletingStudentName }}</strong>? {{ __('Penempatan kelompok maupun status ketua kelompok akan dilepas otomatis.') }}
+                </flux:text>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button wire:click="cancelDelete" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" wire:click="delete" class="w-full sm:w-auto">{{ __('Ya, Hapus') }}</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

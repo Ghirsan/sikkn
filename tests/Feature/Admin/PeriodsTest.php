@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\Semester;
 use App\Livewire\Admin\Periods;
+use App\Models\Group;
 use App\Models\Period;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -78,5 +79,60 @@ class PeriodsTest extends TestCase
             'id' => $period->id,
             'name' => 'KKN TIM A Updated',
         ]);
+    }
+
+    public function test_admin_can_delete_empty_period(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'name' => 'Periode Kosong',
+            'semester' => Semester::Ganjil,
+            'year' => 2026,
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-07-31',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Periods::class)
+            ->assertSeeHtml('aria-disabled="false"')
+            ->call('confirmDelete', $period->id)
+            ->assertSet('deletingId', $period->id)
+            ->assertDispatched('modal-show', name: 'delete-period-modal')
+            ->assertNotDispatched('toast-show')
+            ->call('delete')
+            ->assertDispatched('toast-show')
+            ->assertDispatched('modal-close', name: 'delete-period-modal');
+
+        $this->assertDatabaseMissing('periods', ['id' => $period->id]);
+    }
+
+    public function test_admin_cannot_delete_period_with_groups(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'name' => 'Periode Terisi',
+            'semester' => Semester::Ganjil,
+            'year' => 2026,
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-07-31',
+        ]);
+
+        Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok 1',
+            'village' => 'Desa A',
+            'district' => 'Kecamatan B',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Periods::class)
+            ->assertSeeHtml('aria-disabled="true"')
+            ->assertSeeHtml('opacity-50')
+            ->call('confirmDelete', $period->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show')
+            ->assertSet('deletingId', null);
+
+        $this->assertDatabaseHas('periods', ['id' => $period->id]);
     }
 }

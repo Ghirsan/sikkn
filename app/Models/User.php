@@ -342,6 +342,76 @@ class User extends Authenticatable
         return $this->hasMany(Grade::class, 'dpl_id');
     }
 
+    /**
+     * Get the schedule events created for this student.
+     */
+    public function scheduleEvents(): HasMany
+    {
+        return $this->hasMany(ScheduleEvent::class, 'student_id');
+    }
+
+    /**
+     * Determine whether this student has operational KKN records that prohibit deletion.
+     */
+    public function hasStudentActivityRecords(): bool
+    {
+        $countsLoaded = isset(
+            $this->daily_logs_count,
+            $this->program_participants_count,
+            $this->programs_count,
+            $this->mentoring_logs_count,
+            $this->schedule_events_count,
+            $this->grades_count,
+        );
+
+        if ($countsLoaded) {
+            return (int) $this->daily_logs_count > 0
+                || (int) $this->program_participants_count > 0
+                || (int) $this->programs_count > 0
+                || (int) $this->mentoring_logs_count > 0
+                || (int) $this->schedule_events_count > 0
+                || (int) $this->grades_count > 0;
+        }
+
+        return $this->dailyLogs()->exists()
+            || $this->programParticipants()->exists()
+            || $this->programs()->exists()
+            || $this->mentoringLogs()->exists()
+            || $this->scheduleEvents()->exists()
+            || $this->grades()->exists();
+    }
+
+    /**
+     * Determine whether this DPL has submitted grades or personal operational records.
+     */
+    public function hasDplActivityRecords(): bool
+    {
+        $countsLoaded = isset(
+            $this->dpl_grades_count,
+            $this->programs_count,
+            $this->daily_logs_count,
+            $this->mentoring_logs_count,
+            $this->program_participants_count,
+            $this->schedule_events_count,
+        );
+
+        if ($countsLoaded) {
+            return (int) $this->dpl_grades_count > 0
+                || (int) $this->programs_count > 0
+                || (int) $this->daily_logs_count > 0
+                || (int) $this->mentoring_logs_count > 0
+                || (int) $this->program_participants_count > 0
+                || (int) $this->schedule_events_count > 0;
+        }
+
+        return $this->dplGrades()->exists()
+            || $this->programs()->exists()
+            || $this->dailyLogs()->exists()
+            || $this->mentoringLogs()->exists()
+            || $this->programParticipants()->exists()
+            || $this->scheduleEvents()->exists();
+    }
+
     // ── Scopes ───────────────────────────────────────────────────
 
     public function scopeRole(Builder $query, UserRole|string $role): Builder

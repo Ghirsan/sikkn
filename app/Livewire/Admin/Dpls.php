@@ -9,6 +9,7 @@ use App\Models\StudyProgram;
 use App\Models\User;
 use App\Services\GroupAllocationExcelService;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -48,7 +49,13 @@ class Dpls extends Component
 
     public ?int $group_id = null;
 
+    public ?int $initialGroupId = null;
+
     public bool $is_lead = false;
+
+    public ?int $deletingDplId = null;
+
+    public string $deletingDplName = '';
 
     public function mount()
     {
@@ -63,6 +70,13 @@ class Dpls extends Component
     public function updatedPeriodId(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedGroupId($value): void
+    {
+        if (! $value) {
+            $this->is_lead = false;
+        }
     }
 
     public function exportExcel(GroupAllocationExcelService $excelService)
@@ -129,7 +143,7 @@ class Dpls extends Component
     public function openCreateModal(): void
     {
         $this->resetValidation();
-        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'is_lead', 'isEditing', 'editingDplId']);
+        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'initialGroupId', 'is_lead', 'isEditing', 'editingDplId']);
         $this->showCreateModal = true;
     }
 
@@ -149,6 +163,7 @@ class Dpls extends Component
             ? $dpl->dplGroups()->where('period_id', $this->periodId)->first()
             : $dpl->dplGroups()->first();
         $this->group_id = $group?->id;
+        $this->initialGroupId = $group?->id;
         $this->is_lead = $group ? ($group->lead_dpl_id === $dpl->id) : false;
 
         $this->showCreateModal = true;
@@ -158,7 +173,7 @@ class Dpls extends Component
     {
         $this->showCreateModal = false;
         $this->resetValidation();
-        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'is_lead', 'isEditing', 'editingDplId']);
+        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'initialGroupId', 'is_lead', 'isEditing', 'editingDplId']);
     }
 
     public function saveDpl(): void
@@ -217,17 +232,7 @@ class Dpls extends Component
 
             $dpl->update($updateData);
 
-            if ($this->group_id) {
-                $group = Group::find($this->group_id);
-                if ($group) {
-                    $group->dpls()->syncWithoutDetaching([$dpl->id]);
-                    if ($this->is_lead) {
-                        $group->update(['lead_dpl_id' => $dpl->id]);
-                    } elseif ($group->lead_dpl_id === $dpl->id) {
-                        $group->update(['lead_dpl_id' => null]);
-                    }
-                }
-            }
+            $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, $this->initialGroupId, $this->is_lead);
 
             $this->closeCreateModal();
             Flux::toast('Data Dosen KKN berhasil diperbarui.', variant: 'success');
@@ -284,15 +289,7 @@ class Dpls extends Component
             Flux::toast('Dosen KKN berhasil ditambahkan.', variant: 'success');
         }
 
-        if ($this->group_id) {
-            $group = Group::find($this->group_id);
-            if ($group) {
-                $group->dpls()->syncWithoutDetaching([$dpl->id]);
-                if ($this->is_lead) {
-                    $group->update(['lead_dpl_id' => $dpl->id]);
-                }
-            }
-        }
+        $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, null, $this->is_lead);
 
         $this->closeCreateModal();
     }
@@ -302,9 +299,96 @@ class Dpls extends Component
         $this->saveDpl();
     }
 
+    public function confirmDelete(int $id): void
+    {
+        $dpl = User::where('role', UserRole::Dpl)->findOrFail($id);
+
+        if ($dpl->hasDplActivityRecords()) {
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Dosen KKN Tidak Dapat Dihapus'),
+                text: __('Dosen KKN tidak dapat dihapus karena sudah memiliki riwayat penilaian atau aktivitas.'),
+            );
+
+            return;
+        }
+
+        $this->deletingDplId = $dpl->id;
+        $this->deletingDplName = $dpl->name;
+
+        Flux::modal('delete-dpl-modal')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset(['deletingDplId', 'deletingDplName']);
+    }
+
+    public function delete(): void
+    {
+        if (! $this->deletingDplId) {
+            return;
+        }
+
+        $dpl = User::where('role', UserRole::Dpl)->findOrFail($this->deletingDplId);
+
+        if ($dpl->hasDplActivityRecords()) {
+            Flux::modal('delete-dpl-modal')->close();
+            $this->cancelDelete();
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Dosen KKN Tidak Dapat Dihapus'),
+                text: __('Dosen KKN tidak dapat dihapus karena sudah memiliki riwayat penilaian atau aktivitas.'),
+            );
+
+            return;
+        }
+
+        DB::transaction(function () use ($dpl) {
+            Group::where('lead_dpl_id', $dpl->id)->update(['lead_dpl_id' => null]);
+            $dpl->dplGroups()->detach();
+            $dpl->delete();
+        });
+
+        Flux::modal('delete-dpl-modal')->close();
+        $this->cancelDelete();
+        Flux::toast(
+            variant: 'success',
+            heading: __('Dosen KKN Dihapus'),
+            text: __('Data Dosen KKN berhasil dihapus.'),
+        );
+    }
+
+    /**
+     * Update the edited/assigned group pivot and lead flag without disturbing other multi-group assignments.
+     */
+    private function syncDplGroupAssignment(User $dpl, ?int $targetGroupId, ?int $initialGroupId, bool $isLead): void
+    {
+        if ($initialGroupId && $initialGroupId !== $targetGroupId) {
+            $dpl->dplGroups()->detach($initialGroupId);
+            Group::where('id', $initialGroupId)
+                ->where('lead_dpl_id', $dpl->id)
+                ->update(['lead_dpl_id' => null]);
+        }
+
+        if ($targetGroupId) {
+            $group = Group::find($targetGroupId);
+            if ($group) {
+                $group->dpls()->syncWithoutDetaching([$dpl->id]);
+                if ($isLead) {
+                    $group->update(['lead_dpl_id' => $dpl->id]);
+                } elseif ($group->lead_dpl_id === $dpl->id) {
+                    $group->update(['lead_dpl_id' => null]);
+                }
+            }
+        }
+    }
+
     public function render()
     {
-        $query = User::where('role', UserRole::Dpl)->with(['studyProgram', 'dplGroups.period']);
+        $query = User::where('role', UserRole::Dpl)
+            ->with(['studyProgram', 'dplGroups.period'])
+            ->withCount(['dplGrades', 'programs', 'dailyLogs', 'mentoringLogs', 'programParticipants', 'scheduleEvents']);
 
         if ($this->periodId) {
             $query->whereHas('dplGroups', function ($q) {

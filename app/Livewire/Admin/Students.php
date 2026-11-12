@@ -9,6 +9,7 @@ use App\Models\StudyProgram;
 use App\Models\User;
 use App\Services\GroupAllocationExcelService;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -47,6 +48,10 @@ class Students extends Component
     public string $phone = '';
 
     public string $password = '';
+
+    public ?int $deletingStudentId = null;
+
+    public string $deletingStudentName = '';
 
     public function mount()
     {
@@ -192,6 +197,8 @@ class Students extends Component
 
             $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
             $facultyId = $studyProgram?->faculty_id;
+            $previousGroupId = $student->group_id;
+            $newGroupId = $this->group_id ?: null;
 
             $updateData = [
                 'nim' => $nim,
@@ -200,7 +207,7 @@ class Students extends Component
                 'phone' => $this->phone ?: null,
                 'study_program_id' => $studyProgram?->id,
                 'faculty_id' => $facultyId,
-                'group_id' => $this->group_id ?: null,
+                'group_id' => $newGroupId,
             ];
 
             if (! empty($this->password)) {
@@ -208,6 +215,7 @@ class Students extends Component
             }
 
             $student->update($updateData);
+            $this->clearGroupLeadershipIfMoved($student, $previousGroupId, $newGroupId);
 
             $this->closeCreateModal();
             Flux::toast('Data mahasiswa berhasil diperbarui.', variant: 'success');
@@ -234,13 +242,16 @@ class Students extends Component
                 return;
             }
 
+            $previousGroupId = $existingUser->group_id;
+            $newGroupId = $this->group_id ?: $existingUser->group_id;
+
             $updateData = [
                 'name' => $this->name,
                 'email' => $email,
                 'phone' => $this->phone ?: $existingUser->phone,
                 'study_program_id' => $studyProgram?->id ?? $existingUser->study_program_id,
                 'faculty_id' => $facultyId ?? $existingUser->faculty_id,
-                'group_id' => $this->group_id ?: $existingUser->group_id,
+                'group_id' => $newGroupId,
             ];
 
             if ($this->password) {
@@ -248,6 +259,7 @@ class Students extends Component
             }
 
             $existingUser->update($updateData);
+            $this->clearGroupLeadershipIfMoved($existingUser, $previousGroupId, $newGroupId);
 
             $this->closeCreateModal();
             Flux::toast('Data mahasiswa berhasil diperbarui dan dialokasikan.', variant: 'success');
@@ -274,9 +286,82 @@ class Students extends Component
         $this->saveStudent();
     }
 
+    public function confirmDelete(int $id): void
+    {
+        $student = User::where('role', UserRole::Mahasiswa)->findOrFail($id);
+
+        if ($student->hasStudentActivityRecords()) {
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Mahasiswa Tidak Dapat Dihapus'),
+                text: __('Mahasiswa tidak dapat dihapus karena sudah memiliki riwayat logbook, program, bimbingan, jadwal, atau nilai.'),
+            );
+
+            return;
+        }
+
+        $this->deletingStudentId = $student->id;
+        $this->deletingStudentName = $student->name;
+
+        Flux::modal('delete-student-modal')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset(['deletingStudentId', 'deletingStudentName']);
+    }
+
+    public function delete(): void
+    {
+        if (! $this->deletingStudentId) {
+            return;
+        }
+
+        $student = User::where('role', UserRole::Mahasiswa)->findOrFail($this->deletingStudentId);
+
+        if ($student->hasStudentActivityRecords()) {
+            Flux::modal('delete-student-modal')->close();
+            $this->cancelDelete();
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Mahasiswa Tidak Dapat Dihapus'),
+                text: __('Mahasiswa tidak dapat dihapus karena sudah memiliki riwayat logbook, program, bimbingan, jadwal, atau nilai.'),
+            );
+
+            return;
+        }
+
+        DB::transaction(function () use ($student) {
+            Group::where('student_leader_id', $student->id)->update(['student_leader_id' => null]);
+            $student->delete();
+        });
+
+        Flux::modal('delete-student-modal')->close();
+        $this->cancelDelete();
+        Flux::toast(
+            variant: 'success',
+            heading: __('Mahasiswa Dihapus'),
+            text: __('Data mahasiswa berhasil dihapus.'),
+        );
+    }
+
+    /**
+     * Reset student leadership on the previous group when a student is unassigned or moved.
+     */
+    private function clearGroupLeadershipIfMoved(User $student, ?int $previousGroupId, ?int $newGroupId): void
+    {
+        if ($previousGroupId && $previousGroupId !== $newGroupId) {
+            Group::where('id', $previousGroupId)
+                ->where('student_leader_id', $student->id)
+                ->update(['student_leader_id' => null]);
+        }
+    }
+
     public function render()
     {
-        $query = User::where('role', UserRole::Mahasiswa)->with(['group.period', 'studyProgram', 'faculty']);
+        $query = User::where('role', UserRole::Mahasiswa)
+            ->with(['group.period', 'studyProgram', 'faculty'])
+            ->withCount(['dailyLogs', 'programParticipants', 'programs', 'mentoringLogs', 'scheduleEvents', 'grades']);
 
         if ($this->periodId) {
             $query->whereHas('group', function ($q) {

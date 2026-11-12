@@ -41,6 +41,18 @@ class Period extends Model
     }
 
     /**
+     * Determine whether this period has no linked groups and can be safely deleted.
+     */
+    public function canBeDeleted(): bool
+    {
+        if (isset($this->groups_count)) {
+            return (int) $this->groups_count === 0;
+        }
+
+        return ! $this->groups()->exists();
+    }
+
+    /**
      * Get a formatted display name for the period.
      */
     protected function displayName(): Attribute

@@ -4,8 +4,11 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\Semester;
 use App\Livewire\Admin\Groups;
+use App\Models\Grade;
 use App\Models\Group;
+use App\Models\MentoringLog;
 use App\Models\Period;
+use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -284,5 +287,130 @@ class GroupsTest extends TestCase
             'name' => 'Kelompok Baru Diedit',
             'village' => 'Desa Baru',
         ]);
+    }
+
+    public function test_admin_can_delete_empty_group(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Kosong',
+            'village' => 'Desa A',
+            'district' => 'Kecamatan B',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->assertSeeHtml('aria-disabled="false"')
+            ->call('confirmDelete', $group->id)
+            ->assertSet('deletingGroupId', $group->id)
+            ->assertDispatched('modal-show', name: 'delete-group-modal')
+            ->assertNotDispatched('toast-show')
+            ->call('delete')
+            ->assertDispatched('toast-show')
+            ->assertDispatched('modal-close', name: 'delete-group-modal');
+
+        $this->assertDatabaseMissing('groups', ['id' => $group->id]);
+    }
+
+    public function test_admin_cannot_delete_group_with_related_records(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        $groupWithStudent = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Mahasiswa',
+            'village' => 'Desa A',
+            'district' => 'Kecamatan A',
+        ]);
+        User::factory()->mahasiswa()->create(['group_id' => $groupWithStudent->id]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->assertSeeHtml('aria-disabled="true"')
+            ->assertSeeHtml('opacity-50')
+            ->call('confirmDelete', $groupWithStudent->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show')
+            ->assertSet('deletingGroupId', null);
+
+        $this->assertDatabaseHas('groups', ['id' => $groupWithStudent->id]);
+
+        $groupWithDpl = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok DPL',
+            'village' => 'Desa B',
+            'district' => 'Kecamatan B',
+        ]);
+        $dpl = User::factory()->dpl()->create();
+        $groupWithDpl->dpls()->attach($dpl->id);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('confirmDelete', $groupWithDpl->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show');
+
+        $this->assertDatabaseHas('groups', ['id' => $groupWithDpl->id]);
+
+        $groupWithProgram = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Program',
+            'village' => 'Desa C',
+            'district' => 'Kecamatan C',
+        ]);
+        Program::create([
+            'group_id' => $groupWithProgram->id,
+            'title' => 'Program Terdaftar',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('confirmDelete', $groupWithProgram->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show');
+
+        $this->assertDatabaseHas('groups', ['id' => $groupWithProgram->id]);
+
+        $student = User::factory()->mahasiswa()->create();
+        $groupWithGrade = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Nilai',
+            'village' => 'Desa D',
+            'district' => 'Kecamatan D',
+        ]);
+        Grade::create([
+            'student_id' => $student->id,
+            'dpl_id' => $dpl->id,
+            'group_id' => $groupWithGrade->id,
+        ]);
+        MentoringLog::create([
+            'group_id' => $groupWithGrade->id,
+            'student_id' => $student->id,
+            'date' => '2026-01-15',
+            'topic' => 'Bimbingan',
+            'discussion_summary' => 'Catatan',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Groups::class)
+            ->call('confirmDelete', $groupWithGrade->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show');
+
+        $this->assertDatabaseHas('groups', ['id' => $groupWithGrade->id]);
     }
 }

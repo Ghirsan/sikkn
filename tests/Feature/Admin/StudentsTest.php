@@ -5,8 +5,14 @@ namespace Tests\Feature\Admin;
 use App\Enums\Semester;
 use App\Enums\UserRole;
 use App\Livewire\Admin\Students;
+use App\Models\DailyLog;
+use App\Models\Grade;
 use App\Models\Group;
+use App\Models\MentoringLog;
 use App\Models\Period;
+use App\Models\Program;
+use App\Models\ProgramParticipant;
+use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -211,5 +217,155 @@ class StudentsTest extends TestCase
             ->set('nim', '22222222')
             ->call('saveStudent')
             ->assertHasErrors(['nim']);
+    }
+
+    public function test_unassigning_or_moving_student_clears_previous_group_leader(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        $groupA = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok A',
+            'village' => 'Desa A',
+        ]);
+
+        $student = User::factory()->mahasiswa()->create([
+            'nim' => '21120120120099',
+            'group_id' => $groupA->id,
+        ]);
+
+        $groupA->update(['student_leader_id' => $student->id]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openEditModal', $student->id)
+            ->set('group_id', null)
+            ->call('saveStudent')
+            ->assertHasNoErrors();
+
+        $this->assertNull($student->fresh()->group_id);
+        $this->assertNull($groupA->fresh()->student_leader_id);
+    }
+
+    public function test_admin_can_delete_student_without_activity_records_and_clears_group_leader(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Uji',
+            'village' => 'Desa Uji',
+        ]);
+
+        $student = User::factory()->mahasiswa()->create([
+            'group_id' => $group->id,
+        ]);
+
+        $group->update(['student_leader_id' => $student->id]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->assertSeeHtml('aria-disabled="false"')
+            ->call('confirmDelete', $student->id)
+            ->assertSet('deletingStudentId', $student->id)
+            ->assertDispatched('modal-show', name: 'delete-student-modal')
+            ->assertNotDispatched('toast-show')
+            ->call('delete')
+            ->assertDispatched('toast-show')
+            ->assertDispatched('modal-close', name: 'delete-student-modal');
+
+        $this->assertDatabaseMissing('users', ['id' => $student->id]);
+        $this->assertNull($group->fresh()->student_leader_id);
+    }
+
+    public function test_admin_cannot_delete_student_with_activity_records(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $dpl = User::factory()->dpl()->create();
+        $period = Period::create([
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-02-01',
+        ]);
+        $group = Group::create([
+            'period_id' => $period->id,
+            'name' => 'Kelompok Aktif',
+            'village' => 'Desa Aktif',
+        ]);
+
+        $studentWithLog = User::factory()->mahasiswa()->create(['group_id' => $group->id]);
+        DailyLog::create([
+            'student_id' => $studentWithLog->id,
+            'date' => '2026-01-10',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->assertSeeHtml('aria-disabled="true"')
+            ->assertSeeHtml('opacity-50')
+            ->call('confirmDelete', $studentWithLog->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show')
+            ->assertSet('deletingStudentId', null);
+
+        $this->assertDatabaseHas('users', ['id' => $studentWithLog->id]);
+
+        $studentWithProgram = User::factory()->mahasiswa()->create(['group_id' => $group->id]);
+        $programType = ProgramType::firstOrCreate(
+            ['code' => 'multidisiplin'],
+            ['name' => 'Multidisiplin']
+        );
+        $program = Program::create([
+            'group_id' => $group->id,
+            'program_type_id' => $programType->id,
+            'title' => 'Program Multidisiplin',
+        ]);
+        ProgramParticipant::create([
+            'program_id' => $program->id,
+            'student_id' => $studentWithProgram->id,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('confirmDelete', $studentWithProgram->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show');
+
+        $this->assertDatabaseHas('users', ['id' => $studentWithProgram->id]);
+
+        $studentWithMentoringAndGrade = User::factory()->mahasiswa()->create(['group_id' => $group->id]);
+        MentoringLog::create([
+            'group_id' => $group->id,
+            'student_id' => $studentWithMentoringAndGrade->id,
+            'date' => '2026-01-11',
+            'topic' => 'Konsultasi',
+            'discussion_summary' => 'Progres awal',
+        ]);
+        Grade::create([
+            'student_id' => $studentWithMentoringAndGrade->id,
+            'dpl_id' => $dpl->id,
+            'group_id' => $group->id,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('confirmDelete', $studentWithMentoringAndGrade->id)
+            ->assertDispatched('toast-show')
+            ->assertNotDispatched('modal-show');
+
+        $this->assertDatabaseHas('users', ['id' => $studentWithMentoringAndGrade->id]);
     }
 }

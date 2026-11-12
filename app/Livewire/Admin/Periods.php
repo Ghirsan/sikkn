@@ -30,6 +30,10 @@ class Periods extends Component
 
     public ?int $editingId = null;
 
+    public ?int $deletingId = null;
+
+    public string $deletingName = '';
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -117,6 +121,62 @@ class Periods extends Component
         $this->dispatch('modal-close', name: 'period-modal');
         $this->reset(['name', 'year', 'start_date', 'end_date', 'isEditing', 'editingId']);
         Flux::toast($message, variant: 'success');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $period = Period::findOrFail($id);
+
+        if (! $period->canBeDeleted()) {
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Periode Tidak Dapat Dihapus'),
+                text: __('Periode tidak dapat dihapus karena masih memiliki kelompok KKN.'),
+            );
+
+            return;
+        }
+
+        $this->deletingId = $period->id;
+        $this->deletingName = $period->display_name;
+
+        Flux::modal('delete-period-modal')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset(['deletingId', 'deletingName']);
+    }
+
+    public function delete(): void
+    {
+        if (! $this->deletingId) {
+            return;
+        }
+
+        $period = Period::findOrFail($this->deletingId);
+
+        if (! $period->canBeDeleted()) {
+            Flux::modal('delete-period-modal')->close();
+            $this->cancelDelete();
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Periode Tidak Dapat Dihapus'),
+                text: __('Periode tidak dapat dihapus karena masih memiliki kelompok KKN.'),
+            );
+
+            return;
+        }
+
+        $period->delete();
+
+        Flux::modal('delete-period-modal')->close();
+        $this->cancelDelete();
+        Flux::toast(
+            variant: 'success',
+            heading: __('Periode Dihapus'),
+            text: __('Periode berhasil dihapus.'),
+        );
     }
 
     public function render()

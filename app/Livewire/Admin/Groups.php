@@ -57,6 +57,10 @@ class Groups extends Component
 
     public ?int $editingGroupId = null;
 
+    public ?int $deletingGroupId = null;
+
+    public string $deletingGroupName = '';
+
     public function mount()
     {
         $this->periodId = Period::active()->first()?->id ?? Period::latest('start_date')->first()?->id;
@@ -378,6 +382,62 @@ class Groups extends Component
         $this->saveGroup();
     }
 
+    public function confirmDelete(int $id): void
+    {
+        $group = Group::findOrFail($id);
+
+        if (! $group->canBeDeleted()) {
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Kelompok Tidak Dapat Dihapus'),
+                text: __('Kelompok tidak dapat dihapus karena masih memiliki mahasiswa, DPL, program, log, atau nilai.'),
+            );
+
+            return;
+        }
+
+        $this->deletingGroupId = $group->id;
+        $this->deletingGroupName = $group->name;
+
+        Flux::modal('delete-group-modal')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset(['deletingGroupId', 'deletingGroupName']);
+    }
+
+    public function delete(): void
+    {
+        if (! $this->deletingGroupId) {
+            return;
+        }
+
+        $group = Group::findOrFail($this->deletingGroupId);
+
+        if (! $group->canBeDeleted()) {
+            Flux::modal('delete-group-modal')->close();
+            $this->cancelDelete();
+            Flux::toast(
+                variant: 'warning',
+                heading: __('Kelompok Tidak Dapat Dihapus'),
+                text: __('Kelompok tidak dapat dihapus karena masih memiliki mahasiswa, DPL, program, log, atau nilai.'),
+            );
+
+            return;
+        }
+
+        $group->delete();
+
+        Flux::modal('delete-group-modal')->close();
+        $this->cancelDelete();
+        Flux::toast(
+            variant: 'success',
+            heading: __('Kelompok Dihapus'),
+            text: __('Kelompok KKN berhasil dihapus.'),
+        );
+    }
+
     public function render()
     {
         $query = Group::query();
@@ -395,7 +455,7 @@ class Groups extends Component
 
         $groups = (clone $query)
             ->with(['period', 'dpls', 'groupType', 'leadDpl'])
-            ->withCount('students')
+            ->withCount(['students', 'dpls', 'programs', 'mentoringLogs', 'scheduleEvents', 'grades'])
             ->latest()
             ->paginate(10);
 

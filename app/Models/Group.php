@@ -234,6 +234,37 @@ class Group extends Model
     }
 
     /**
+     * Determine whether this group has no assigned members or operational records.
+     */
+    public function canBeDeleted(): bool
+    {
+        $countsLoaded = isset(
+            $this->students_count,
+            $this->dpls_count,
+            $this->programs_count,
+            $this->mentoring_logs_count,
+            $this->schedule_events_count,
+            $this->grades_count,
+        );
+
+        if ($countsLoaded) {
+            return (int) $this->students_count === 0
+                && (int) $this->dpls_count === 0
+                && (int) $this->programs_count === 0
+                && (int) $this->mentoring_logs_count === 0
+                && (int) $this->schedule_events_count === 0
+                && (int) $this->grades_count === 0;
+        }
+
+        return ! $this->students()->exists()
+            && ! $this->dpls()->exists()
+            && ! $this->programs()->exists()
+            && ! $this->mentoringLogs()->exists()
+            && ! $this->scheduleEvents()->exists()
+            && ! $this->grades()->exists();
+    }
+
+    /**
      * Get the full location string.
      */
     protected function location(): Attribute

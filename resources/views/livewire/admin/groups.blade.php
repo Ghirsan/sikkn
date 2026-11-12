@@ -78,9 +78,21 @@
                                 </div>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:button wire:click="openEditModal({{ $group->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
-                                <flux:button wire:click="openAssignModal({{ $group->id }})" size="sm" variant="ghost" icon="user-plus">{{ __('Atur DPL') }}</flux:button>
-                                <flux:button wire:click="openDatesModal({{ $group->id }})" size="sm" variant="ghost" icon="calendar">{{ __('Atur Waktu') }}</flux:button>
+                                @php($canDelete = $group->canBeDeleted())
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <flux:button wire:click="openEditModal({{ $group->id }})" size="sm" variant="ghost" icon="pencil-square">{{ __('Edit') }}</flux:button>
+                                    <flux:button wire:click="openAssignModal({{ $group->id }})" size="sm" variant="ghost" icon="user-plus">{{ __('Atur DPL') }}</flux:button>
+                                    <flux:button wire:click="openDatesModal({{ $group->id }})" size="sm" variant="ghost" icon="calendar">{{ __('Atur Waktu') }}</flux:button>
+                                    <flux:button
+                                        wire:click="confirmDelete({{ $group->id }})"
+                                        size="sm"
+                                        variant="danger"
+                                        icon="trash"
+                                        class="{{ $canDelete ? '' : 'cursor-pointer opacity-50 hover:bg-red-500! dark:hover:bg-red-600!' }}"
+                                        aria-disabled="{{ $canDelete ? 'false' : 'true' }}"
+                                        tooltip="{{ $canDelete ? __('Hapus Kelompok') : __('Tidak dapat dihapus: masih memiliki anggota atau aktivitas') }}"
+                                    >{{ __('Hapus') }}</flux:button>
+                                </div>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
@@ -260,5 +272,24 @@
                 <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ $isEditing ? __('Simpan Perubahan') : __('Simpan Kelompok') }}</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    {{-- Delete Group Confirmation Modal --}}
+    <flux:modal name="delete-group-modal" @close="cancelDelete" class="max-w-md w-full">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Hapus Kelompok KKN?') }}</flux:heading>
+                <flux:text class="mt-2 text-sm text-zinc-500">
+                    {{ __('Apakah Anda yakin ingin menghapus kelompok') }} <strong class="text-zinc-900 dark:text-zinc-100">{{ $deletingGroupName }}</strong>? {{ __('Kelompok hanya dapat dihapus apabila belum memiliki mahasiswa, DPL, program, log, atau nilai.') }}
+                </flux:text>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                    <flux:button wire:click="cancelDelete" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" wire:click="delete" class="w-full sm:w-auto">{{ __('Ya, Hapus') }}</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>
