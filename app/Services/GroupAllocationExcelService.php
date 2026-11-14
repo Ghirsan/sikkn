@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Concerns\PasswordValidationRules;
 use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\Group;
@@ -26,6 +27,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GroupAllocationExcelService
 {
+    use PasswordValidationRules;
+
     /**
      * Common styling for Excel header rows.
      */
@@ -542,6 +545,7 @@ class GroupAllocationExcelService
         $prodiCol = $columnMap['programstudi'] ?? $columnMap['prodi'] ?? null;
         $phoneCol = $columnMap['nohp'] ?? $columnMap['telepon'] ?? $columnMap['hp'] ?? null;
         $leaderCol = $columnMap['ketuakelompok'] ?? $columnMap['ketua'] ?? null;
+        $passwordCol = $columnMap['password'] ?? $columnMap['passwordsementara'] ?? null;
 
         if (! $nimCol || ! $nameCol || ! $groupCol) {
             return [
@@ -549,6 +553,7 @@ class GroupAllocationExcelService
                 'errors' => ['Kolom "NIM", "Nama Mahasiswa", dan "Nama Kelompok" wajib ada pada file Excel.'],
                 'imported_count' => 0,
                 'updated_count' => 0,
+                'generated_credentials' => [],
             ];
         }
 
@@ -562,7 +567,7 @@ class GroupAllocationExcelService
         $errors = [];
         $importedCount = 0;
         $updatedCount = 0;
-        $defaultPassword = Hash::make('password');
+        $generatedCredentials = [];
 
         DB::beginTransaction();
         try {
@@ -627,12 +632,13 @@ class GroupAllocationExcelService
                 }
 
                 $isLeader = $leaderCol ? $this->isTrueValue($sheet->getCell([$leaderCol, $r])->getValue()) : false;
+                $rowPassword = $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '';
 
                 // Find existing user by NIM or Email
                 $user = User::where('nim', $nim)->orWhere('email', $email)->first();
 
                 if ($user) {
-                    $user->update([
+                    $updatePayload = [
                         'name' => $name,
                         'email' => $user->email === $email ? $user->email : $email,
                         'role' => UserRole::Mahasiswa,
@@ -641,13 +647,23 @@ class GroupAllocationExcelService
                         'faculty_id' => $faculty?->id ?? $user->faculty_id,
                         'study_program_id' => $studyProgram?->id ?? $user->study_program_id,
                         'phone' => $phone ?: $user->phone,
-                    ]);
+                    ];
+
+                    if ($rowPassword !== '') {
+                        $updatePayload['password'] = Hash::make($rowPassword);
+                        $updatePayload['must_change_password'] = true;
+                    }
+
+                    $user->update($updatePayload);
                     $updatedCount++;
                 } else {
+                    $plainPassword = $rowPassword !== '' ? $rowPassword : $this->generateTemporaryPassword();
+
                     $user = User::create([
                         'name' => $name,
                         'email' => $email,
-                        'password' => $defaultPassword,
+                        'password' => Hash::make($plainPassword),
+                        'must_change_password' => true,
                         'role' => UserRole::Mahasiswa,
                         'nim' => $nim,
                         'group_id' => $group->id,
@@ -656,6 +672,13 @@ class GroupAllocationExcelService
                         'phone' => $phone,
                     ]);
                     $importedCount++;
+
+                    $generatedCredentials[] = [
+                        'identifier' => $nim,
+                        'name' => $name,
+                        'email' => $email,
+                        'temporary_password' => $plainPassword,
+                    ];
                 }
 
                 if ($isLeader) {
@@ -671,6 +694,7 @@ class GroupAllocationExcelService
                     'errors' => $errors,
                     'imported_count' => 0,
                     'updated_count' => 0,
+                    'generated_credentials' => [],
                 ];
             }
 
@@ -681,6 +705,7 @@ class GroupAllocationExcelService
                 'errors' => $errors,
                 'imported_count' => $importedCount,
                 'updated_count' => $updatedCount,
+                'generated_credentials' => $generatedCredentials,
             ];
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -690,6 +715,7 @@ class GroupAllocationExcelService
                 'errors' => ['Terjadi kesalahan saat menyimpan data mahasiswa: '.$e->getMessage()],
                 'imported_count' => 0,
                 'updated_count' => 0,
+                'generated_credentials' => [],
             ];
         }
     }
@@ -842,6 +868,7 @@ class GroupAllocationExcelService
         $prodiCol = $columnMap['programstudi'] ?? $columnMap['prodi'] ?? null;
         $phoneCol = $columnMap['nohp'] ?? $columnMap['telepon'] ?? $columnMap['hp'] ?? null;
         $leadCol = $columnMap['dplutama'] ?? $columnMap['utama'] ?? $columnMap['ketua'] ?? null;
+        $passwordCol = $columnMap['password'] ?? $columnMap['passwordsementara'] ?? null;
 
         if (! $nipCol || ! $nameCol || ! $groupCol) {
             return [
@@ -849,6 +876,7 @@ class GroupAllocationExcelService
                 'errors' => ['Kolom "NIP", "Nama DPL", dan "Nama Kelompok" wajib ada pada file Excel.'],
                 'imported_count' => 0,
                 'updated_count' => 0,
+                'generated_credentials' => [],
             ];
         }
 
@@ -861,7 +889,7 @@ class GroupAllocationExcelService
         $errors = [];
         $importedCount = 0;
         $updatedCount = 0;
-        $defaultPassword = Hash::make('password');
+        $generatedCredentials = [];
 
         DB::beginTransaction();
         try {
@@ -911,12 +939,13 @@ class GroupAllocationExcelService
                 }
 
                 $isLead = $leadCol ? $this->isTrueValue($sheet->getCell([$leadCol, $r])->getValue()) : false;
+                $rowPassword = $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '';
 
                 // Find existing lecturer by NIP or Email
                 $user = User::where('nip', $nip)->orWhere('email', $email)->first();
 
                 if ($user) {
-                    $user->update([
+                    $updatePayload = [
                         'name' => $name,
                         'email' => $user->email === $email ? $user->email : $email,
                         'role' => UserRole::Dpl,
@@ -924,13 +953,23 @@ class GroupAllocationExcelService
                         'study_program_id' => $studyProgram?->id ?? $user->study_program_id,
                         'faculty_id' => $studyProgram?->faculty_id ?? $user->faculty_id,
                         'phone' => $phone ?: $user->phone,
-                    ]);
+                    ];
+
+                    if ($rowPassword !== '') {
+                        $updatePayload['password'] = Hash::make($rowPassword);
+                        $updatePayload['must_change_password'] = true;
+                    }
+
+                    $user->update($updatePayload);
                     $updatedCount++;
                 } else {
+                    $plainPassword = $rowPassword !== '' ? $rowPassword : $this->generateTemporaryPassword();
+
                     $user = User::create([
                         'name' => $name,
                         'email' => $email,
-                        'password' => $defaultPassword,
+                        'password' => Hash::make($plainPassword),
+                        'must_change_password' => true,
                         'role' => UserRole::Dpl,
                         'nip' => $nip,
                         'study_program_id' => $studyProgram?->id,
@@ -938,6 +977,13 @@ class GroupAllocationExcelService
                         'phone' => $phone,
                     ]);
                     $importedCount++;
+
+                    $generatedCredentials[] = [
+                        'identifier' => $nip,
+                        'name' => $name,
+                        'email' => $email,
+                        'temporary_password' => $plainPassword,
+                    ];
                 }
 
                 // Associate DPL with the group (many-to-many pivot)
@@ -957,6 +1003,7 @@ class GroupAllocationExcelService
                     'errors' => $errors,
                     'imported_count' => 0,
                     'updated_count' => 0,
+                    'generated_credentials' => [],
                 ];
             }
 
@@ -967,6 +1014,7 @@ class GroupAllocationExcelService
                 'errors' => $errors,
                 'imported_count' => $importedCount,
                 'updated_count' => $updatedCount,
+                'generated_credentials' => $generatedCredentials,
             ];
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -976,7 +1024,51 @@ class GroupAllocationExcelService
                 'errors' => ['Terjadi kesalahan saat menyimpan data DPL: '.$e->getMessage()],
                 'imported_count' => 0,
                 'updated_count' => 0,
+                'generated_credentials' => [],
             ];
         }
+    }
+
+    /**
+     * Stream a one-time Excel sheet containing temporary credentials for newly imported users.
+     *
+     * @param  array<int, array{identifier: string, name: string, email: string, temporary_password: string}>  $credentials
+     */
+    public function exportGeneratedCredentials(array $credentials, string $filenamePrefix, string $identifierLabel): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Kredensial Sementara');
+
+        $headers = ['No', $identifierLabel, 'Nama', 'Email', 'Password Sementara'];
+        $sheet->fromArray($headers, null, 'A1');
+        $this->styleHeaderRow($sheet, count($headers), 1);
+
+        $rowIdx = 2;
+        foreach ($credentials as $index => $item) {
+            $sheet->setCellValue([1, $rowIdx], $index + 1);
+            $sheet->setCellValueExplicit([2, $rowIdx], (string) $item['identifier'], DataType::TYPE_STRING);
+            $sheet->setCellValue([3, $rowIdx], (string) $item['name']);
+            $sheet->setCellValue([4, $rowIdx], (string) $item['email']);
+            $sheet->setCellValueExplicit([5, $rowIdx], (string) $item['temporary_password'], DataType::TYPE_STRING);
+            $rowIdx++;
+        }
+
+        if ($rowIdx > 2) {
+            $this->styleDataRows($sheet, count($headers), 2, $rowIdx - 1);
+        }
+
+        for ($col = 1; $col <= count($headers); $col++) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setAutoSize(true);
+        }
+
+        $fileName = "{$filenamePrefix}_".now()->format('Ymd_His').'.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 }

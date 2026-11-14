@@ -20,7 +20,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['ulid', 'name', 'email', 'password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone', 'emergency_name', 'emergency_relationship'])]
+#[Fillable(['ulid', 'name', 'email', 'password', 'must_change_password', 'role', 'nim', 'nip', 'faculty_id', 'study_program_id', 'group_id', 'phone', 'emergency_phone', 'emergency_name', 'emergency_relationship'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -68,8 +68,32 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
             'role' => UserRole::class,
         ];
+    }
+
+    /**
+     * Determine whether an email address is a system-generated placeholder.
+     */
+    public static function isPlaceholderEmail(?string $email): bool
+    {
+        if (blank($email)) {
+            return true;
+        }
+
+        $normalized = Str::lower(trim($email));
+
+        return str_ends_with($normalized, '@student.sikkn.ac.id')
+            || str_ends_with($normalized, '@lecturer.sikkn.ac.id');
+    }
+
+    /**
+     * Check if the user currently has a system-generated placeholder email.
+     */
+    public function hasPlaceholderEmail(): bool
+    {
+        return self::isPlaceholderEmail($this->email);
     }
 
     /**

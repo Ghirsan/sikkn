@@ -82,24 +82,29 @@ class StudyProgramsTest extends TestCase
             'faculty_id' => $this->faculty->id,
         ]);
 
-        Livewire::actingAs($this->admin)
+        $component = Livewire::actingAs($this->admin)
             ->test(StudyPrograms::class)
             ->call('manageAccount', $prefixed->id)
             ->assertSet('accountName', 'Prodi Informatika')
-            ->assertSee('Default: password')
+            ->assertSee('Kosongkan untuk password sementara acak')
             ->call('manageAccount', $hukum->id)
             ->assertSet('accountName', 'Prodi Hukum')
             ->set('accountEmail', 'prodi.hukum@univ.ac.id')
             ->call('saveAccount')
             ->assertHasNoErrors()
-            ->assertDispatched('toast');
+            ->assertDispatched('toast')
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $tempPassword = $component->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($tempPassword);
 
         $created = User::where('email', 'prodi.hukum@univ.ac.id')->firstOrFail();
         $this->assertSame('Prodi Hukum', $created->name);
         $this->assertSame(UserRole::Prodi, $created->role);
         $this->assertSame($hukum->id, $created->study_program_id);
         $this->assertSame($this->faculty->id, $created->faculty_id);
-        $this->assertTrue(Hash::check('password', $created->password));
+        $this->assertTrue($created->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $created->password));
     }
 
     public function test_study_program_account_validates_minimum_password_length_when_provided(): void

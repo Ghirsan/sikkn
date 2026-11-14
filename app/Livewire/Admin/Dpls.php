@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Concerns\IssuesTemporaryCredentials;
 use App\Enums\UserRole;
 use App\Models\Group;
 use App\Models\Period;
@@ -17,7 +18,7 @@ use Livewire\WithPagination;
 
 class Dpls extends Component
 {
-    use WithFileUploads, WithPagination;
+    use IssuesTemporaryCredentials, WithFileUploads, WithPagination;
 
     public ?int $periodId = null;
 
@@ -28,6 +29,10 @@ class Dpls extends Component
     public bool $showImportModal = false;
 
     public array $importErrors = [];
+
+    public int $generatedCredentialsCount = 0;
+
+    public string $importSummaryMessage = '';
 
     public bool $showCreateModal = false;
 
@@ -51,8 +56,6 @@ class Dpls extends Component
 
     public ?int $initialGroupId = null;
 
-    public bool $is_lead = false;
-
     public ?int $deletingDplId = null;
 
     public string $deletingDplName = '';
@@ -72,13 +75,6 @@ class Dpls extends Component
         $this->resetPage();
     }
 
-    public function updatedGroupId($value): void
-    {
-        if (! $value) {
-            $this->is_lead = false;
-        }
-    }
-
     public function exportExcel(GroupAllocationExcelService $excelService)
     {
         $period = $this->periodId ? Period::find($this->periodId) : (Period::active()->first() ?? Period::current());
@@ -94,14 +90,16 @@ class Dpls extends Component
 
     public function openImportModal(): void
     {
-        $this->reset(['importFile', 'importErrors']);
+        session()->forget('admin_import_credentials.dpls');
+        $this->reset(['importFile', 'importErrors', 'generatedCredentialsCount', 'importSummaryMessage']);
         $this->showImportModal = true;
     }
 
     public function closeImportModal(): void
     {
+        session()->forget('admin_import_credentials.dpls');
         $this->showImportModal = false;
-        $this->reset(['importFile', 'importErrors']);
+        $this->reset(['importFile', 'importErrors', 'generatedCredentialsCount', 'importSummaryMessage']);
     }
 
     public function importExcel(GroupAllocationExcelService $excelService)
@@ -131,8 +129,20 @@ class Dpls extends Component
         }
 
         if ($result['success']) {
-            $this->closeImportModal();
+            $this->importErrors = [];
+            $credentials = $result['generated_credentials'] ?? [];
             $msg = "Berhasil memproses DPL: {$result['imported_count']} baru dibuat, {$result['updated_count']} diperbarui.";
+
+            if (count($credentials) > 0) {
+                session()->put('admin_import_credentials.dpls', $credentials);
+                $this->generatedCredentialsCount = count($credentials);
+                $this->importSummaryMessage = $msg;
+                $this->importFile = null;
+                $this->showImportModal = true;
+            } else {
+                $this->closeImportModal();
+            }
+
             Flux::toast($msg);
         } else {
             $this->importErrors = $result['errors'];
@@ -140,10 +150,25 @@ class Dpls extends Component
         }
     }
 
+    public function downloadGeneratedCredentials(GroupAllocationExcelService $excelService)
+    {
+        $credentials = session()->pull('admin_import_credentials.dpls', []);
+
+        if (empty($credentials)) {
+            Flux::toast('Kredensial sementara sudah diunduh atau kedaluwarsa.', variant: 'warning');
+
+            return null;
+        }
+
+        $this->closeImportModal();
+
+        return $excelService->exportGeneratedCredentials($credentials, 'kredensial_dpl_baru', 'NIP');
+    }
+
     public function openCreateModal(): void
     {
         $this->resetValidation();
-        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'initialGroupId', 'is_lead', 'isEditing', 'editingDplId']);
+        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'initialGroupId', 'isEditing', 'editingDplId']);
         $this->showCreateModal = true;
     }
 
@@ -164,7 +189,6 @@ class Dpls extends Component
             : $dpl->dplGroups()->first();
         $this->group_id = $group?->id;
         $this->initialGroupId = $group?->id;
-        $this->is_lead = $group ? ($group->lead_dpl_id === $dpl->id) : false;
 
         $this->showCreateModal = true;
     }
@@ -173,21 +197,25 @@ class Dpls extends Component
     {
         $this->showCreateModal = false;
         $this->resetValidation();
-        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'initialGroupId', 'is_lead', 'isEditing', 'editingDplId']);
+        $this->reset(['nip', 'name', 'email', 'study_program_id', 'phone', 'password', 'group_id', 'initialGroupId', 'isEditing', 'editingDplId']);
     }
 
     public function saveDpl(): void
     {
-        $this->validate([
+        $rules = [
             'nip' => ['required', 'string', 'max:30'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'study_program_id' => ['nullable', 'exists:study_programs,id'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:6'],
             'group_id' => ['nullable', 'exists:groups,id'],
-            'is_lead' => ['boolean'],
-        ], [
+        ];
+
+        if (! $this->isEditing) {
+            $rules['password'] = ['nullable', 'string', 'min:6'];
+        }
+
+        $this->validate($rules, [
             'nip.required' => 'NIP wajib diisi.',
             'name.required' => 'Nama dosen wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -217,22 +245,16 @@ class Dpls extends Component
             $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
             $facultyId = $studyProgram?->faculty_id;
 
-            $updateData = [
+            $dpl->update([
                 'nip' => $nip,
                 'name' => $this->name,
                 'email' => $email,
                 'phone' => $this->phone ?: null,
                 'study_program_id' => $studyProgram?->id,
                 'faculty_id' => $facultyId,
-            ];
+            ]);
 
-            if (! empty($this->password)) {
-                $updateData['password'] = Hash::make($this->password);
-            }
-
-            $dpl->update($updateData);
-
-            $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, $this->initialGroupId, $this->is_lead);
+            $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, $this->initialGroupId);
 
             $this->closeCreateModal();
             Flux::toast('Data Dosen KKN berhasil diperbarui.', variant: 'success');
@@ -252,6 +274,8 @@ class Dpls extends Component
         $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
         $facultyId = $studyProgram?->faculty_id;
 
+        $temporaryPassword = null;
+
         if ($existingUser) {
             if ($existingUser->role !== UserRole::Dpl) {
                 $this->addError('nip', 'NIP ini sudah terdaftar sebagai pengguna non-dosen.');
@@ -269,17 +293,22 @@ class Dpls extends Component
 
             if ($this->password) {
                 $updateData['password'] = Hash::make($this->password);
+                $updateData['must_change_password'] = true;
             }
 
             $existingUser->update($updateData);
             $dpl = $existingUser;
             Flux::toast('Data Dosen KKN berhasil diperbarui.', variant: 'success');
         } else {
+            $passwordData = $this->resolveProvisionedPassword($this->password, false);
+            $temporaryPassword = $passwordData['temporary_password'];
+
             $dpl = User::create([
                 'name' => $this->name,
                 'nip' => $nip,
                 'email' => $email,
-                'password' => Hash::make($this->password ?: 'password'),
+                'password' => $passwordData['hash'],
+                'must_change_password' => $passwordData['must_change_password'],
                 'role' => UserRole::Dpl,
                 'phone' => $this->phone ?: null,
                 'study_program_id' => $studyProgram?->id,
@@ -289,9 +318,30 @@ class Dpls extends Component
             Flux::toast('Dosen KKN berhasil ditambahkan.', variant: 'success');
         }
 
-        $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, null, $this->is_lead);
+        $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, null);
 
         $this->closeCreateModal();
+
+        if ($temporaryPassword !== null) {
+            $this->presentIssuedCredential($dpl, $temporaryPassword, __('Akun Dosen KKN Dibuat'));
+        }
+    }
+
+    public function resetPassword(?int $id = null): void
+    {
+        $targetId = $id ?? $this->editingDplId;
+
+        if (! $targetId) {
+            return;
+        }
+
+        $dpl = User::where('role', UserRole::Dpl)->findOrFail($targetId);
+
+        if ($this->showCreateModal) {
+            $this->closeCreateModal();
+        }
+
+        $this->issueResetTemporaryPassword($dpl, __('Password Sementara Dosen KKN Direset'));
     }
 
     public function createDpl(): void
@@ -360,9 +410,9 @@ class Dpls extends Component
     }
 
     /**
-     * Update the edited/assigned group pivot and lead flag without disturbing other multi-group assignments.
+     * Update the edited/assigned group pivot without disturbing other multi-group assignments.
      */
-    private function syncDplGroupAssignment(User $dpl, ?int $targetGroupId, ?int $initialGroupId, bool $isLead): void
+    private function syncDplGroupAssignment(User $dpl, ?int $targetGroupId, ?int $initialGroupId): void
     {
         if ($initialGroupId && $initialGroupId !== $targetGroupId) {
             $dpl->dplGroups()->detach($initialGroupId);
@@ -375,11 +425,6 @@ class Dpls extends Component
             $group = Group::find($targetGroupId);
             if ($group) {
                 $group->dpls()->syncWithoutDetaching([$dpl->id]);
-                if ($isLead) {
-                    $group->update(['lead_dpl_id' => $dpl->id]);
-                } elseif ($group->lead_dpl_id === $dpl->id) {
-                    $group->update(['lead_dpl_id' => null]);
-                }
             }
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Concerns\IssuesTemporaryCredentials;
 use App\Enums\UserRole;
 use App\Models\Group;
 use App\Models\Period;
@@ -17,7 +18,7 @@ use Livewire\WithPagination;
 
 class Students extends Component
 {
-    use WithFileUploads, WithPagination;
+    use IssuesTemporaryCredentials, WithFileUploads, WithPagination;
 
     public ?int $periodId = null;
 
@@ -28,6 +29,10 @@ class Students extends Component
     public bool $showImportModal = false;
 
     public array $importErrors = [];
+
+    public int $generatedCredentialsCount = 0;
+
+    public string $importSummaryMessage = '';
 
     public bool $showCreateModal = false;
 
@@ -83,14 +88,16 @@ class Students extends Component
 
     public function openImportModal(): void
     {
-        $this->reset(['importFile', 'importErrors']);
+        session()->forget('admin_import_credentials.students');
+        $this->reset(['importFile', 'importErrors', 'generatedCredentialsCount', 'importSummaryMessage']);
         $this->showImportModal = true;
     }
 
     public function closeImportModal(): void
     {
+        session()->forget('admin_import_credentials.students');
         $this->showImportModal = false;
-        $this->reset(['importFile', 'importErrors']);
+        $this->reset(['importFile', 'importErrors', 'generatedCredentialsCount', 'importSummaryMessage']);
     }
 
     public function importExcel(GroupAllocationExcelService $excelService)
@@ -120,13 +127,40 @@ class Students extends Component
         }
 
         if ($result['success']) {
-            $this->closeImportModal();
+            $this->importErrors = [];
+            $credentials = $result['generated_credentials'] ?? [];
             $msg = "Berhasil memproses mahasiswa: {$result['imported_count']} baru dibuat, {$result['updated_count']} diperbarui.";
+
+            if (count($credentials) > 0) {
+                session()->put('admin_import_credentials.students', $credentials);
+                $this->generatedCredentialsCount = count($credentials);
+                $this->importSummaryMessage = $msg;
+                $this->importFile = null;
+                $this->showImportModal = true;
+            } else {
+                $this->closeImportModal();
+            }
+
             Flux::toast($msg);
         } else {
             $this->importErrors = $result['errors'];
             Flux::toast('Gagal mengimpor file. Periksa daftar kesalahan.', variant: 'danger');
         }
+    }
+
+    public function downloadGeneratedCredentials(GroupAllocationExcelService $excelService)
+    {
+        $credentials = session()->pull('admin_import_credentials.students', []);
+
+        if (empty($credentials)) {
+            Flux::toast('Kredensial sementara sudah diunduh atau kedaluwarsa.', variant: 'warning');
+
+            return null;
+        }
+
+        $this->closeImportModal();
+
+        return $excelService->exportGeneratedCredentials($credentials, 'kredensial_mahasiswa_baru', 'NIM');
     }
 
     public function openCreateModal(): void
@@ -160,15 +194,20 @@ class Students extends Component
 
     public function saveStudent(): void
     {
-        $this->validate([
+        $rules = [
             'nim' => ['required', 'string', 'max:20'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'study_program_id' => ['nullable', 'exists:study_programs,id'],
             'group_id' => ['nullable', 'exists:groups,id'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:6'],
-        ], [
+        ];
+
+        if (! $this->isEditing) {
+            $rules['password'] = ['nullable', 'string', 'min:6'];
+        }
+
+        $this->validate($rules, [
             'nim.required' => 'NIM wajib diisi.',
             'name.required' => 'Nama mahasiswa wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -200,7 +239,7 @@ class Students extends Component
             $previousGroupId = $student->group_id;
             $newGroupId = $this->group_id ?: null;
 
-            $updateData = [
+            $student->update([
                 'nim' => $nim,
                 'name' => $this->name,
                 'email' => $email,
@@ -208,13 +247,7 @@ class Students extends Component
                 'study_program_id' => $studyProgram?->id,
                 'faculty_id' => $facultyId,
                 'group_id' => $newGroupId,
-            ];
-
-            if (! empty($this->password)) {
-                $updateData['password'] = Hash::make($this->password);
-            }
-
-            $student->update($updateData);
+            ]);
             $this->clearGroupLeadershipIfMoved($student, $previousGroupId, $newGroupId);
 
             $this->closeCreateModal();
@@ -256,6 +289,7 @@ class Students extends Component
 
             if ($this->password) {
                 $updateData['password'] = Hash::make($this->password);
+                $updateData['must_change_password'] = true;
             }
 
             $existingUser->update($updateData);
@@ -264,11 +298,14 @@ class Students extends Component
             $this->closeCreateModal();
             Flux::toast('Data mahasiswa berhasil diperbarui dan dialokasikan.', variant: 'success');
         } else {
-            User::create([
+            $passwordData = $this->resolveProvisionedPassword($this->password, false);
+
+            $createdStudent = User::create([
                 'name' => $this->name,
                 'nim' => $nim,
                 'email' => $email,
-                'password' => Hash::make($this->password ?: 'password'),
+                'password' => $passwordData['hash'],
+                'must_change_password' => $passwordData['must_change_password'],
                 'role' => UserRole::Mahasiswa,
                 'phone' => $this->phone ?: null,
                 'study_program_id' => $studyProgram?->id,
@@ -278,7 +315,28 @@ class Students extends Component
 
             $this->closeCreateModal();
             Flux::toast('Peserta KKN berhasil ditambahkan.', variant: 'success');
+
+            if ($passwordData['temporary_password'] !== null) {
+                $this->presentIssuedCredential($createdStudent, $passwordData['temporary_password'], __('Akun Mahasiswa Dibuat'));
+            }
         }
+    }
+
+    public function resetPassword(?int $id = null): void
+    {
+        $targetId = $id ?? $this->editingStudentId;
+
+        if (! $targetId) {
+            return;
+        }
+
+        $student = User::where('role', UserRole::Mahasiswa)->findOrFail($targetId);
+
+        if ($this->showCreateModal) {
+            $this->closeCreateModal();
+        }
+
+        $this->issueResetTemporaryPassword($student, __('Password Sementara Mahasiswa Direset'));
     }
 
     public function createStudent(): void

@@ -84,23 +84,52 @@ class UsersTest extends TestCase
 
     public function test_admin_can_create_p2kkn_user(): void
     {
-        Livewire::actingAs($this->admin)
+        $component = Livewire::actingAs($this->admin)
             ->test(Users::class)
             ->call('create')
-            ->assertSee('Default: password')
+            ->assertSee('Kosongkan untuk password sementara acak')
             ->set('name', 'Admin Baru')
             ->set('email', 'adminbaru@sikkn.test')
             ->set('role', UserRole::P2kkn->value)
             ->call('save')
             ->assertHasNoErrors()
-            ->assertDispatched('toast');
+            ->assertDispatched('toast')
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $tempPassword = $component->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($tempPassword);
 
         $created = User::where('email', 'adminbaru@sikkn.test')->firstOrFail();
         $this->assertSame('Admin Baru', $created->name);
         $this->assertSame(UserRole::P2kkn, $created->role);
         $this->assertNull($created->faculty_id);
         $this->assertNull($created->study_program_id);
-        $this->assertTrue(Hash::check('password', $created->password));
+        $this->assertTrue($created->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $created->password));
+
+        $component->call('closeIssuedCredentialModal')
+            ->assertSet('showIssuedCredentialModal', false)
+            ->assertSet('issuedCredential', null);
+    }
+
+    public function test_admin_can_reset_temporary_password_for_user(): void
+    {
+        $staff = User::factory()->p2kkn()->create([
+            'email' => 'staff@sikkn.test',
+            'must_change_password' => false,
+        ]);
+
+        $component = Livewire::actingAs($this->admin)
+            ->test(Users::class)
+            ->call('resetPassword', $staff->id)
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $tempPassword = $component->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($tempPassword);
+
+        $staff->refresh();
+        $this->assertTrue($staff->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $staff->password));
     }
 
     public function test_admin_can_create_user_with_custom_password_and_update_without_changing_password(): void
@@ -152,20 +181,23 @@ class UsersTest extends TestCase
             ->call('save')
             ->assertHasErrors(['faculty_id']);
 
-        // With faculty_id and blank password should succeed using default password
-        Livewire::actingAs($this->admin)
+        // With faculty_id and blank password should succeed using generated temporary password
+        $component = Livewire::actingAs($this->admin)
             ->test(Users::class)
             ->set('name', 'PIC FT')
             ->set('email', 'pic@ft.test')
             ->set('role', UserRole::Fakultas->value)
             ->set('faculty_id', (string) $this->faculty->id)
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertSet('showIssuedCredentialModal', true);
 
+        $tempPassword = $component->get('issuedCredential.temporary_password');
         $createdFakultas = User::where('email', 'pic@ft.test')->firstOrFail();
         $this->assertSame(UserRole::Fakultas, $createdFakultas->role);
         $this->assertSame($this->faculty->id, $createdFakultas->faculty_id);
-        $this->assertTrue(Hash::check('password', $createdFakultas->password));
+        $this->assertTrue($createdFakultas->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $createdFakultas->password));
 
         // Second attempt with same faculty should fail duplicate check
         Livewire::actingAs($this->admin)
@@ -192,21 +224,24 @@ class UsersTest extends TestCase
             ->call('save')
             ->assertHasErrors(['study_program_id']);
 
-        // With study_program_id and blank password should succeed and set faculty_id + default password
-        Livewire::actingAs($this->admin)
+        // With study_program_id and blank password should succeed and set faculty_id + generated temporary password
+        $component = Livewire::actingAs($this->admin)
             ->test(Users::class)
             ->set('name', 'PIC IF')
             ->set('email', 'pic@if.test')
             ->set('role', UserRole::Prodi->value)
             ->set('study_program_id', (string) $this->studyProgram->id)
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertSet('showIssuedCredentialModal', true);
 
+        $tempPassword = $component->get('issuedCredential.temporary_password');
         $createdProdi = User::where('email', 'pic@if.test')->firstOrFail();
         $this->assertSame(UserRole::Prodi, $createdProdi->role);
         $this->assertSame($this->studyProgram->id, $createdProdi->study_program_id);
         $this->assertSame($this->faculty->id, $createdProdi->faculty_id);
-        $this->assertTrue(Hash::check('password', $createdProdi->password));
+        $this->assertTrue($createdProdi->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $createdProdi->password));
 
         // Duplicate prodi user should fail
         Livewire::actingAs($this->admin)

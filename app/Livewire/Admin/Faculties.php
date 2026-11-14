@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin;
 
-use App\Concerns\PasswordValidationRules;
+use App\Concerns\IssuesTemporaryCredentials;
 use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
@@ -14,7 +14,7 @@ use Livewire\WithPagination;
 
 class Faculties extends Component
 {
-    use PasswordValidationRules, WithPagination;
+    use IssuesTemporaryCredentials, WithPagination;
 
     public $isEditing = false;
 
@@ -192,8 +192,11 @@ class Faculties extends Component
         ];
 
         $isUpdating = (bool) $this->accountUserId;
-        if ($hashedPassword = $this->resolvePasswordHash($this->accountPassword, $isUpdating)) {
-            $data['password'] = $hashedPassword;
+        $passwordData = $this->resolveProvisionedPassword($this->accountPassword, $isUpdating);
+
+        if ($passwordData['hash'] !== null) {
+            $data['password'] = $passwordData['hash'];
+            $data['must_change_password'] = $passwordData['must_change_password'];
         }
 
         if ($isUpdating) {
@@ -208,6 +211,21 @@ class Faculties extends Component
 
         Flux::modal('faculty-account-modal')->close();
         $this->dispatch('toast', message: $message, type: 'success');
+
+        if (! $isUpdating && $passwordData['temporary_password'] !== null) {
+            $this->presentIssuedCredential($user, $passwordData['temporary_password'], __('Akun Fakultas Dibuat'));
+        }
+    }
+
+    public function resetAccountPassword(): void
+    {
+        if (! $this->accountUserId) {
+            return;
+        }
+
+        $user = User::findOrFail($this->accountUserId);
+        Flux::modal('faculty-account-modal')->close();
+        $this->issueResetTemporaryPassword($user, __('Password Sementara Fakultas Direset'));
     }
 
     public function confirmDeleteAccount(): void

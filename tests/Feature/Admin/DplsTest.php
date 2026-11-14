@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Models\Period;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -164,7 +165,7 @@ class DplsTest extends TestCase
             ->assertHasErrors(['nip', 'name']);
     }
 
-    public function test_create_dpl_can_assign_to_group_and_set_lead(): void
+    public function test_create_dpl_can_assign_to_group_without_setting_lead(): void
     {
         $admin = User::factory()->p2kkn()->create();
         $period = Period::create([
@@ -183,17 +184,17 @@ class DplsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(Dpls::class)
             ->call('openCreateModal')
+            ->assertDontSeeHtml('wire:model="is_lead"')
             ->set('nip', '198505052010011002')
             ->set('name', 'Prof. Dr. Ir. Siti, M.T.')
             ->set('group_id', $group->id)
-            ->set('is_lead', true)
             ->call('createDpl')
             ->assertHasNoErrors();
 
         $dpl = User::where('nip', '198505052010011002')->first();
         $this->assertNotNull($dpl);
         $this->assertTrue($group->fresh()->dpls->contains($dpl->id));
-        $this->assertEquals($dpl->id, $group->fresh()->lead_dpl_id);
+        $this->assertNull($group->fresh()->lead_dpl_id);
     }
 
     public function test_admin_can_edit_dpl_via_modal(): void
@@ -272,6 +273,17 @@ class DplsTest extends TestCase
         $dpl->dplGroups()->attach([$groupA->id, $groupOther->id]);
         $groupA->update(['lead_dpl_id' => $dpl->id]);
 
+        // Editing profile on the same group preserves existing lead_dpl_id
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->set('periodId', $period->id)
+            ->call('openEditModal', $dpl->id)
+            ->set('name', 'Dosen Tetap Lead')
+            ->call('saveDpl')
+            ->assertHasNoErrors();
+
+        $this->assertSame($dpl->id, $groupA->fresh()->lead_dpl_id);
+
         // Switch from Group A to Group B
         Livewire::actingAs($admin)
             ->test(Dpls::class)
@@ -279,14 +291,13 @@ class DplsTest extends TestCase
             ->call('openEditModal', $dpl->id)
             ->assertSet('initialGroupId', $groupA->id)
             ->set('group_id', $groupB->id)
-            ->set('is_lead', true)
             ->call('saveDpl')
             ->assertHasNoErrors();
 
         $this->assertFalse($groupA->fresh()->dpls->contains($dpl->id));
         $this->assertNull($groupA->fresh()->lead_dpl_id);
         $this->assertTrue($groupB->fresh()->dpls->contains($dpl->id));
-        $this->assertSame($dpl->id, $groupB->fresh()->lead_dpl_id);
+        $this->assertNull($groupB->fresh()->lead_dpl_id);
         $this->assertTrue($groupOther->fresh()->dpls->contains($dpl->id));
 
         // Now detach selected group cleanly by choosing Belum Ditugaskan (null)
@@ -375,5 +386,47 @@ class DplsTest extends TestCase
 
         $this->assertDatabaseHas('users', ['id' => $dpl->id]);
         $this->assertDatabaseHas('grades', ['dpl_id' => $dpl->id, 'student_id' => $student->id]);
+    }
+
+    public function test_creating_dpl_without_password_issues_temporary_password_and_allows_reset(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        $component = Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openCreateModal')
+            ->assertSeeHtml('wire:model="password"')
+            ->set('nip', '198001012005011099')
+            ->set('name', 'Dr. DPL Baru')
+            ->call('createDpl')
+            ->assertHasNoErrors()
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $tempPassword = $component->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($tempPassword);
+
+        $dpl = User::where('nip', '198001012005011099')->firstOrFail();
+        $this->assertTrue($dpl->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $dpl->password));
+
+        $dpl->update(['must_change_password' => false]);
+
+        $resetComponent = Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->set('periodId', null)
+            ->assertDontSeeHtml('resetPassword('.$dpl->id.')')
+            ->call('openEditModal', $dpl->id)
+            ->assertDontSeeHtml('wire:model="password"')
+            ->assertSee('Reset Password Sementara')
+            ->call('resetPassword')
+            ->assertSet('showCreateModal', false)
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $resetPassword = $resetComponent->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($resetPassword);
+
+        $dpl->refresh();
+        $this->assertTrue($dpl->must_change_password);
+        $this->assertTrue(Hash::check($resetPassword, $dpl->password));
     }
 }

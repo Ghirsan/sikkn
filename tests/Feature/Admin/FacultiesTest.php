@@ -72,11 +72,11 @@ class FacultiesTest extends TestCase
             'short_name' => 'SV',
         ]);
 
-        Livewire::actingAs($this->admin)
+        $component = Livewire::actingAs($this->admin)
             ->test(Faculties::class)
             ->call('manageAccount', $vokasi->id)
             ->assertSet('accountName', 'SEKOLAH VOKASI')
-            ->assertSee('Default: password')
+            ->assertSee('Kosongkan untuk password sementara acak')
             ->call('manageAccount', $this->faculty->id)
             ->assertSet('accountName', 'Fakultas Teknik')
             ->call('manageAccount', $teknik->id)
@@ -84,13 +84,18 @@ class FacultiesTest extends TestCase
             ->set('accountEmail', 'fakultas.ft@univ.ac.id')
             ->call('saveAccount')
             ->assertHasNoErrors()
-            ->assertDispatched('toast');
+            ->assertDispatched('toast')
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $tempPassword = $component->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($tempPassword);
 
         $created = User::where('email', 'fakultas.ft@univ.ac.id')->firstOrFail();
         $this->assertSame('FAKULTAS TEKNIK', $created->name);
         $this->assertSame(UserRole::Fakultas, $created->role);
         $this->assertSame($teknik->id, $created->faculty_id);
-        $this->assertTrue(Hash::check('password', $created->password));
+        $this->assertTrue($created->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $created->password));
     }
 
     public function test_faculty_account_validates_minimum_password_length_when_provided(): void

@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin;
 
-use App\Concerns\PasswordValidationRules;
+use App\Concerns\IssuesTemporaryCredentials;
 use App\Enums\UserRole;
 use App\Models\Faculty;
 use App\Models\StudyProgram;
@@ -14,7 +14,7 @@ use Livewire\WithPagination;
 
 class Users extends Component
 {
-    use PasswordValidationRules, WithPagination;
+    use IssuesTemporaryCredentials, WithPagination;
 
     public $roles;
 
@@ -188,21 +188,38 @@ class Users extends Component
             'study_program_id' => $this->role === UserRole::Prodi->value ? $this->study_program_id : null,
         ];
 
-        if ($hashedPassword = $this->resolvePasswordHash($this->password, (bool) $this->isEditing)) {
-            $data['password'] = $hashedPassword;
+        $passwordData = $this->resolveProvisionedPassword($this->password, (bool) $this->isEditing);
+
+        if ($passwordData['hash'] !== null) {
+            $data['password'] = $passwordData['hash'];
+            $data['must_change_password'] = $passwordData['must_change_password'];
         }
+
+        $createdUser = null;
 
         if ($this->isEditing) {
             $user = User::findOrFail($this->editingId);
             $user->update($data);
             $message = 'Pengguna berhasil diperbarui.';
         } else {
-            User::create($data);
+            $createdUser = User::create($data);
             $message = 'Pengguna berhasil ditambahkan.';
         }
 
         Flux::modal('user-modal')->close();
         $this->dispatch('toast', message: $message, type: 'success');
+
+        if ($createdUser && $passwordData['temporary_password'] !== null) {
+            $this->presentIssuedCredential($createdUser, $passwordData['temporary_password'], __('Akun Pengguna Dibuat'));
+        }
+    }
+
+    public function resetPassword(int $id): void
+    {
+        $user = User::whereIn('role', [UserRole::P2kkn, UserRole::Fakultas, UserRole::Prodi])
+            ->findOrFail($id);
+
+        $this->issueResetTemporaryPassword($user, __('Password Sementara Direset'));
     }
 
     public function confirmDelete($id)

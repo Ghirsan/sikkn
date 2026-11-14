@@ -15,6 +15,7 @@ use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -186,17 +187,19 @@ class BatchExcelAllocationTest extends TestCase
 
         $file = $this->createExcelFile($headers, $dataRows, 'students_');
 
-        Livewire::test(Students::class, ['periodId' => $this->period->id])
+        $component = Livewire::test(Students::class, ['periodId' => $this->period->id])
             ->set('importFile', $file)
             ->call('importExcel')
             ->assertHasNoErrors()
-            ->assertSet('showImportModal', false);
+            ->assertSet('showImportModal', true)
+            ->assertSet('generatedCredentialsCount', 2);
 
         $this->assertDatabaseHas('users', [
             'nim' => '24060120120001',
             'name' => 'Budi Mahasiswa',
             'group_id' => $group->id,
             'role' => UserRole::Mahasiswa->value,
+            'must_change_password' => true,
         ]);
 
         $this->assertDatabaseHas('users', [
@@ -204,11 +207,50 @@ class BatchExcelAllocationTest extends TestCase
             'name' => 'Siti Mahasiswi',
             'group_id' => $group->id,
             'role' => UserRole::Mahasiswa->value,
+            'must_change_password' => true,
         ]);
 
-        // Verify leader assignment
+        // Verify leader assignment & non-default random password
         $budi = User::where('nim', '24060120120001')->first();
         $this->assertEquals($budi->id, $group->fresh()->student_leader_id);
+        $this->assertFalse(Hash::check('password', $budi->password));
+
+        $component->call('downloadGeneratedCredentials')
+            ->assertFileDownloaded()
+            ->assertSet('showImportModal', false)
+            ->assertSet('generatedCredentialsCount', 0);
+
+        $this->assertNull(session('admin_import_credentials.students'));
+    }
+
+    public function test_import_students_supports_optional_password_column(): void
+    {
+        $group = Group::create([
+            'period_id' => $this->period->id,
+            'name' => 'Kelompok Alpha',
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $headers = [
+            'No', 'NIM', 'Nama Mahasiswa', 'Email', 'Nama Kelompok', 'Password',
+        ];
+
+        $dataRows = [
+            [1, '24060120120077', 'Ani Mahasiswa', 'ani@students.ac.id', 'Kelompok Alpha', 'CustomInit2026'],
+        ];
+
+        $file = $this->createExcelFile($headers, $dataRows, 'students_with_pw_');
+
+        Livewire::test(Students::class, ['periodId' => $this->period->id])
+            ->set('importFile', $file)
+            ->call('importExcel')
+            ->assertHasNoErrors()
+            ->assertSet('generatedCredentialsCount', 1);
+
+        $ani = User::where('nim', '24060120120077')->firstOrFail();
+        $this->assertTrue($ani->must_change_password);
+        $this->assertTrue(Hash::check('CustomInit2026', $ani->password));
     }
 
     public function test_import_students_fails_if_group_name_not_in_period(): void
@@ -293,15 +335,18 @@ class BatchExcelAllocationTest extends TestCase
 
         $file = $this->createExcelFile($headers, $dataRows, 'dpls_');
 
-        Livewire::test(Dpls::class, ['periodId' => $this->period->id])
+        $component = Livewire::test(Dpls::class, ['periodId' => $this->period->id])
             ->set('importFile', $file)
             ->call('importExcel')
             ->assertHasNoErrors()
-            ->assertSet('showImportModal', false);
+            ->assertSet('showImportModal', true)
+            ->assertSet('generatedCredentialsCount', 1);
 
         $dpl = User::where('nip', '198001012005011001')->first();
         $this->assertNotNull($dpl);
         $this->assertEquals(UserRole::Dpl, $dpl->role);
+        $this->assertTrue($dpl->must_change_password);
+        $this->assertFalse(Hash::check('password', $dpl->password));
 
         // Check pivot table
         $this->assertTrue($dpl->dplGroups()->where('groups.id', $group1->id)->exists());
@@ -310,5 +355,12 @@ class BatchExcelAllocationTest extends TestCase
         // Check lead DPL on group 1
         $this->assertEquals($dpl->id, $group1->fresh()->lead_dpl_id);
         $this->assertNull($group2->fresh()->lead_dpl_id);
+
+        $component->call('downloadGeneratedCredentials')
+            ->assertFileDownloaded()
+            ->assertSet('showImportModal', false)
+            ->assertSet('generatedCredentialsCount', 0);
+
+        $this->assertNull(session('admin_import_credentials.dpls'));
     }
 }

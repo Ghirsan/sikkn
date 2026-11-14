@@ -29,17 +29,64 @@ trait PasswordValidationRules
     }
 
     /**
-     * Resolve the hashed password when creating or updating a user account.
-     *
-     * Returns null when updating without a new password so the existing hash is kept.
+     * Generate a readable, unambiguous random temporary password.
      */
-    protected function resolvePasswordHash(?string $password, bool $isUpdating): ?string
+    protected function generateTemporaryPassword(int $length = 10): string
     {
-        if (filled($password)) {
-            return Hash::make($password);
+        $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        $lowercase = 'abcdefghjkmnpqrstuvwxyz';
+        $digits = '23456789';
+        $all = $uppercase.$lowercase.$digits;
+
+        $chars = [
+            $uppercase[random_int(0, strlen($uppercase) - 1)],
+            $lowercase[random_int(0, strlen($lowercase) - 1)],
+            $digits[random_int(0, strlen($digits) - 1)],
+        ];
+
+        for ($i = count($chars); $i < $length; $i++) {
+            $chars[] = $all[random_int(0, strlen($all) - 1)];
         }
 
-        return $isUpdating ? null : Hash::make('password');
+        // Shuffle using CSPRNG
+        for ($i = count($chars) - 1; $i > 0; $i--) {
+            $j = random_int(0, $i);
+            [$chars[$i], $chars[$j]] = [$chars[$j], $chars[$i]];
+        }
+
+        return implode('', $chars);
+    }
+
+    /**
+     * Resolve password hash, optional one-time plaintext password, and onboarding flag.
+     *
+     * @return array{hash: ?string, temporary_password: ?string, must_change_password: bool}
+     */
+    protected function resolveProvisionedPassword(?string $password, bool $isUpdating): array
+    {
+        if (filled($password)) {
+            return [
+                'hash' => Hash::make($password),
+                'temporary_password' => null,
+                'must_change_password' => true,
+            ];
+        }
+
+        if ($isUpdating) {
+            return [
+                'hash' => null,
+                'temporary_password' => null,
+                'must_change_password' => false,
+            ];
+        }
+
+        $temporaryPassword = $this->generateTemporaryPassword();
+
+        return [
+            'hash' => Hash::make($temporaryPassword),
+            'temporary_password' => $temporaryPassword,
+            'must_change_password' => true,
+        ];
     }
 
     /**

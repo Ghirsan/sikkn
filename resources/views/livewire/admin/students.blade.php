@@ -131,54 +131,77 @@
     </flux:card>
 
     {{-- Import Mahasiswa Modal --}}
-    <flux:modal wire:model="showImportModal" class="md:w-[32rem]">
-        <form wire:submit.prevent="importExcel" class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ __('Import Data Mahasiswa via Excel') }}</flux:heading>
-                <flux:subheading>{{ __('Unggah file Excel daftar mahasiswa dan alokasi kelompok untuk periode KKN terpilih.') }}</flux:subheading>
-            </div>
-
-            @if(! empty($importErrors))
-                <div class="rounded-lg bg-red-50 dark:bg-red-950/40 p-4 border border-red-200 dark:border-red-900 text-sm text-red-700 dark:text-red-300 space-y-2">
-                    <div class="font-medium flex items-center gap-1.5">
-                        <flux:icon.exclamation-circle variant="micro" class="size-4 shrink-0" />
-                        <span>{{ __('Gagal mengimpor data:') }}</span>
-                    </div>
-                    <ul class="list-disc list-inside space-y-1 text-xs">
-                        @foreach($importErrors as $err)
-                            <li>{{ $err }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <div class="space-y-4">
-                <div class="rounded-lg bg-zinc-50 dark:bg-zinc-800/60 p-3 text-xs text-zinc-600 dark:text-zinc-400 space-y-1.5 border border-zinc-200 dark:border-zinc-700/60">
-                    <p class="font-medium text-zinc-900 dark:text-zinc-200">{{ __('Petunjuk Format:') }}</p>
-                    <ul class="list-disc list-inside space-y-1">
-                        <li>{{ __('Kolom wajib: NIM, Nama Mahasiswa, Nama Kelompok.') }}</li>
-                        <li>{{ __('Nama Kelompok harus sudah terdaftar pada periode KKN yang dipilih.') }}</li>
-                        <li>{{ __('Kolom opsional: Email, Fakultas, Program Studi, No HP, Ketua Kelompok (Ya/Tidak).') }}</li>
-                        <li>{{ __('Jika akun mahasiswa belum ada, sistem akan otomatis membuatnya.') }}</li>
-                    </ul>
-                </div>
-
+    <flux:modal wire:model="showImportModal" @close="closeImportModal" class="md:w-[32rem]">
+        @if($generatedCredentialsCount > 0)
+            <div class="space-y-6">
                 <div>
-                    <flux:input type="file" wire:model="importFile" label="{{ __('Pilih File Excel (.xlsx)') }}" accept=".xlsx" />
-                    <flux:error name="importFile" />
+                    <flux:heading size="lg">{{ __('Import Mahasiswa Selesai') }}</flux:heading>
+                    <flux:subheading>{{ $importSummaryMessage }}</flux:subheading>
+                </div>
+
+                <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+                    <div class="font-medium">{{ __('Kredensial Akun Baru Tersedia (:count akun)', ['count' => $generatedCredentialsCount]) }}</div>
+                    <p class="text-xs leading-relaxed">
+                        {{ __('Unduh file Excel password sementara untuk akun mahasiswa baru sekarang. Demi keamanan, password sementara tidak disimpan dalam bentuk teks biasa dan hanya dapat diunduh satu kali.') }}
+                    </p>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                    <flux:button wire:click="closeImportModal" variant="ghost" class="w-full sm:w-auto">{{ __('Tutup') }}</flux:button>
+                    <flux:button wire:click="downloadGeneratedCredentials" variant="primary" icon="arrow-down-tray" class="w-full sm:w-auto">
+                        {{ __('Unduh Kredensial (.xlsx)') }}
+                    </flux:button>
                 </div>
             </div>
+        @else
+            <form wire:submit.prevent="importExcel" class="space-y-6">
+                <div>
+                    <flux:heading size="lg">{{ __('Import Data Mahasiswa via Excel') }}</flux:heading>
+                    <flux:subheading>{{ __('Unggah file Excel daftar mahasiswa dan alokasi kelompok untuk periode KKN terpilih.') }}</flux:subheading>
+                </div>
 
-            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
-                <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
-                    <flux:button wire:click="closeImportModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
-                </flux:modal.close>
-                <flux:button type="submit" variant="primary" class="w-full sm:w-auto" wire:loading.attr="disabled">
-                    <span wire:loading.remove wire:target="importExcel">{{ __('Unggah & Proses') }}</span>
-                    <span wire:loading wire:target="importExcel">{{ __('Memproses...') }}</span>
-                </flux:button>
-            </div>
-        </form>
+                @if(! empty($importErrors))
+                    <div class="rounded-lg bg-red-50 dark:bg-red-950/40 p-4 border border-red-200 dark:border-red-900 text-sm text-red-700 dark:text-red-300 space-y-2">
+                        <div class="font-medium flex items-center gap-1.5">
+                            <flux:icon.exclamation-circle variant="micro" class="size-4 shrink-0" />
+                            <span>{{ __('Gagal mengimpor data:') }}</span>
+                        </div>
+                        <ul class="list-disc list-inside space-y-1 text-xs">
+                            @foreach($importErrors as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="space-y-4">
+                    <div class="rounded-lg bg-zinc-50 dark:bg-zinc-800/60 p-3 text-xs text-zinc-600 dark:text-zinc-400 space-y-1.5 border border-zinc-200 dark:border-zinc-700/60">
+                        <p class="font-medium text-zinc-900 dark:text-zinc-200">{{ __('Petunjuk Format:') }}</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>{{ __('Kolom wajib: NIM, Nama Mahasiswa, Nama Kelompok.') }}</li>
+                            <li>{{ __('Nama Kelompok harus sudah terdaftar pada periode KKN yang dipilih.') }}</li>
+                            <li>{{ __('Kolom opsional: Email, Fakultas, Program Studi, No HP, Ketua Kelompok (Ya/Tidak), Password.') }}</li>
+                            <li>{{ __('Akun baru tanpa kolom Password akan dibuatkan password sementara acak yang dapat diunduh setelah proses selesai.') }}</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <flux:input type="file" wire:model="importFile" label="{{ __('Pilih File Excel (.xlsx)') }}" accept=".xlsx" />
+                        <flux:error name="importFile" />
+                    </div>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
+                    <flux:modal.close class="w-full sm:w-auto block sm:inline-block">
+                        <flux:button wire:click="closeImportModal" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary" class="w-full sm:w-auto" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="importExcel">{{ __('Unggah & Proses') }}</span>
+                        <span wire:loading wire:target="importExcel">{{ __('Memproses...') }}</span>
+                    </flux:button>
+                </div>
+            </form>
+        @endif
     </flux:modal>
 
     {{-- Create/Edit Student Modal --}}
@@ -215,7 +238,19 @@
                     </flux:select>
                 </div>
 
-                <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ $isEditing ? __('Kosongkan jika tidak ingin mengubah') : __('Default: password') }}" />
+                @if($isEditing)
+                    <div class="flex flex-col gap-3 border-t border-zinc-200 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/10">
+                        <div class="space-y-0.5">
+                            <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Password Akun') }}</flux:text>
+                            <flux:text class="text-xs">{{ __('Buat password sementara acak baru untuk login berikutnya.') }}</flux:text>
+                        </div>
+                        <flux:button type="button" wire:click="resetPassword" variant="outline" icon="key" class="w-full shrink-0 sm:w-auto">
+                            {{ __('Reset Password Sementara') }}
+                        </flux:button>
+                    </div>
+                @else
+                    <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password sementara acak') }}" viewable />
+                @endif
             </div>
 
             <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
@@ -245,4 +280,6 @@
             </div>
         </div>
     </flux:modal>
+
+    <x-issued-credential-modal :credential="$issuedCredential" />
 </div>

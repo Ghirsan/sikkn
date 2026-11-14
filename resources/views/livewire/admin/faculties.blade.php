@@ -131,14 +131,17 @@
                     type="password"
                     wire:model="accountPassword"
                     label="{{ __('Password') }}"
-                    placeholder="{{ $accountUserId ? __('Kosongkan jika tidak ingin mengubah') : __('Default: password') }}"
+                    placeholder="{{ $accountUserId ? __('Kosongkan jika tidak ingin mengubah') : __('Kosongkan untuk password sementara acak') }}"
                     viewable
                 />
             </div>
 
             <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-zinc-200 dark:border-white/10">
-                <div class="w-full sm:w-auto">
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     @if($accountUserId)
+                        <flux:button type="button" variant="outline" icon="key" class="w-full sm:w-auto" wire:click="resetAccountPassword">
+                            {{ __('Reset Password') }}
+                        </flux:button>
                         <flux:button type="button" variant="danger" class="w-full sm:w-auto" wire:click="confirmDeleteAccount">
                             {{ __('Hapus Akun') }}
                         </flux:button>
@@ -191,4 +194,6 @@
             </div>
         </div>
     </flux:modal>
+
+    <x-issued-credential-modal :credential="$issuedCredential" />
 </div>

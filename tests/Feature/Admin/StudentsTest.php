@@ -15,6 +15,7 @@ use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -367,5 +368,49 @@ class StudentsTest extends TestCase
             ->assertNotDispatched('modal-show');
 
         $this->assertDatabaseHas('users', ['id' => $studentWithMentoringAndGrade->id]);
+    }
+
+    public function test_creating_student_without_password_issues_temporary_password_and_allows_reset(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        $component = Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->assertSeeHtml('wire:model="password"')
+            ->set('nim', '21120120120088')
+            ->set('name', 'Mahasiswa Baru')
+            ->call('createStudent')
+            ->assertHasNoErrors()
+            ->assertSet('showIssuedCredentialModal', true);
+
+        $tempPassword = $component->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($tempPassword);
+
+        $student = User::where('nim', '21120120120088')->firstOrFail();
+        $this->assertTrue($student->must_change_password);
+        $this->assertTrue(Hash::check($tempPassword, $student->password));
+
+        $student->update(['must_change_password' => false]);
+
+        $resetComponent = Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->assertDontSeeHtml('resetPassword('.$student->id.')')
+            ->call('openEditModal', $student->id)
+            ->assertDontSeeHtml('wire:model="password"')
+            ->assertSee('Reset Password Sementara')
+            ->call('resetPassword')
+            ->assertSet('showCreateModal', false)
+            ->assertSet('showIssuedCredentialModal', true)
+            ->assertDontSee('@js(')
+            ->assertSeeHtml('x-ref="tempPassword"')
+            ->assertSeeHtml('copyPassword()');
+
+        $resetPassword = $resetComponent->get('issuedCredential.temporary_password');
+        $this->assertNotEmpty($resetPassword);
+
+        $student->refresh();
+        $this->assertTrue($student->must_change_password);
+        $this->assertTrue(Hash::check($resetPassword, $student->password));
     }
 }

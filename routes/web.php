@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 Route::view('/offline', 'offline')->name('offline');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
+    Route::livewire('setup-account', 'pages::auth.first-login-setup')->name('first-login.setup');
+});
+
+Route::middleware(['auth', 'verified', 'onboarded'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     // LRK & LPK Print Page (accessible by authorized roles via signed URLs)

@@ -71,6 +71,7 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex items-center gap-2">
+                                    <flux:button size="sm" variant="ghost" icon="key" wire:click="resetPassword({{ $user->id }})" tooltip="{{ __('Buat Password Sementara Baru') }}" />
                                     <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="edit({{ $user->id }})" />
                                     <flux:button size="sm" variant="ghost" icon="trash" class="text-red-500 hover:text-red-700" wire:click="confirmDelete({{ $user->id }})" />
                                 </div>
@@ -127,7 +128,7 @@
                         type="password"
                         wire:model="password"
                         label="{{ __('Password') }}"
-                        placeholder="{{ $isEditing ? __('Kosongkan jika tidak ingin mengubah') : __('Default: password') }}"
+                        placeholder="{{ $isEditing ? __('Kosongkan jika tidak ingin mengubah') : __('Kosongkan untuk password sementara acak') }}"
                         viewable
                     />
                 </div>
@@ -160,4 +161,6 @@
             </div>
         </div>
     </flux:modal>
+
+    <x-issued-credential-modal :credential="$issuedCredential" />
 </div>
