@@ -216,7 +216,7 @@ new #[Layout('layouts::auth')] #[Title('Aktivasi Akun')] class extends Component
 
         <div class="space-y-4">
             <div>
-                <flux:heading size="sm">{{ __('Informasi Kontak (Opsional)') }}</flux:heading>
+                <flux:heading size="sm">{{ __('Informasi Kontak') }}</flux:heading>
                 <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">
                     {{ __('Boleh dilengkapi sekarang atau diperbarui nanti melalui menu Pengaturan.') }}
                 </flux:text>

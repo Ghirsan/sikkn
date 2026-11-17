@@ -83,7 +83,7 @@
             
             <div class="space-y-4 my-4">
                 <flux:input wire:model="code" label="{{ __('Kode') }}" placeholder="Ex: FSM" />
-                <flux:input wire:model="short_name" label="{{ __('Singkatan') }}" placeholder="Ex: FSM (Opsional)" />
+                <flux:input wire:model="short_name" label="{{ __('Singkatan') }}" placeholder="Ex: FSM" />
                 <flux:input wire:model="name" label="{{ __('Nama Fakultas') }}" placeholder="Ex: Fakultas Sains dan Matematika" />
             </div>
 

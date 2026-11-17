@@ -14,6 +14,7 @@ use App\Models\Program;
 use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
@@ -137,41 +138,140 @@ class StudentsTest extends TestCase
             ->assertHasErrors(['nim', 'name']);
     }
 
-    public function test_create_student_updates_existing_student_allocation(): void
+    public function test_create_student_rejects_duplicate_nim(): void
     {
         $admin = User::factory()->p2kkn()->create();
         $student = User::factory()->mahasiswa()->create([
             'nim' => '21120120120002',
-            'name' => 'Old Name',
-        ]);
-
-        $period = Period::create([
-            'semester' => Semester::Ganjil->value,
-            'year' => 2026,
-            'start_date' => '2026-01-01',
-            'end_date' => '2026-02-01',
-        ]);
-
-        $group = Group::create([
-            'period_id' => $period->id,
-            'name' => 'Kelompok Test',
-            'village' => 'Desa Test',
+            'name' => 'Existing Student',
         ]);
 
         Livewire::actingAs($admin)
             ->test(Students::class)
             ->call('openCreateModal')
             ->set('nim', '21120120120002')
-            ->set('name', 'Updated Name')
-            ->set('group_id', $group->id)
+            ->set('name', 'Duplicate Attempt')
+            ->call('createStudent')
+            ->assertHasErrors(['nim']);
+
+        $this->assertSame(1, User::where('nim', '21120120120002')->count());
+        $this->assertSame('Existing Student', $student->fresh()->name);
+    }
+
+    public function test_create_and_edit_student_validates_numeric_nim_and_preserves_leading_zeros(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', 'ABC211201')
+            ->set('name', 'Invalid NIM')
+            ->call('createStudent')
+            ->assertHasErrors(['nim']);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', '2112-001')
+            ->set('name', 'Invalid Dash NIM')
+            ->call('createStudent')
+            ->assertHasErrors(['nim']);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', '00120120120001')
+            ->set('name', 'Leading Zero Student')
             ->call('createStudent')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('users', [
-            'id' => $student->id,
-            'name' => 'Updated Name',
-            'group_id' => $group->id,
+        $student = User::where('nim', '00120120120001')->firstOrFail();
+        $this->assertSame('00120120120001', $student->nim);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openEditModal', $student->id)
+            ->set('nim', '0012012012000X')
+            ->call('saveStudent')
+            ->assertHasErrors(['nim']);
+    }
+
+    public function test_unassigned_students_remain_visible_under_every_period_filter(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        $period1 = Period::create([
+            'name' => 'Periode 1',
+            'semester' => Semester::Ganjil->value,
+            'year' => 2025,
+            'start_date' => '2025-07-01',
+            'end_date' => '2025-08-15',
         ]);
+
+        $period2 = Period::create([
+            'name' => 'Periode 2',
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-08-15',
+        ]);
+
+        $group1 = Group::create([
+            'period_id' => $period1->id,
+            'name' => 'Kelompok P1',
+            'village' => 'Desa 1',
+        ]);
+
+        $group2 = Group::create([
+            'period_id' => $period2->id,
+            'name' => 'Kelompok P2',
+            'village' => 'Desa 2',
+        ]);
+
+        User::factory()->mahasiswa()->create([
+            'nim' => '24060120120001',
+            'name' => 'Mahasiswa Periode Satu',
+            'group_id' => $group1->id,
+        ]);
+
+        User::factory()->mahasiswa()->create([
+            'nim' => '24060120120002',
+            'name' => 'Mahasiswa Periode Dua',
+            'group_id' => $group2->id,
+        ]);
+
+        User::factory()->mahasiswa()->create([
+            'nim' => '24060120120003',
+            'name' => 'Mahasiswa Tanpa Kelompok',
+            'group_id' => null,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->set('periodId', $period2->id)
+            ->assertSee('Mahasiswa Periode Dua')
+            ->assertSee('Mahasiswa Tanpa Kelompok')
+            ->assertDontSee('Mahasiswa Periode Satu')
+            ->assertViewHas('stats', [
+                'total' => 2,
+                'assigned' => 1,
+                'unassigned' => 1,
+            ]);
+    }
+
+    public function test_database_enforces_unique_nim_while_allowing_null_or_blank(): void
+    {
+        $userA = User::factory()->p2kkn()->create(['nim' => '']);
+        $userB = User::factory()->p2kkn()->create(['nim' => null]);
+
+        $this->assertNull($userA->fresh()->nim);
+        $this->assertNull($userB->fresh()->nim);
+
+        User::factory()->mahasiswa()->create(['nim' => '24060120129999']);
+
+        $this->expectException(QueryException::class);
+        User::factory()->mahasiswa()->create(['nim' => '24060120129999']);
     }
 
     public function test_admin_can_edit_student_via_modal(): void

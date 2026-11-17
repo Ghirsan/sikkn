@@ -6,7 +6,7 @@
                     <flux:input type="date" wire:model="date" label="Tanggal Pembimbingan" min="{{ $minDate }}" max="{{ $maxDate }}" :disabled="$logId !== null" />
                 </div>
                 <div>
-                    <flux:select wire:model="program_id" label="Terkait Program (Opsional)" placeholder="Pilih Program">
+                    <flux:select wire:model="program_id" label="Terkait Program" placeholder="Pilih Program">
                         <flux:select.option value="">Umum / Tidak spesifik program</flux:select.option>
                         @foreach($programs as $program)
                             <flux:select.option value="{{ $program->id }}">[{{ $program->programType?->name ?? 'Program' }}] {{ $program->title }}</flux:select.option>

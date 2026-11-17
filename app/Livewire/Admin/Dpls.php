@@ -11,7 +11,8 @@ use App\Models\User;
 use App\Services\GroupAllocationExcelService;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -202,8 +203,16 @@ class Dpls extends Component
 
     public function saveDpl(): void
     {
+        $this->nip = trim($this->nip);
+        $this->email = trim($this->email);
+
         $rules = [
-            'nip' => ['required', 'string', 'max:30'],
+            'nip' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('users', 'nip')->ignore($this->isEditing ? $this->editingDplId : null),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'study_program_id' => ['nullable', 'exists:study_programs,id'],
@@ -217,33 +226,29 @@ class Dpls extends Component
 
         $this->validate($rules, [
             'nip.required' => 'NIP wajib diisi.',
+            'nip.unique' => 'NIP ini sudah terdaftar untuk pengguna lain.',
             'name.required' => 'Nama dosen wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'password.min' => 'Password minimal 6 karakter.',
         ]);
 
-        $nip = trim($this->nip);
-        $email = trim($this->email) ?: strtolower($nip).'@lecturer.sikkn.ac.id';
+        $nip = $this->nip;
+        $email = $this->email !== '' ? Str::lower($this->email) : strtolower($nip).'@lecturer.sikkn.ac.id';
+
+        $duplicateEmail = User::whereRaw('LOWER(email) = ?', [Str::lower($email)])
+            ->when($this->isEditing && $this->editingDplId, fn ($q) => $q->where('id', '!=', $this->editingDplId))
+            ->exists();
+        if ($duplicateEmail) {
+            $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+
+            return;
+        }
+
+        $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
+        $facultyId = $studyProgram?->faculty_id;
 
         if ($this->isEditing && $this->editingDplId) {
             $dpl = User::where('id', $this->editingDplId)->where('role', UserRole::Dpl)->firstOrFail();
-
-            $duplicateNip = User::where('nip', $nip)->where('id', '!=', $dpl->id)->exists();
-            if ($duplicateNip) {
-                $this->addError('nip', 'NIP ini sudah terdaftar untuk pengguna lain.');
-
-                return;
-            }
-
-            $duplicateEmail = User::where('email', $email)->where('id', '!=', $dpl->id)->exists();
-            if ($duplicateEmail) {
-                $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
-
-                return;
-            }
-
-            $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
-            $facultyId = $studyProgram?->faculty_id;
 
             $dpl->update([
                 'nip' => $nip,
@@ -262,68 +267,27 @@ class Dpls extends Component
             return;
         }
 
-        $existingUser = User::where('nip', $nip)->first();
+        $passwordData = $this->resolveProvisionedPassword($this->password, false);
 
-        $emailOwner = User::where('email', $email)->first();
-        if ($emailOwner && (! $existingUser || $emailOwner->id !== $existingUser->id)) {
-            $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
-
-            return;
-        }
-
-        $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
-        $facultyId = $studyProgram?->faculty_id;
-
-        $temporaryPassword = null;
-
-        if ($existingUser) {
-            if ($existingUser->role !== UserRole::Dpl) {
-                $this->addError('nip', 'NIP ini sudah terdaftar sebagai pengguna non-dosen.');
-
-                return;
-            }
-
-            $updateData = [
-                'name' => $this->name,
-                'email' => $email,
-                'phone' => $this->phone ?: $existingUser->phone,
-                'study_program_id' => $studyProgram?->id ?? $existingUser->study_program_id,
-                'faculty_id' => $facultyId ?? $existingUser->faculty_id,
-            ];
-
-            if ($this->password) {
-                $updateData['password'] = Hash::make($this->password);
-                $updateData['must_change_password'] = true;
-            }
-
-            $existingUser->update($updateData);
-            $dpl = $existingUser;
-            Flux::toast('Data Dosen KKN berhasil diperbarui.', variant: 'success');
-        } else {
-            $passwordData = $this->resolveProvisionedPassword($this->password, false);
-            $temporaryPassword = $passwordData['temporary_password'];
-
-            $dpl = User::create([
-                'name' => $this->name,
-                'nip' => $nip,
-                'email' => $email,
-                'password' => $passwordData['hash'],
-                'must_change_password' => $passwordData['must_change_password'],
-                'role' => UserRole::Dpl,
-                'phone' => $this->phone ?: null,
-                'study_program_id' => $studyProgram?->id,
-                'faculty_id' => $facultyId,
-            ]);
-
-            Flux::toast('Dosen KKN berhasil ditambahkan.', variant: 'success');
-        }
+        $dpl = User::create([
+            'name' => $this->name,
+            'nip' => $nip,
+            'email' => $email,
+            'password' => $passwordData['hash'],
+            'must_change_password' => $passwordData['must_change_password'],
+            'role' => UserRole::Dpl,
+            'phone' => $this->phone ?: null,
+            'study_program_id' => $studyProgram?->id,
+            'faculty_id' => $facultyId,
+        ]);
 
         $this->syncDplGroupAssignment($dpl, $this->group_id ?: null, null);
 
         $this->closeCreateModal();
+        Flux::toast('Dosen KKN berhasil ditambahkan.', variant: 'success');
 
-        if ($temporaryPassword !== null) {
-            $this->presentIssuedCredential($dpl, $temporaryPassword, __('Akun Dosen KKN Dibuat'));
+        if ($passwordData['temporary_password'] !== null) {
+            $this->presentIssuedCredential($dpl, $passwordData['temporary_password'], __('Akun Dosen KKN Dibuat'));
         }
     }
 
@@ -432,12 +396,19 @@ class Dpls extends Component
     public function render()
     {
         $query = User::where('role', UserRole::Dpl)
-            ->with(['studyProgram', 'dplGroups.period'])
+            ->with([
+                'studyProgram',
+                'dplGroups' => fn ($q) => $q
+                    ->when($this->periodId, fn ($gq) => $gq->where('period_id', $this->periodId))
+                    ->with('period'),
+            ])
             ->withCount(['dplGrades', 'programs', 'dailyLogs', 'mentoringLogs', 'programParticipants', 'scheduleEvents']);
 
         if ($this->periodId) {
-            $query->whereHas('dplGroups', function ($q) {
-                $q->where('period_id', $this->periodId);
+            $query->where(function ($q) {
+                $q->whereHas('dplGroups', function ($gq) {
+                    $gq->where('period_id', $this->periodId);
+                })->orWhereDoesntHave('dplGroups');
             });
         }
 
@@ -449,14 +420,13 @@ class Dpls extends Component
         }
 
         $dpls = $query->latest()->paginate(10);
-        $totalDpls = User::where('role', UserRole::Dpl)->count();
-
-        $assignedQuery = User::where('role', UserRole::Dpl)->whereHas('dplGroups', function ($q) {
+        $assignedCount = User::where('role', UserRole::Dpl)->whereHas('dplGroups', function ($q) {
             if ($this->periodId) {
                 $q->where('period_id', $this->periodId);
             }
-        });
-        $assignedCount = $assignedQuery->count();
+        })->count();
+        $unassignedCount = User::where('role', UserRole::Dpl)->whereDoesntHave('dplGroups')->count();
+        $totalDpls = $assignedCount + $unassignedCount;
 
         return view('livewire.admin.dpls', [
             'dpls' => $dpls,
@@ -466,7 +436,7 @@ class Dpls extends Component
             'stats' => [
                 'total' => $totalDpls,
                 'assigned' => $assignedCount,
-                'unassigned' => max(0, $totalDpls - $assignedCount),
+                'unassigned' => $unassignedCount,
             ],
         ]);
     }

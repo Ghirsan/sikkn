@@ -280,6 +280,37 @@ class BatchExcelAllocationTest extends TestCase
         ]);
     }
 
+    public function test_import_students_rejects_non_numeric_nim(): void
+    {
+        Group::create([
+            'period_id' => $this->period->id,
+            'name' => 'Kelompok Alpha',
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $headers = [
+            'No', 'NIM', 'Nama Mahasiswa', 'Email', 'Nama Kelompok',
+        ];
+
+        $dataRows = [
+            [1, 'NIM-ABC-001', 'Mahasiswa Invalid', 'invalid@students.ac.id', 'Kelompok Alpha'],
+        ];
+
+        $file = $this->createExcelFile($headers, $dataRows, 'invalid_nim_students_');
+
+        Livewire::test(Students::class, ['periodId' => $this->period->id])
+            ->call('openImportModal')
+            ->set('importFile', $file)
+            ->call('importExcel')
+            ->assertSet('showImportModal', true)
+            ->assertCount('importErrors', 1);
+
+        $this->assertDatabaseMissing('users', [
+            'nim' => 'NIM-ABC-001',
+        ]);
+    }
+
     public function test_admin_can_export_dpls_excel_with_multi_group(): void
     {
         $group1 = Group::create([

@@ -38,6 +38,16 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (User $user) {
+            if ($user->nim !== null) {
+                $trimmedNim = trim($user->nim);
+                $user->nim = $trimmedNim === '' ? null : $trimmedNim;
+            }
+
+            if ($user->nip !== null) {
+                $trimmedNip = trim($user->nip);
+                $user->nip = $trimmedNip === '' ? null : $trimmedNip;
+            }
+
             // Auto-resolve from NIM for students
             if ($user->isDirty('nim') && $user->nim) {
                 $code = substr($user->nim, 0, 6);

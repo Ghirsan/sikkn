@@ -101,7 +101,7 @@
                                 @if($student->group)
                                     <flux:badge size="sm" color="green" inset="top bottom">{{ $student->group->name }}</flux:badge>
                                 @else
-                                    <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Belum Punya Kelompok') }}</flux:badge>
+                                    <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Belum Ditugaskan') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                         </flux:table.row>

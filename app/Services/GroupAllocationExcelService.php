@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -586,6 +587,12 @@ class GroupAllocationExcelService
                     continue;
                 }
 
+                if (! preg_match('/^[0-9]+$/', $nim) || strlen($nim) > 20) {
+                    $errors[] = "Baris {$r} ({$name}): NIM harus berupa angka (maksimal 20 digit).";
+
+                    continue;
+                }
+
                 if ($groupName === '') {
                     $errors[] = "Baris {$r} ({$name}): Nama Kelompok wajib diisi.";
 
@@ -630,12 +637,26 @@ class GroupAllocationExcelService
                 if ($email === '') {
                     $email = strtolower($nim).'@student.sikkn.ac.id';
                 }
+                $email = Str::lower($email);
 
                 $isLeader = $leaderCol ? $this->isTrueValue($sheet->getCell([$leaderCol, $r])->getValue()) : false;
                 $rowPassword = $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '';
 
-                // Find existing user by NIM or Email
-                $user = User::where('nim', $nim)->orWhere('email', $email)->first();
+                // Find existing user by NIM
+                $user = User::where('nim', $nim)->first();
+
+                if ($user && $user->role !== UserRole::Mahasiswa) {
+                    $errors[] = "Baris {$r} ({$name}): NIM {$nim} sudah terdaftar untuk pengguna non-mahasiswa.";
+
+                    continue;
+                }
+
+                $emailOwner = User::whereRaw('LOWER(email) = ?', [$email])->first();
+                if ($emailOwner && (! $user || $emailOwner->id !== $user->id)) {
+                    $errors[] = "Baris {$r} ({$name}): Email {$email} sudah digunakan oleh pengguna lain.";
+
+                    continue;
+                }
 
                 if ($user) {
                     $updatePayload = [
@@ -937,12 +958,26 @@ class GroupAllocationExcelService
                 if ($email === '') {
                     $email = strtolower($nip).'@lecturer.sikkn.ac.id';
                 }
+                $email = Str::lower($email);
 
                 $isLead = $leadCol ? $this->isTrueValue($sheet->getCell([$leadCol, $r])->getValue()) : false;
                 $rowPassword = $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '';
 
-                // Find existing lecturer by NIP or Email
-                $user = User::where('nip', $nip)->orWhere('email', $email)->first();
+                // Find existing lecturer by NIP
+                $user = User::where('nip', $nip)->first();
+
+                if ($user && $user->role !== UserRole::Dpl) {
+                    $errors[] = "Baris {$r} ({$name}): NIP {$nip} sudah terdaftar untuk pengguna non-dosen.";
+
+                    continue;
+                }
+
+                $emailOwner = User::whereRaw('LOWER(email) = ?', [$email])->first();
+                if ($emailOwner && (! $user || $emailOwner->id !== $user->id)) {
+                    $errors[] = "Baris {$r} ({$name}): Email {$email} sudah digunakan oleh pengguna lain.";
+
+                    continue;
+                }
 
                 if ($user) {
                     $updatePayload = [

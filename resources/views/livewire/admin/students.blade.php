@@ -105,7 +105,7 @@
                                     <flux:badge size="sm" color="green" inset="top bottom">{{ $student->group->name }}</flux:badge>
                                     <div class="mt-1 text-xs text-neutral-400">Semester {{ $student->group->period->semester->value }} {{ $student->group->period->year }}</div>
                                 @else
-                                    <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Belum Punya Kelompok') }}</flux:badge>
+                                    <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Belum Ditugaskan') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
@@ -214,7 +214,7 @@
 
             <div class="space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="nim" label="{{ __('NIM') }}" placeholder="{{ __('Contoh: 21120120120001') }}" required />
+                    <flux:input wire:model="nim" label="{{ __('NIM') }}" inputmode="numeric" pattern="[0-9]*" placeholder="{{ __('Contoh: 21120120120001') }}" required />
                     <flux:input wire:model="name" label="{{ __('Nama Mahasiswa') }}" placeholder="{{ __('Contoh: Muhammad Budi') }}" required />
                 </div>
 

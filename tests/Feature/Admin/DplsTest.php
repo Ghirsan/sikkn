@@ -9,6 +9,7 @@ use App\Models\Grade;
 use App\Models\Group;
 use App\Models\Period;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
@@ -241,6 +242,102 @@ class DplsTest extends TestCase
             ->set('nip', '19800000002')
             ->call('saveDpl')
             ->assertHasErrors(['nip']);
+    }
+
+    public function test_create_dpl_rejects_duplicate_nip(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $existing = User::factory()->dpl()->create([
+            'nip' => '19800000099',
+            'name' => 'Dosen Lama',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->call('openCreateModal')
+            ->set('nip', '19800000099')
+            ->set('name', 'Dosen Duplikat')
+            ->call('createDpl')
+            ->assertHasErrors(['nip']);
+
+        $this->assertSame(1, User::where('nip', '19800000099')->count());
+        $this->assertSame('Dosen Lama', $existing->fresh()->name);
+    }
+
+    public function test_unassigned_dpls_remain_visible_under_every_period_filter(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+
+        $period1 = Period::create([
+            'name' => 'Periode 1',
+            'semester' => Semester::Ganjil->value,
+            'year' => 2025,
+            'start_date' => '2025-07-01',
+            'end_date' => '2025-08-15',
+        ]);
+
+        $period2 = Period::create([
+            'name' => 'Periode 2',
+            'semester' => Semester::Ganjil->value,
+            'year' => 2026,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-08-15',
+        ]);
+
+        $group1 = Group::create([
+            'period_id' => $period1->id,
+            'name' => 'Kelompok P1',
+            'village' => 'Desa 1',
+        ]);
+
+        $group2 = Group::create([
+            'period_id' => $period2->id,
+            'name' => 'Kelompok P2',
+            'village' => 'Desa 2',
+        ]);
+
+        $dpl1 = User::factory()->dpl()->create([
+            'nip' => '19800000101',
+            'name' => 'Dosen Periode Satu',
+        ]);
+        $group1->dpls()->attach($dpl1->id);
+
+        $dpl2 = User::factory()->dpl()->create([
+            'nip' => '19800000102',
+            'name' => 'Dosen Periode Dua',
+        ]);
+        $group2->dpls()->attach($dpl2->id);
+
+        User::factory()->dpl()->create([
+            'nip' => '19800000103',
+            'name' => 'Dosen Tanpa Kelompok',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Dpls::class)
+            ->set('periodId', $period2->id)
+            ->assertSee('Dosen Periode Dua')
+            ->assertSee('Dosen Tanpa Kelompok')
+            ->assertDontSee('Dosen Periode Satu')
+            ->assertViewHas('stats', [
+                'total' => 2,
+                'assigned' => 1,
+                'unassigned' => 1,
+            ]);
+    }
+
+    public function test_database_enforces_unique_nip_while_allowing_null_or_blank(): void
+    {
+        $userA = User::factory()->p2kkn()->create(['nip' => '']);
+        $userB = User::factory()->p2kkn()->create(['nip' => null]);
+
+        $this->assertNull($userA->fresh()->nip);
+        $this->assertNull($userB->fresh()->nip);
+
+        User::factory()->dpl()->create(['nip' => 'H.7.198001012005011001']);
+
+        $this->expectException(QueryException::class);
+        User::factory()->dpl()->create(['nip' => 'H.7.198001012005011001']);
     }
 
     public function test_editing_dpl_can_detach_or_switch_group_without_disturbing_other_groups(): void

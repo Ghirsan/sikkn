@@ -11,7 +11,8 @@ use App\Models\User;
 use App\Services\GroupAllocationExcelService;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -194,8 +195,17 @@ class Students extends Component
 
     public function saveStudent(): void
     {
+        $this->nim = trim($this->nim);
+        $this->email = trim($this->email);
+
         $rules = [
-            'nim' => ['required', 'string', 'max:20'],
+            'nim' => [
+                'required',
+                'string',
+                'regex:/^[0-9]+$/',
+                'max:20',
+                Rule::unique('users', 'nim')->ignore($this->isEditing ? $this->editingStudentId : null),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'study_program_id' => ['nullable', 'exists:study_programs,id'],
@@ -209,33 +219,32 @@ class Students extends Component
 
         $this->validate($rules, [
             'nim.required' => 'NIM wajib diisi.',
+            'nim.regex' => 'NIM hanya boleh berisi angka.',
+            'nim.max' => 'NIM maksimal 20 digit.',
+            'nim.unique' => 'NIM ini sudah terdaftar untuk pengguna lain.',
             'name.required' => 'Nama mahasiswa wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'password.min' => 'Password minimal 6 karakter.',
         ]);
 
-        $nim = trim($this->nim);
-        $email = trim($this->email) ?: strtolower($nim).'@student.sikkn.ac.id';
+        $nim = $this->nim;
+        $email = $this->email !== '' ? Str::lower($this->email) : strtolower($nim).'@student.sikkn.ac.id';
+
+        $duplicateEmail = User::whereRaw('LOWER(email) = ?', [Str::lower($email)])
+            ->when($this->isEditing && $this->editingStudentId, fn ($q) => $q->where('id', '!=', $this->editingStudentId))
+            ->exists();
+        if ($duplicateEmail) {
+            $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+
+            return;
+        }
+
+        $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
+        $facultyId = $studyProgram?->faculty_id;
 
         if ($this->isEditing && $this->editingStudentId) {
             $student = User::where('id', $this->editingStudentId)->where('role', UserRole::Mahasiswa)->firstOrFail();
 
-            $duplicateNim = User::where('nim', $nim)->where('id', '!=', $student->id)->exists();
-            if ($duplicateNim) {
-                $this->addError('nim', 'NIM ini sudah terdaftar untuk pengguna lain.');
-
-                return;
-            }
-
-            $duplicateEmail = User::where('email', $email)->where('id', '!=', $student->id)->exists();
-            if ($duplicateEmail) {
-                $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
-
-                return;
-            }
-
-            $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
-            $facultyId = $studyProgram?->faculty_id;
             $previousGroupId = $student->group_id;
             $newGroupId = $this->group_id ?: null;
 
@@ -256,69 +265,26 @@ class Students extends Component
             return;
         }
 
-        $existingUser = User::where('nim', $nim)->first();
+        $passwordData = $this->resolveProvisionedPassword($this->password, false);
 
-        $emailOwner = User::where('email', $email)->first();
-        if ($emailOwner && (! $existingUser || $emailOwner->id !== $existingUser->id)) {
-            $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+        $createdStudent = User::create([
+            'name' => $this->name,
+            'nim' => $nim,
+            'email' => $email,
+            'password' => $passwordData['hash'],
+            'must_change_password' => $passwordData['must_change_password'],
+            'role' => UserRole::Mahasiswa,
+            'phone' => $this->phone ?: null,
+            'study_program_id' => $studyProgram?->id,
+            'faculty_id' => $facultyId,
+            'group_id' => $this->group_id ?: null,
+        ]);
 
-            return;
-        }
+        $this->closeCreateModal();
+        Flux::toast('Peserta KKN berhasil ditambahkan.', variant: 'success');
 
-        $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
-        $facultyId = $studyProgram?->faculty_id;
-
-        if ($existingUser) {
-            if ($existingUser->role !== UserRole::Mahasiswa) {
-                $this->addError('nim', 'NIM ini sudah terdaftar sebagai pengguna non-mahasiswa.');
-
-                return;
-            }
-
-            $previousGroupId = $existingUser->group_id;
-            $newGroupId = $this->group_id ?: $existingUser->group_id;
-
-            $updateData = [
-                'name' => $this->name,
-                'email' => $email,
-                'phone' => $this->phone ?: $existingUser->phone,
-                'study_program_id' => $studyProgram?->id ?? $existingUser->study_program_id,
-                'faculty_id' => $facultyId ?? $existingUser->faculty_id,
-                'group_id' => $newGroupId,
-            ];
-
-            if ($this->password) {
-                $updateData['password'] = Hash::make($this->password);
-                $updateData['must_change_password'] = true;
-            }
-
-            $existingUser->update($updateData);
-            $this->clearGroupLeadershipIfMoved($existingUser, $previousGroupId, $newGroupId);
-
-            $this->closeCreateModal();
-            Flux::toast('Data mahasiswa berhasil diperbarui dan dialokasikan.', variant: 'success');
-        } else {
-            $passwordData = $this->resolveProvisionedPassword($this->password, false);
-
-            $createdStudent = User::create([
-                'name' => $this->name,
-                'nim' => $nim,
-                'email' => $email,
-                'password' => $passwordData['hash'],
-                'must_change_password' => $passwordData['must_change_password'],
-                'role' => UserRole::Mahasiswa,
-                'phone' => $this->phone ?: null,
-                'study_program_id' => $studyProgram?->id,
-                'faculty_id' => $facultyId,
-                'group_id' => $this->group_id ?: null,
-            ]);
-
-            $this->closeCreateModal();
-            Flux::toast('Peserta KKN berhasil ditambahkan.', variant: 'success');
-
-            if ($passwordData['temporary_password'] !== null) {
-                $this->presentIssuedCredential($createdStudent, $passwordData['temporary_password'], __('Akun Mahasiswa Dibuat'));
-            }
+        if ($passwordData['temporary_password'] !== null) {
+            $this->presentIssuedCredential($createdStudent, $passwordData['temporary_password'], __('Akun Mahasiswa Dibuat'));
         }
     }
 
@@ -422,8 +388,10 @@ class Students extends Component
             ->withCount(['dailyLogs', 'programParticipants', 'programs', 'mentoringLogs', 'scheduleEvents', 'grades']);
 
         if ($this->periodId) {
-            $query->whereHas('group', function ($q) {
-                $q->where('period_id', $this->periodId);
+            $query->where(function ($q) {
+                $q->whereHas('group', function ($gq) {
+                    $gq->where('period_id', $this->periodId);
+                })->orWhereNull('group_id');
             });
         }
 
@@ -438,12 +406,13 @@ class Students extends Component
         }
 
         $students = $query->latest()->paginate(10);
-        $totalStudents = User::where('role', UserRole::Mahasiswa)->count();
         $assignedCount = User::where('role', UserRole::Mahasiswa)->whereHas('group', function ($q) {
             if ($this->periodId) {
                 $q->where('period_id', $this->periodId);
             }
         })->count();
+        $unassignedCount = User::where('role', UserRole::Mahasiswa)->whereNull('group_id')->count();
+        $totalStudents = $assignedCount + $unassignedCount;
 
         return view('livewire.admin.students', [
             'students' => $students,
@@ -454,7 +423,7 @@ class Students extends Component
             'stats' => [
                 'total' => $totalStudents,
                 'assigned' => $assignedCount,
-                'unassigned' => max(0, $totalStudents - $assignedCount),
+                'unassigned' => $unassignedCount,
             ],
         ]);
     }
