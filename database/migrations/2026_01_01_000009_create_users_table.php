@@ -13,18 +13,22 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->ulid('ulid')->nullable()->unique();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('must_change_password')->default(false);
             $table->string('role')->default('mahasiswa')->index();
-            $table->string('nim')->nullable()->index();
-            $table->string('nip')->nullable()->index();
+            $table->string('nim')->nullable()->unique();
+            $table->string('nip')->nullable()->unique();
             $table->foreignId('faculty_id')->nullable()->constrained('faculties')->nullOnDelete();
             $table->foreignId('study_program_id')->nullable()->constrained('study_programs')->nullOnDelete();
             $table->foreignId('group_id')->nullable()->constrained('groups')->nullOnDelete();
             $table->string('phone', 30)->nullable();
             $table->string('emergency_phone', 30)->nullable();
+            $table->string('emergency_name')->nullable();
+            $table->string('emergency_relationship', 100)->nullable();
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();

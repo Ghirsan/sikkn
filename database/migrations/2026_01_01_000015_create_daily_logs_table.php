@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('daily_logs', function (Blueprint $table) {
             $table->id();
+            $table->ulid('ulid')->nullable()->unique();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->date('date');
             $table->text('important_notes')->nullable();

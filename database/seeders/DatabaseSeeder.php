@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StudyProgramSeeder::class,
             GradeWeightSeeder::class,
-            KKNSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

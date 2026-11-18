@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DocumentStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +14,7 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
+            $table->ulid('ulid')->nullable()->unique();
             $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
             $table->string('name');
             $table->foreignId('group_type_id')->nullable()->constrained('group_types')->nullOnDelete();
@@ -23,6 +25,10 @@ return new class extends Migration
             $table->string('partner_name')->nullable();
             $table->string('village_head')->nullable();
             $table->text('background')->nullable();
+            $table->string('lrk_status')->default(DocumentStatus::Draft->value);
+            $table->text('lrk_notes')->nullable();
+            $table->timestamp('lrk_submitted_at')->nullable();
+            $table->timestamp('lrk_reviewed_at')->nullable();
             $table->boolean('is_lrk_locked')->default(false);
             $table->boolean('is_lpk_locked')->default(false);
             $table->string('location_map_path')->nullable();
@@ -35,9 +41,12 @@ return new class extends Migration
             $table->text('program_sosmas_text')->nullable();
             $table->text('program_lainnya_text')->nullable();
             $table->text('storyboard_text')->nullable();
+            $table->json('storyboard_scenes')->nullable();
             $table->text('video_script_text')->nullable();
+            $table->json('video_script_scenes')->nullable();
             $table->text('survey_documentation_text')->nullable();
             $table->text('location_map_text')->nullable();
+            $table->json('macro_schedules')->nullable();
             $table->timestamps();
         });
     }
