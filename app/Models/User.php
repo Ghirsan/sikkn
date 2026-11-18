@@ -50,8 +50,7 @@ class User extends Authenticatable
 
             // Auto-resolve from NIM for students
             if ($user->isDirty('nim') && $user->nim) {
-                $code = substr($user->nim, 0, 6);
-                $studyProgram = StudyProgram::where('code', $code)->first();
+                $studyProgram = StudyProgram::resolveFromNim($user->nim);
                 if ($studyProgram) {
                     $user->study_program_id = $studyProgram->id;
                     $user->faculty_id = $studyProgram->faculty_id;

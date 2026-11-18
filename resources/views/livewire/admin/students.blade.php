@@ -214,8 +214,32 @@
 
             <div class="space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="nim" label="{{ __('NIM') }}" inputmode="numeric" pattern="[0-9]*" placeholder="{{ __('Contoh: 21120120120001') }}" required />
+                    <flux:input
+                        wire:model.live.debounce.250ms="nim"
+                        label="{{ __('NIM') }}"
+                        inputmode="numeric"
+                        maxlength="14"
+                        pattern="[0-9]{14}"
+                        placeholder="{{ __('Contoh: 21120120120001') }}"
+                        description="{{ __('14 digit angka. Prodi dan Fakultas terisi otomatis dari NIM.') }}"
+                        required
+                    />
                     <flux:input wire:model="name" label="{{ __('Nama Mahasiswa') }}" placeholder="{{ __('Contoh: Muhammad Budi') }}" required />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input disabled
+                        wire:model="resolvedProdiName"
+                        label="{{ __('Program Studi') }}"
+                        readonly
+                        placeholder="{{ __('Otomatis terisi dari NIM') }}"
+                    />
+                    <flux:input disabled
+                        wire:model="resolvedFacultyName"
+                        label="{{ __('Fakultas') }}"
+                        readonly
+                        placeholder="{{ __('Otomatis terisi dari NIM') }}"
+                    />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -223,22 +247,14 @@
                     <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
                 </div>
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:select wire:model="study_program_id" label="{{ __('Program Studi') }}">
-                        <flux:select.option value="">{{ __('Pilih Program Studi') }}</flux:select.option>
-                        @foreach($studyPrograms as $sp)
-                            <flux:select.option value="{{ $sp->id }}">{{ $sp->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
+                @if($isEditing)
                     <flux:select wire:model="group_id" label="{{ __('Kelompok KKN') }}">
                         <flux:select.option value="">{{ __('Belum Ditempatkan') }}</flux:select.option>
                         @foreach($availableGroups as $g)
                             <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                </div>
 
-                @if($isEditing)
                     <div class="flex flex-col gap-3 border-t border-zinc-200 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/10">
                         <div class="space-y-0.5">
                             <flux:text class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Password Akun') }}</flux:text>
@@ -249,7 +265,15 @@
                         </flux:button>
                     </div>
                 @else
-                    <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password sementara acak') }}" viewable />
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:select wire:model="group_id" label="{{ __('Kelompok KKN') }}">
+                            <flux:select.option value="">{{ __('Belum Ditempatkan') }}</flux:select.option>
+                            @foreach($availableGroups as $g)
+                                <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password sementara acak') }}" viewable />
+                    </div>
                 @endif
             </div>
 

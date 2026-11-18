@@ -51,6 +51,22 @@ class StudyProgram extends Model
     }
 
     /**
+     * Resolve the matching study program (with faculty) from the first 6 digits of a student NIM.
+     */
+    public static function resolveFromNim(?string $nim): ?self
+    {
+        $cleanNim = trim((string) $nim);
+
+        if (strlen($cleanNim) < 6) {
+            return null;
+        }
+
+        return static::with('faculty')
+            ->where('code', substr($cleanNim, 0, 6))
+            ->first();
+    }
+
+    /**
      * Build the default display name for a newly provisioned study program account.
      */
     public function defaultObserverAccountName(): string

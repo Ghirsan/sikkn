@@ -49,6 +49,12 @@ class Students extends Component
 
     public ?int $study_program_id = null;
 
+    public ?int $faculty_id = null;
+
+    public string $resolvedProdiName = '';
+
+    public string $resolvedFacultyName = '';
+
     public ?int $group_id = null;
 
     public string $phone = '';
@@ -164,10 +170,56 @@ class Students extends Component
         return $excelService->exportGeneratedCredentials($credentials, 'kredensial_mahasiswa_baru', 'NIM');
     }
 
+    public function updatedNim(string $value): void
+    {
+        $this->resetErrorBag('nim');
+        $cleanNim = trim($value);
+        $this->syncAcademicAffiliationFromNim($cleanNim);
+
+        if ($cleanNim === '') {
+            return;
+        }
+
+        if (! preg_match('/^[0-9]+$/', $cleanNim)) {
+            $this->addError('nim', 'NIM hanya boleh berisi angka.');
+
+            return;
+        }
+
+        if (strlen($cleanNim) >= 6 && (! $this->study_program_id || ! $this->faculty_id)) {
+            $this->addError('nim', 'Kode NIM (6 digit awal) tidak cocok dengan Program Studi dan Fakultas yang terdaftar.');
+        }
+    }
+
+    private function syncAcademicAffiliationFromNim(?string $nim): ?StudyProgram
+    {
+        $studyProgram = StudyProgram::resolveFromNim($nim);
+
+        if ($studyProgram && $studyProgram->faculty) {
+            $this->study_program_id = $studyProgram->id;
+            $this->faculty_id = $studyProgram->faculty_id;
+            $this->resolvedProdiName = $studyProgram->name;
+            $this->resolvedFacultyName = $studyProgram->faculty->name;
+
+            return $studyProgram;
+        }
+
+        $this->study_program_id = null;
+        $this->faculty_id = null;
+        $this->resolvedProdiName = '';
+        $this->resolvedFacultyName = '';
+
+        return null;
+    }
+
     public function openCreateModal(): void
     {
         $this->resetValidation();
-        $this->reset(['nim', 'name', 'email', 'study_program_id', 'group_id', 'phone', 'password', 'isEditing', 'editingStudentId']);
+        $this->reset([
+            'nim', 'name', 'email', 'study_program_id', 'faculty_id',
+            'resolvedProdiName', 'resolvedFacultyName', 'group_id', 'phone',
+            'password', 'isEditing', 'editingStudentId',
+        ]);
         $this->showCreateModal = true;
     }
 
@@ -179,7 +231,7 @@ class Students extends Component
         $this->nim = $student->nim ?? '';
         $this->name = $student->name ?? '';
         $this->email = $student->email ?? '';
-        $this->study_program_id = $student->study_program_id;
+        $this->syncAcademicAffiliationFromNim($this->nim);
         $this->group_id = $student->group_id;
         $this->phone = $student->phone ?? '';
         $this->password = '';
@@ -190,25 +242,38 @@ class Students extends Component
     {
         $this->showCreateModal = false;
         $this->resetValidation();
-        $this->reset(['nim', 'name', 'email', 'study_program_id', 'group_id', 'phone', 'password', 'isEditing', 'editingStudentId']);
+        $this->reset([
+            'nim', 'name', 'email', 'study_program_id', 'faculty_id',
+            'resolvedProdiName', 'resolvedFacultyName', 'group_id', 'phone',
+            'password', 'isEditing', 'editingStudentId',
+        ]);
     }
 
     public function saveStudent(): void
     {
         $this->nim = trim($this->nim);
         $this->email = trim($this->email);
+        $studyProgram = $this->syncAcademicAffiliationFromNim($this->nim);
 
         $rules = [
             'nim' => [
                 'required',
                 'string',
                 'regex:/^[0-9]+$/',
-                'max:20',
+                'size:14',
                 Rule::unique('users', 'nim')->ignore($this->isEditing ? $this->editingStudentId : null),
+                function (string $attribute, mixed $value, \Closure $fail) use ($studyProgram): void {
+                    if (! preg_match('/^[0-9]{14}$/', (string) $value)) {
+                        return;
+                    }
+
+                    if (! $studyProgram || ! $studyProgram->faculty) {
+                        $fail('Kode NIM (6 digit awal) tidak cocok dengan Program Studi dan Fakultas yang terdaftar.');
+                    }
+                },
             ],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
-            'study_program_id' => ['nullable', 'exists:study_programs,id'],
             'group_id' => ['nullable', 'exists:groups,id'],
             'phone' => ['nullable', 'string', 'max:20'],
         ];
@@ -220,7 +285,7 @@ class Students extends Component
         $this->validate($rules, [
             'nim.required' => 'NIM wajib diisi.',
             'nim.regex' => 'NIM hanya boleh berisi angka.',
-            'nim.max' => 'NIM maksimal 20 digit.',
+            'nim.size' => 'NIM harus terdiri dari 14 digit.',
             'nim.unique' => 'NIM ini sudah terdaftar untuk pengguna lain.',
             'name.required' => 'Nama mahasiswa wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -239,8 +304,7 @@ class Students extends Component
             return;
         }
 
-        $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
-        $facultyId = $studyProgram?->faculty_id;
+        $facultyId = $studyProgram->faculty_id;
 
         if ($this->isEditing && $this->editingStudentId) {
             $student = User::where('id', $this->editingStudentId)->where('role', UserRole::Mahasiswa)->firstOrFail();
@@ -253,7 +317,7 @@ class Students extends Component
                 'name' => $this->name,
                 'email' => $email,
                 'phone' => $this->phone ?: null,
-                'study_program_id' => $studyProgram?->id,
+                'study_program_id' => $studyProgram->id,
                 'faculty_id' => $facultyId,
                 'group_id' => $newGroupId,
             ]);
@@ -275,7 +339,7 @@ class Students extends Component
             'must_change_password' => $passwordData['must_change_password'],
             'role' => UserRole::Mahasiswa,
             'phone' => $this->phone ?: null,
-            'study_program_id' => $studyProgram?->id,
+            'study_program_id' => $studyProgram->id,
             'faculty_id' => $facultyId,
             'group_id' => $this->group_id ?: null,
         ]);
@@ -416,7 +480,6 @@ class Students extends Component
 
         return view('livewire.admin.students', [
             'students' => $students,
-            'studyPrograms' => StudyProgram::orderBy('name')->get(),
             'availableGroups' => Group::when($this->periodId, fn ($q) => $q->where('period_id', $this->periodId))->orderBy('name')->get(),
             'periods' => Period::orderByDesc('start_date')->get(),
             'totalStudents' => $students->total(),

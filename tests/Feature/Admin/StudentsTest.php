@@ -6,6 +6,7 @@ use App\Enums\Semester;
 use App\Enums\UserRole;
 use App\Livewire\Admin\Students;
 use App\Models\DailyLog;
+use App\Models\Faculty;
 use App\Models\Grade;
 use App\Models\Group;
 use App\Models\MentoringLog;
@@ -13,6 +14,7 @@ use App\Models\Period;
 use App\Models\Program;
 use App\Models\ProgramParticipant;
 use App\Models\ProgramType;
+use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,10 +26,26 @@ class StudentsTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected Faculty $faculty;
+
+    protected StudyProgram $studyProgram;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->withoutVite();
+
+        $this->faculty = Faculty::create([
+            'code' => '21',
+            'name' => 'TEKNIK',
+            'short_name' => 'FT',
+        ]);
+
+        $this->studyProgram = StudyProgram::create([
+            'code' => '211201',
+            'faculty_id' => $this->faculty->id,
+            'name' => 'Teknik Komputer S1',
+        ]);
     }
 
     public function test_admin_can_access_students_page(): void
@@ -118,11 +136,88 @@ class StudentsTest extends TestCase
             'name' => 'Budi Santoso',
             'role' => UserRole::Mahasiswa->value,
             'email' => '21120120120001@student.sikkn.ac.id',
+            'study_program_id' => $this->studyProgram->id,
+            'faculty_id' => $this->faculty->id,
         ]);
 
         $createdStudent = User::where('nim', '21120120120001')->first();
         $this->assertNotNull($createdStudent->ulid);
         $this->assertEquals(26, strlen($createdStudent->ulid));
+    }
+
+    public function test_nim_input_auto_fills_readonly_prodi_and_fakultas_and_rejects_invalid_nim(): void
+    {
+        $admin = User::factory()->p2kkn()->create();
+        $fsm = Faculty::create([
+            'code' => '24',
+            'name' => 'SAINS DAN MATEMATIKA',
+            'short_name' => 'FSM',
+        ]);
+        $informatika = StudyProgram::create([
+            'code' => '240601',
+            'faculty_id' => $fsm->id,
+            'name' => 'Informatika S1',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->assertSeeHtml('wire:model="resolvedProdiName"')
+            ->assertSeeHtml('wire:model="resolvedFacultyName"')
+            ->assertDontSeeHtml('wire:model="study_program_id"')
+            ->set('nim', '24060120120001')
+            ->assertSet('study_program_id', $informatika->id)
+            ->assertSet('faculty_id', $fsm->id)
+            ->assertSet('resolvedProdiName', 'Informatika S1')
+            ->assertSet('resolvedFacultyName', 'SAINS DAN MATEMATIKA')
+            ->set('nim', '99999920120001')
+            ->assertSet('study_program_id', null)
+            ->assertSet('faculty_id', null)
+            ->assertSet('resolvedProdiName', '')
+            ->assertSet('resolvedFacultyName', '')
+            ->assertHasErrors(['nim']);
+
+        // Rejects NIM shorter or longer than 14 digits
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', '211201201200')
+            ->set('name', 'NIM Pendek')
+            ->call('createStudent')
+            ->assertHasErrors(['nim']);
+
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', '211201201200019')
+            ->set('name', 'NIM Panjang')
+            ->call('createStudent')
+            ->assertHasErrors(['nim']);
+
+        // Rejects 14-digit NIM whose 6-digit prefix does not match any Prodi/Fakultas
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', '99999920120001')
+            ->set('name', 'NIM Tidak Terdaftar')
+            ->call('createStudent')
+            ->assertHasErrors(['nim']);
+
+        // Even if study_program_id is tampered with, save derives Prodi & Fakultas strictly from NIM
+        Livewire::actingAs($admin)
+            ->test(Students::class)
+            ->call('openCreateModal')
+            ->set('nim', '24060120120055')
+            ->set('study_program_id', $this->studyProgram->id)
+            ->set('name', 'Siti Aminah')
+            ->call('createStudent')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('users', [
+            'nim' => '24060120120055',
+            'study_program_id' => $informatika->id,
+            'faculty_id' => $fsm->id,
+        ]);
     }
 
     public function test_create_student_validates_required_fields(): void
@@ -161,6 +256,16 @@ class StudentsTest extends TestCase
     public function test_create_and_edit_student_validates_numeric_nim_and_preserves_leading_zeros(): void
     {
         $admin = User::factory()->p2kkn()->create();
+        $zeroFaculty = Faculty::create([
+            'code' => '00',
+            'name' => 'FAKULTAS UJI',
+            'short_name' => 'FU',
+        ]);
+        $zeroProdi = StudyProgram::create([
+            'code' => '001201',
+            'faculty_id' => $zeroFaculty->id,
+            'name' => 'Prodi Uji S1',
+        ]);
 
         Livewire::actingAs($admin)
             ->test(Students::class)
@@ -188,6 +293,8 @@ class StudentsTest extends TestCase
 
         $student = User::where('nim', '00120120120001')->firstOrFail();
         $this->assertSame('00120120120001', $student->nim);
+        $this->assertSame($zeroProdi->id, $student->study_program_id);
+        $this->assertSame($zeroFaculty->id, $student->faculty_id);
 
         Livewire::actingAs($admin)
             ->test(Students::class)
@@ -309,13 +416,13 @@ class StudentsTest extends TestCase
     public function test_edit_student_validates_duplicate_nim(): void
     {
         $admin = User::factory()->p2kkn()->create();
-        $studentA = User::factory()->mahasiswa()->create(['nim' => '11111111']);
-        $studentB = User::factory()->mahasiswa()->create(['nim' => '22222222']);
+        $studentA = User::factory()->mahasiswa()->create(['nim' => '21120120120011']);
+        $studentB = User::factory()->mahasiswa()->create(['nim' => '21120120120022']);
 
         Livewire::actingAs($admin)
             ->test(Students::class)
             ->call('openEditModal', $studentA->id)
-            ->set('nim', '22222222')
+            ->set('nim', '21120120120022')
             ->call('saveStudent')
             ->assertHasErrors(['nim']);
     }
