@@ -60,8 +60,9 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     @if($editingThemeId === $theme->id)
-                                        <form id="edit-theme-{{ $theme->id }}" wire:submit="saveEditTheme" class="min-w-64">
+                                        <form id="edit-theme-{{ $theme->id }}" wire:submit="saveEditTheme" class="min-w-64" novalidate>
                                             <flux:input wire:model="editingThemeTitle" size="sm" autofocus />
+                                            <flux:error name="editingThemeTitle" />
                                         </form>
                                     @else
                                         <flux:text variant="strong">{{ $theme->title }}</flux:text>
@@ -100,10 +101,10 @@
             @endif
 
             {{-- Add new theme form --}}
-            <form wire:submit="addTheme" class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
+            <form wire:submit="addTheme" class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-start gap-2" novalidate>
                 <div class="flex-1">
                     <flux:input wire:model="newThemeTitle" size="sm" placeholder="{{ __('Masukkan judul tema multidisiplin baru...') }}" class="w-full" />
-                    @error('newThemeTitle') <flux:text class="mt-1 text-xs text-red-500">{{ $message }}</flux:text> @enderror
+                    <flux:error name="newThemeTitle" />
                 </div>
                 <flux:button type="submit" size="sm" variant="filled" icon="plus" class="w-full sm:w-auto">{{ __('Tambah') }}</flux:button>
             </form>
@@ -400,9 +401,6 @@
                         <flux:separator variant="subtle" />
                         <section class="space-y-3">
                             <flux:textarea wire:model="revisionNote" label="{{ __('Catatan Revisi') }}" placeholder="{{ __('Jelaskan apa yang perlu diperbaiki...') }}" rows="3" />
-                            @error('revisionNote')
-                                <flux:text class="text-xs text-red-500">{{ $message }}</flux:text>
-                            @enderror
                             <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
                                 <flux:button wire:click="$set('showRevisionForm', false)" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                                 <flux:button wire:click="submitRevision" variant="primary" class="w-full sm:w-auto">{{ __('Kirim Revisi') }}</flux:button>

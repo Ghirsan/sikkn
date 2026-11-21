@@ -13,20 +13,25 @@
     x-data
     x-on:input.debounce.800ms="$wire.call('{{ $checkAction }}')"
 >
-    <flux:input
-        wire:model.live.debounce.800ms="{{ $modelName }}"
-        :label="$label"
-        :placeholder="$placeholder"
-        aria-describedby="{{ $modelName }}-description"
-    />
+    <flux:field>
+        @if($label)
+            <flux:label>{{ $label }}</flux:label>
+        @endif
 
-    @if($description)
-        <flux:text id="{{ $modelName }}-description" variant="subtle" class="text-xs">
-            {{ $description }}
-        </flux:text>
-    @endif
+        <flux:input
+            wire:model.live.debounce.800ms="{{ $modelName }}"
+            :placeholder="$placeholder"
+            aria-describedby="{{ $modelName }}-description"
+        />
 
-    <flux:error name="{{ $modelName }}" />
+        @if($description)
+            <flux:description id="{{ $modelName }}-description">
+                {{ $description }}
+            </flux:description>
+        @endif
+
+        <flux:error name="{{ $modelName }}" />
+    </flux:field>
 
     @if($previewUrl)
         <flux:card

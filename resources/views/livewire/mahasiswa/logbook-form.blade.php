@@ -1,16 +1,16 @@
 <div>
     <flux:card>
-        <form wire:submit="saveDraft" class="space-y-6">
+        <form wire:submit="saveDraft" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="md" class="mb-4">{{ __('Informasi Waktu') }}</flux:heading>
-                <flux:input type="text" value="{{ $date ? \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') : '' }}" label="Tanggal Kegiatan" disabled />
+                <flux:input type="text" name="date" value="{{ $date ? \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') : '' }}" label="Tanggal Kegiatan" disabled />
                 <input type="hidden" wire:model="date" />
             </div>
 
             <div>
                 <flux:heading size="md" class="mb-4">{{ __('Rincian Kegiatan') }}</flux:heading>
                 <x-activity-repeater :activities="$activities" />
-                @error('activities') <flux:error>{{ $message }}</flux:error> @enderror
+                <flux:error name="activities" />
             </div>
 
             <div>

@@ -8,7 +8,7 @@
         @endif
 
         <flux:card>
-            <form wire:submit="saveGrade" class="flex flex-col gap-6">
+            <form wire:submit="saveGrade" class="flex flex-col gap-6" novalidate>
                 <div>
                     <flux:heading size="lg">{{ __('Aspek Penilaian KKN') }}</flux:heading>
                     <flux:subheading>{{ __('Masukkan nilai (0-100) untuk setiap aspek. Prediksi nilai SIAP akan diperbarui otomatis.') }}</flux:subheading>

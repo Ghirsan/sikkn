@@ -55,7 +55,7 @@
 
     <!-- Create/Edit Modal -->
     <flux:modal name="sdg-category-modal" class="md:w-96">
-        <form wire:submit.prevent="save">
+        <form wire:submit.prevent="save" novalidate>
             <flux:heading size="lg">{{ $isEditing ? __('Edit Kategori SDG') : __('Tambah Kategori SDG') }}</flux:heading>
             
             <div class="space-y-4 my-4">

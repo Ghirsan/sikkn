@@ -81,7 +81,7 @@
 
     {{-- Period Modal --}}
     <flux:modal name="period-modal" class="md:w-[40rem]">
-        <form wire:submit.prevent="savePeriod">
+        <form wire:submit.prevent="savePeriod" novalidate>
             <flux:heading size="lg">{{ $isEditing ? __('Edit Periode KKN') : __('Buat Periode Baru') }}</flux:heading>
             
             <div class="space-y-6 my-4">

@@ -214,7 +214,7 @@
 
     {{-- Edit Group Modal --}}
     <flux:modal name="edit-group-modal" class="max-w-2xl w-full">
-        <form wire:submit="updateGroupDetails" class="space-y-6">
+        <form wire:submit="updateGroupDetails" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ __('Ubah Detail Kelompok') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Perbarui informasi lokasi, mitra, dan periode kelompok.') }}</flux:text>

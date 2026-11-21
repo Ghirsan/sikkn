@@ -1,6 +1,6 @@
 <div>
     <flux:card>
-        <form wire:submit="saveLog" class="space-y-6">
+        <form wire:submit="saveLog" class="space-y-6" novalidate>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <flux:input type="date" wire:model="date" label="Tanggal Pembimbingan" min="{{ $minDate }}" max="{{ $maxDate }}" :disabled="$logId !== null" />

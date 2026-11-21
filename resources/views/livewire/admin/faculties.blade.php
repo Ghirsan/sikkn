@@ -78,7 +78,7 @@
 
     <!-- Create/Edit Faculty Modal -->
     <flux:modal name="faculty-modal" class="md:w-96">
-        <form wire:submit.prevent="save">
+        <form wire:submit.prevent="save" novalidate>
             <flux:heading size="lg">{{ $isEditing ? __('Edit Fakultas') : __('Tambah Fakultas') }}</flux:heading>
             
             <div class="space-y-4 my-4">
@@ -98,7 +98,7 @@
 
     <!-- Manage Faculty Account Modal -->
     <flux:modal name="faculty-account-modal" class="md:w-[30rem]">
-        <form wire:submit.prevent="saveAccount">
+        <form wire:submit.prevent="saveAccount" novalidate>
             <flux:heading size="lg">{{ $accountUserId ? __('Kelola Akun Fakultas') : __('Buat Akun Fakultas') }}</flux:heading>
             <flux:subheading>{{ $selectedFacultyName }}</flux:subheading>
 

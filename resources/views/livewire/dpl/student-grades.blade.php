@@ -95,7 +95,7 @@
 
     {{-- Import Nilai Modal --}}
     <flux:modal wire:model="showImportModal" class="md:w-[32rem]">
-        <form wire:submit.prevent="importExcel" class="space-y-6">
+        <form wire:submit.prevent="importExcel" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ __('Import Nilai Mahasiswa via Excel') }}</flux:heading>
                 <flux:subheading>{{ __('Unggah file Excel nilai mahasiswa untuk kelompok yang Anda bimbing.') }}</flux:subheading>
@@ -129,7 +129,6 @@
 
                 <div>
                     <flux:input type="file" wire:model="gradeFile" label="{{ __('Pilih File Excel (.xlsx)') }}" accept=".xlsx" />
-                    <flux:error name="gradeFile" />
                 </div>
             </div>
 

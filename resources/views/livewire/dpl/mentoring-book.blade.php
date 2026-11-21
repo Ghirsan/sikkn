@@ -191,9 +191,6 @@
                         <flux:separator variant="subtle" />
                         <section class="space-y-3">
                             <flux:textarea wire:model="feedback" label="{{ __('Tanggapan / Solusi DPL') }}" placeholder="{{ __('Berikan arahan, tanggapan, atau solusi untuk mahasiswa...') }}" rows="3" />
-                            @error('feedback')
-                                <flux:text class="text-xs text-red-500">{{ $message }}</flux:text>
-                            @enderror
                             <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
                                 <flux:button wire:click="cancelFeedback" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</flux:button>
                                 <flux:button wire:click="submitFeedback" variant="primary" icon="paper-airplane" class="w-full sm:w-auto">{{ __('Kirim Tanggapan') }}</flux:button>

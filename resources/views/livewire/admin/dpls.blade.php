@@ -108,7 +108,7 @@
                 </div>
             </div>
         @else
-            <form wire:submit.prevent="importExcel" class="space-y-6">
+            <form wire:submit.prevent="importExcel" class="space-y-6" novalidate>
                 <div>
                     <flux:heading size="lg">{{ __('Import Data Dosen KKN (DPL) via Excel') }}</flux:heading>
                     <flux:subheading>{{ __('Unggah file Excel daftar dosen pembimbing dan penugasan kelompok untuk periode KKN terpilih.') }}</flux:subheading>
@@ -142,7 +142,6 @@
 
                     <div>
                         <flux:input type="file" wire:model="importFile" label="{{ __('Pilih File Excel (.xlsx)') }}" accept=".xlsx" />
-                        <flux:error name="importFile" />
                     </div>
                 </div>
 
@@ -161,7 +160,7 @@
 
     {{-- Create/Edit DPL Modal --}}
     <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
-        <form wire:submit.prevent="saveDpl" class="space-y-6">
+        <form wire:submit.prevent="saveDpl" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ $isEditing ? __('Edit Data Dosen KKN') : __('Tambah Dosen Pembimbing (DPL)') }}</flux:heading>
                 <flux:subheading>{{ $isEditing ? __('Perbarui data dosen pembimbing dan penugasan kelompok KKN.') : __('Daftarkan dosen pembimbing dan tugaskan ke kelompok KKN.') }}</flux:subheading>

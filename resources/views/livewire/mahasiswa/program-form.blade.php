@@ -1,5 +1,5 @@
 <flux:card>
-    <form wire:submit="save" class="flex flex-col gap-4">
+    <form wire:submit="save" class="flex flex-col gap-4" novalidate>
         @if($status === \App\Enums\ProgramStatus::NeedsRevision->value && $revision_note)
             <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg">
                 <flux:text class="text-xs text-red-600 dark:text-red-400 mb-1 font-semibold">{{ __('Catatan Revisi') }}</flux:text>
@@ -88,13 +88,14 @@
                 </div>
             @elseif($action !== 'create' || $creationMode === 'new')
                 @if($type === 'sosial_kemasyarakatan')
-                    <div class="space-y-1">
+                    <flux:field>
                         <div class="flex items-center justify-between">
                             <flux:label>{{ __('Nama Program Sosial Kemasyarakatan') }}</flux:label>
                             <flux:badge size="sm" color="blue">{{ __('Rumpun: ') . Auth::user()->rumpun() }}</flux:badge>
                         </div>
                         <flux:input wire:model="title" placeholder="{{ __('Contoh: Edukasi Pola Hidup Bersih dan Sehat') }}" />
-                    </div>
+                        <flux:error name="title" />
+                    </flux:field>
                 @else
                     <flux:input wire:model="title" label="{{ __('Nama Program Lainnya') }}" placeholder="{{ __('Contoh: Festival Kemerdekaan Desa') }}" />
                 @endif

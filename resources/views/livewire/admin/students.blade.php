@@ -154,7 +154,7 @@
                 </div>
             </div>
         @else
-            <form wire:submit.prevent="importExcel" class="space-y-6">
+            <form wire:submit.prevent="importExcel" class="space-y-6" novalidate>
                 <div>
                     <flux:heading size="lg">{{ __('Import Data Mahasiswa via Excel') }}</flux:heading>
                     <flux:subheading>{{ __('Unggah file Excel daftar mahasiswa dan alokasi kelompok untuk periode KKN terpilih.') }}</flux:subheading>
@@ -187,7 +187,6 @@
 
                     <div>
                         <flux:input type="file" wire:model="importFile" label="{{ __('Pilih File Excel (.xlsx)') }}" accept=".xlsx" />
-                        <flux:error name="importFile" />
                     </div>
                 </div>
 
@@ -206,7 +205,7 @@
 
     {{-- Create/Edit Student Modal --}}
     <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
-        <form wire:submit.prevent="saveStudent" class="space-y-6">
+        <form wire:submit.prevent="saveStudent" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ $isEditing ? __('Edit Data Mahasiswa') : __('Tambah Peserta KKN') }}</flux:heading>
                 <flux:subheading>{{ $isEditing ? __('Perbarui data mahasiswa dan alokasi kelompok KKN.') : __('Daftarkan mahasiswa dan alokasikan ke kelompok KKN.') }}</flux:subheading>
@@ -221,7 +220,6 @@
                         maxlength="14"
                         pattern="[0-9]{14}"
                         placeholder="{{ __('Contoh: 21120120120001') }}"
-                        description="{{ __('14 digit angka. Prodi dan Fakultas terisi otomatis dari NIM.') }}"
                         required
                     />
                     <flux:input wire:model="name" label="{{ __('Nama Mahasiswa') }}" placeholder="{{ __('Contoh: Muhammad Budi') }}" required />

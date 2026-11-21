@@ -139,7 +139,7 @@
 
     {{-- Assign Dates Modal --}}
     <flux:modal wire:model="showDatesModal" class="md:w-96">
-        <form wire:submit.prevent="saveDates" class="space-y-6">
+        <form wire:submit.prevent="saveDates" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ __('Atur Waktu KKN Kelompok') }}</flux:heading>
                 <flux:subheading>{{ __('Tentukan waktu mulai dan selesai KKN untuk kelompok ini.') }}</flux:subheading>
@@ -170,7 +170,7 @@
 
     {{-- Import Groups Modal --}}
     <flux:modal wire:model="showImportModal" class="md:w-[32rem]">
-        <form wire:submit.prevent="importExcel" class="space-y-6">
+        <form wire:submit.prevent="importExcel" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ __('Import Data Kelompok via Excel') }}</flux:heading>
                 <flux:subheading>{{ __('Unggah file Excel berisi daftar kelompok untuk periode KKN yang dipilih.') }}</flux:subheading>
@@ -202,7 +202,6 @@
 
                 <div>
                     <flux:input type="file" wire:model="importFile" label="{{ __('Pilih File Excel (.xlsx)') }}" accept=".xlsx" />
-                    <flux:error name="importFile" />
                 </div>
             </div>
 
@@ -220,7 +219,7 @@
 
     {{-- Group Modal --}}
     <flux:modal wire:model="showCreateModal" class="md:w-[38rem]">
-        <form wire:submit.prevent="saveGroup" class="space-y-6">
+        <form wire:submit.prevent="saveGroup" class="space-y-6" novalidate>
             <div>
                 <flux:heading size="lg">{{ $isEditing ? __('Edit Kelompok KKN') : __('Buat Kelompok KKN Baru') }}</flux:heading>
                 <flux:subheading>{{ $isEditing ? __('Perbarui data kelompok kerja mahasiswa dan lokasi.') : __('Tambahkan kelompok kerja mahasiswa baru pada periode KKN.') }}</flux:subheading>

@@ -43,7 +43,7 @@
                 />
             </div>
 
-            <form method="POST" action="{{ route('two-factor.login.store') }}">
+            <form method="POST" action="{{ route('two-factor.login.store') }}" novalidate>
                 @csrf
 
                 <div class="space-y-5 text-center">
@@ -61,22 +61,19 @@
                     </div>
 
                     <div x-show="showRecoveryInput">
-                        <div class="my-5">
-                            <flux:input
-                                type="text"
-                                name="recovery_code"
-                                x-ref="recovery_code"
-                                x-bind:required="showRecoveryInput"
-                                autocomplete="one-time-code"
-                                x-model="recovery_code"
-                            />
+                        <div class="my-5 text-start">
+                            <flux:field>
+                                <flux:input
+                                    type="text"
+                                    name="recovery_code"
+                                    x-ref="recovery_code"
+                                    x-bind:required="showRecoveryInput"
+                                    autocomplete="one-time-code"
+                                    x-model="recovery_code"
+                                />
+                                <flux:error name="recovery_code" />
+                            </flux:field>
                         </div>
-
-                        @error('recovery_code')
-                            <flux:text color="red">
-                                {{ $message }}
-                            </flux:text>
-                        @enderror
                     </div>
 
                     <flux:button

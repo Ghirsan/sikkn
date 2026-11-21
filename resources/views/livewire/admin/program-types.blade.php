@@ -55,7 +55,7 @@
 
     <!-- Create/Edit Modal -->
     <flux:modal name="program-type-modal" class="md:w-96">
-        <form wire:submit.prevent="save">
+        <form wire:submit.prevent="save" novalidate>
             <flux:heading size="lg">{{ $isEditing ? __('Edit Sifat Program') : __('Tambah Sifat Program') }}</flux:heading>
             
             <div class="space-y-4 my-4">

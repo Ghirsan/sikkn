@@ -172,7 +172,7 @@ new #[Layout('layouts::auth')] #[Title('Aktivasi Akun')] class extends Component
         </div>
     @endif
 
-    <form wire:submit="completeSetup" class="flex flex-col gap-5">
+    <form wire:submit="completeSetup" class="flex flex-col gap-5" novalidate>
         <div>
             <flux:input
                 wire:model="email"

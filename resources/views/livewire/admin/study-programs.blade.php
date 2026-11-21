@@ -84,7 +84,7 @@
 
     <!-- Create/Edit Study Program Modal -->
     <flux:modal name="study-program-modal" class="md:w-96">
-        <form wire:submit.prevent="save">
+        <form wire:submit.prevent="save" novalidate>
             <flux:heading size="lg">{{ $isEditing ? __('Edit Program Studi') : __('Tambah Program Studi') }}</flux:heading>
             
             <div class="space-y-4 my-4">
@@ -110,7 +110,7 @@
 
     <!-- Manage Study Program Account Modal -->
     <flux:modal name="prodi-account-modal" class="md:w-[30rem]">
-        <form wire:submit.prevent="saveAccount">
+        <form wire:submit.prevent="saveAccount" novalidate>
             <flux:heading size="lg">{{ $accountUserId ? __('Kelola Akun Program Studi') : __('Buat Akun Program Studi') }}</flux:heading>
             <flux:subheading>{{ $selectedProdiName }}</flux:subheading>
 

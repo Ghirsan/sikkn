@@ -85,7 +85,7 @@
 
     <!-- Create/Edit Modal -->
     <flux:modal name="user-modal" class="md:w-[32rem]">
-        <form wire:submit.prevent="save">
+        <form wire:submit.prevent="save" novalidate>
             <flux:heading size="lg">{{ $isEditing ? __('Edit Pengguna') : __('Tambah Pengguna') }}</flux:heading>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">

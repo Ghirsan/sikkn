@@ -1,6 +1,6 @@
 <div>
 <flux:card>
-    <form wire:submit="save" class="flex flex-col gap-6">
+    <form wire:submit="save" class="flex flex-col gap-6" novalidate>
 
         {{-- Status & Quick Action Header --}}
         @if($isFinalized)
@@ -121,6 +121,7 @@
             <flux:heading size="md" class="mb-2">{{ __('Latar Belakang') }}</flux:heading>
             <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Tuliskan paragraf latar belakang pelaksanaan KKN di lokasi kelompok Anda.') }}</flux:text>
             <flux:textarea wire:model="background" rows="5" :disabled="!$canEdit" placeholder="{{ __('Jelaskan kondisi lokasi KKN, yang meliputi : permasalahan dan potensi yang ditemukan pada saat proses observasi dan prioritas dalam pemilihan permasalahan.') }}" />
+            <flux:error name="background" />
         </div>
 
         <flux:separator />
@@ -188,10 +189,12 @@
                                                 @endif
 
                                                 <flux:input wire:model.live.debounce.500ms="storyboard_scenes.{{ $index }}.image_url" placeholder="https://drive.google.com/... atau link gambar" :disabled="!$canEdit" size="sm" />
+                                                <flux:error name="storyboard_scenes.{{ $index }}.image_url" />
                                             </div>
                                         </td>
                                         <td class="p-3">
                                             <flux:textarea wire:model="storyboard_scenes.{{ $index }}.visual" rows="6" :disabled="!$canEdit" placeholder="{{ __('Tuliskan detail aksi visual, objek, pergerakan talent, framing kamera (misal: Wide Shot, Close Up), dan suasana adegan...') }}" />
+                                            <flux:error name="storyboard_scenes.{{ $index }}.visual" />
                                         </td>
                                         @if($canEdit)
                                             <td class="p-3 text-center align-middle">
@@ -247,12 +250,15 @@
                                         </td>
                                         <td class="p-2">
                                             <flux:textarea wire:model="video_script_scenes.{{ $index }}.visual" rows="3" :disabled="!$canEdit" placeholder="{{ __('Aksi visual atau teks di layar...') }}" />
+                                            <flux:error name="video_script_scenes.{{ $index }}.visual" />
                                         </td>
                                         <td class="p-2">
                                             <flux:textarea wire:model="video_script_scenes.{{ $index }}.audio" rows="3" :disabled="!$canEdit" placeholder="{{ __('Kalimat narasi atau dialog pembicara...') }}" />
+                                            <flux:error name="video_script_scenes.{{ $index }}.audio" />
                                         </td>
                                         <td class="p-2">
                                             <flux:input wire:model="video_script_scenes.{{ $index }}.duration" :disabled="!$canEdit" placeholder="{{ __('misal: 15s atau 00:00 - 00:15') }}" />
+                                            <flux:error name="video_script_scenes.{{ $index }}.duration" />
                                         </td>
                                         @if($canEdit)
                                             <td class="p-2 text-center align-middle">
@@ -315,10 +321,13 @@
                                     </td>
                                     <td class="p-2">
                                         <flux:input wire:model="macro_schedules.{{ $index }}.kegiatan" :disabled="!$canEdit" placeholder="Nama kegiatan umum..." />
+                                        <flux:error name="macro_schedules.{{ $index }}.kegiatan" />
                                     </td>
                                     @foreach($weekKeys as $wKey)
                                         <td class="p-2 text-center">
-                                            <input type="checkbox" wire:model="macro_schedules.{{ $index }}.{{ $wKey }}" @disabled(!$canEdit) class="rounded border-zinc-300 text-primary-600 focus:ring-primary-500 w-4 h-4" />
+                                            <div class="flex justify-center">
+                                                <flux:checkbox wire:model="macro_schedules.{{ $index }}.{{ $wKey }}" :disabled="!$canEdit" />
+                                            </div>
                                         </td>
                                     @endforeach
                                     @if($canEdit)
