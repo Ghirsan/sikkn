@@ -14,7 +14,7 @@ trait IssuesTemporaryCredentials
     /**
      * One-time credential payload displayed immediately after provisioning or resetting a password.
      *
-     * @var array{heading: string, name: string, identifier: string, email: string, temporary_password: string}|null
+     * @var array{heading: string, name: string, identifier: string, email: ?string, temporary_password: string}|null
      */
     public ?array $issuedCredential = null;
 
@@ -26,7 +26,7 @@ trait IssuesTemporaryCredentials
         $this->issuedCredential = [
             'heading' => $heading,
             'name' => $user->name,
-            'identifier' => $user->nim ?: ($user->nip ?: $user->email),
+            'identifier' => $user->nim ?: ($user->nip ?: (string) $user->email),
             'email' => $user->email,
             'temporary_password' => $temporaryPassword,
         ];

@@ -45,7 +45,7 @@ new #[Layout('layouts::auth')] #[Title('Aktivasi Akun')] class extends Component
         }
 
         $this->requiresRealEmail = $user->hasPlaceholderEmail();
-        $this->email = $this->requiresRealEmail ? '' : $user->email;
+        $this->email = $this->requiresRealEmail ? '' : ($user->email ?? '');
         $this->phone = $user->phone;
 
         if ($user->hasRole(UserRole::Mahasiswa)) {
@@ -122,7 +122,7 @@ new #[Layout('layouts::auth')] #[Title('Aktivasi Akun')] class extends Component
         $validated = $this->validate($rules);
 
         $normalizedEmail = Str::lower(trim($validated['email']));
-        $emailChanged = $normalizedEmail !== Str::lower($user->email);
+        $emailChanged = $normalizedEmail !== Str::lower((string) $user->email);
 
         $updateData = [
             'email' => $normalizedEmail,
@@ -185,7 +185,7 @@ new #[Layout('layouts::auth')] #[Title('Aktivasi Akun')] class extends Component
             />
             @if ($requiresRealEmail)
                 <flux:text class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                    {{ __('Email ini menggantikan email bawaan sistem dan dipakai untuk pemulihan password.') }}
+                    {{ __('Email aktif pribadi ini dipakai untuk masuk dan pemulihan password.') }}
                 </flux:text>
             @endif
         </div>

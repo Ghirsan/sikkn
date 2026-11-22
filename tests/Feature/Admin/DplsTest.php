@@ -149,7 +149,7 @@ class DplsTest extends TestCase
             'nip' => '198001012005011001',
             'name' => 'Dr. Budi Dosen, M.Kom.',
             'role' => UserRole::Dpl->value,
-            'email' => '198001012005011001@lecturer.sikkn.ac.id',
+            'email' => null,
         ]);
     }
 
@@ -500,11 +500,11 @@ class DplsTest extends TestCase
             ->assertSet('showIssuedCredentialModal', true);
 
         $tempPassword = $component->get('issuedCredential.temporary_password');
-        $this->assertNotEmpty($tempPassword);
+        $this->assertSame('password198001012005011099', $tempPassword);
 
         $dpl = User::where('nip', '198001012005011099')->firstOrFail();
         $this->assertTrue($dpl->must_change_password);
-        $this->assertTrue(Hash::check($tempPassword, $dpl->password));
+        $this->assertTrue(Hash::check('password198001012005011099', $dpl->password));
 
         $dpl->update(['must_change_password' => false]);
 
@@ -521,6 +521,7 @@ class DplsTest extends TestCase
 
         $resetPassword = $resetComponent->get('issuedCredential.temporary_password');
         $this->assertNotEmpty($resetPassword);
+        $this->assertNotSame('password198001012005011099', $resetPassword);
 
         $dpl->refresh();
         $this->assertTrue($dpl->must_change_password);

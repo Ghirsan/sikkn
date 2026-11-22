@@ -181,7 +181,7 @@
                             <li>{{ __('Kolom wajib: NIM, Nama Mahasiswa, Nama Kelompok.') }}</li>
                             <li>{{ __('Nama Kelompok harus sudah terdaftar pada periode KKN yang dipilih.') }}</li>
                             <li>{{ __('Kolom opsional: Email, Fakultas, Program Studi, No HP, Ketua Kelompok (Ya/Tidak), Password.') }}</li>
-                            <li>{{ __('Akun baru tanpa kolom Password akan dibuatkan password sementara acak yang dapat diunduh setelah proses selesai.') }}</li>
+                            <li>{{ __('Akun baru tanpa kolom Password akan dibuatkan password default (password{NIM}) yang dapat diunduh setelah proses selesai.') }}</li>
                         </ul>
                     </div>
 
@@ -241,7 +241,7 @@
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="email" label="{{ __('Email') }}" type="email" placeholder="{{ __('Otomatis: {nim}@student.sikkn.ac.id') }}" />
+                    <flux:input wire:model="email" label="{{ __('Email') }}" type="email" placeholder="{{ __('Opsional (diisi mahasiswa saat aktivasi)') }}" />
                     <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
                 </div>
 
@@ -270,7 +270,7 @@
                                 <flux:select.option value="{{ $g->id }}">{{ $g->name }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password sementara acak') }}" viewable />
+                        <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password default (password{NIM})') }}" viewable />
                     </div>
                 @endif
             </div>

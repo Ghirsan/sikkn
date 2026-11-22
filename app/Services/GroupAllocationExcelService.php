@@ -438,7 +438,7 @@ class GroupAllocationExcelService
                 $sheet->setCellValue([1, $rowIdx], $idx + 1);
                 $sheet->getCell([2, $rowIdx])->setValueExplicit($student->nim, DataType::TYPE_STRING);
                 $sheet->setCellValue([3, $rowIdx], $student->name);
-                $sheet->setCellValue([4, $rowIdx], $student->email);
+                $sheet->setCellValue([4, $rowIdx], $student->email ?? '');
                 $sheet->setCellValue([5, $rowIdx], $student->faculty?->short_name ?? $student->faculty?->name ?? '');
                 $sheet->setCellValue([6, $rowIdx], $student->studyProgram?->name ?? '');
                 $sheet->getCell([7, $rowIdx])->setValueExplicit($student->phone ?? '', DataType::TYPE_STRING);
@@ -563,87 +563,132 @@ class GroupAllocationExcelService
 
         // Preload faculties & study programs
         $faculties = Faculty::all();
-        $studyPrograms = StudyProgram::all();
+        $studyPrograms = StudyProgram::with('faculty')->get();
+        $studyProgramsByCode = $studyPrograms->keyBy('code');
 
         $errors = [];
+        $parsedRows = [];
+        $nims = [];
+        $emails = [];
+
+        for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
+            $nim = trim((string) $sheet->getCell([$nimCol, $r])->getValue());
+            $name = trim((string) $sheet->getCell([$nameCol, $r])->getValue());
+            $groupName = trim((string) $sheet->getCell([$groupCol, $r])->getValue());
+
+            if ($nim === '' && $name === '' && $groupName === '') {
+                continue; // Skip empty row
+            }
+
+            if ($nim === '' || $name === '') {
+                $errors[] = "Baris {$r}: NIM dan Nama Mahasiswa wajib diisi.";
+
+                continue;
+            }
+
+            if (! preg_match('/^[0-9]+$/', $nim) || strlen($nim) > 20) {
+                $errors[] = "Baris {$r} ({$name}): NIM harus berupa angka (maksimal 20 digit).";
+
+                continue;
+            }
+
+            if ($groupName === '') {
+                $errors[] = "Baris {$r} ({$name}): Nama Kelompok wajib diisi.";
+
+                continue;
+            }
+
+            $group = $groups->get($this->normalize($groupName));
+            if (! $group) {
+                $errors[] = "Baris {$r} ({$name}): Kelompok \"{$groupName}\" tidak ditemukan pada periode KKN ini. Buat kelompok terlebih dahulu di menu Kelompok.";
+
+                continue;
+            }
+
+            $prodiName = $prodiCol ? trim((string) $sheet->getCell([$prodiCol, $r])->getValue()) : '';
+            $facultyName = $facultyCol ? trim((string) $sheet->getCell([$facultyCol, $r])->getValue()) : '';
+
+            $studyProgram = null;
+            if ($prodiName !== '') {
+                $normProdi = $this->normalize($prodiName);
+                $studyProgram = $studyPrograms->first(function ($sp) use ($normProdi) {
+                    return $this->normalize($sp->name) === $normProdi
+                        || $this->normalize($sp->code) === $normProdi
+                        || str_contains($this->normalize($sp->name), $normProdi);
+                });
+            }
+
+            if (! $studyProgram) {
+                $studyProgram = $studyProgramsByCode->get(substr($nim, 0, 6));
+            }
+
+            $faculty = null;
+            if ($studyProgram && $studyProgram->faculty_id) {
+                $faculty = $studyProgram->faculty;
+            } elseif ($facultyName !== '') {
+                $normFac = $this->normalize($facultyName);
+                $faculty = $faculties->first(function ($f) use ($normFac) {
+                    return $this->normalize($f->name) === $normFac
+                        || $this->normalize($f->short_name ?? '') === $normFac
+                        || $this->normalize($f->code) === $normFac;
+                });
+            }
+
+            $phone = $phoneCol ? trim((string) $sheet->getCell([$phoneCol, $r])->getValue()) : null;
+            $email = $emailCol ? trim((string) $sheet->getCell([$emailCol, $r])->getValue()) : '';
+            $email = $email !== '' ? Str::lower($email) : null;
+
+            $parsedRows[] = [
+                'row' => $r,
+                'nim' => $nim,
+                'name' => $name,
+                'email' => $email,
+                'group' => $group,
+                'studyProgram' => $studyProgram,
+                'faculty' => $faculty,
+                'phone' => $phone,
+                'isLeader' => $leaderCol ? $this->isTrueValue($sheet->getCell([$leaderCol, $r])->getValue()) : false,
+                'rowPassword' => $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '',
+            ];
+
+            $nims[] = $nim;
+            if ($email !== null) {
+                $emails[] = $email;
+            }
+        }
+
+        [$usersByNim, $usersByEmail] = $this->preloadUsersByIdentifierAndEmail('nim', $nims, $emails);
+
         $importedCount = 0;
         $updatedCount = 0;
         $generatedCredentials = [];
+        $newStudentRows = [];
+        $pendingNims = [];
+        $pendingEmails = [];
+        $leaderAssignments = [];
+        $now = now();
 
         DB::beginTransaction();
         try {
-            for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
-                $nim = trim((string) $sheet->getCell([$nimCol, $r])->getValue());
-                $name = trim((string) $sheet->getCell([$nameCol, $r])->getValue());
-                $groupName = trim((string) $sheet->getCell([$groupCol, $r])->getValue());
+            foreach ($parsedRows as $item) {
+                $r = $item['row'];
+                $nim = $item['nim'];
+                $name = $item['name'];
+                $email = $item['email'];
+                $group = $item['group'];
+                $studyProgram = $item['studyProgram'];
+                $faculty = $item['faculty'];
+                $phone = $item['phone'];
+                $isLeader = $item['isLeader'];
+                $rowPassword = $item['rowPassword'];
 
-                if ($nim === '' && $name === '' && $groupName === '') {
-                    continue; // Skip empty row
-                }
-
-                if ($nim === '' || $name === '') {
-                    $errors[] = "Baris {$r}: NIM dan Nama Mahasiswa wajib diisi.";
-
-                    continue;
-                }
-
-                if (! preg_match('/^[0-9]+$/', $nim) || strlen($nim) > 20) {
-                    $errors[] = "Baris {$r} ({$name}): NIM harus berupa angka (maksimal 20 digit).";
+                if (isset($pendingNims[$nim])) {
+                    $errors[] = "Baris {$r} ({$name}): NIM {$nim} duplikat di dalam file Excel.";
 
                     continue;
                 }
 
-                if ($groupName === '') {
-                    $errors[] = "Baris {$r} ({$name}): Nama Kelompok wajib diisi.";
-
-                    continue;
-                }
-
-                $group = $groups->get($this->normalize($groupName));
-                if (! $group) {
-                    $errors[] = "Baris {$r} ({$name}): Kelompok \"{$groupName}\" tidak ditemukan pada periode KKN ini. Buat kelompok terlebih dahulu di menu Kelompok.";
-
-                    continue;
-                }
-
-                // Resolve Study Program & Faculty
-                $prodiName = $prodiCol ? trim((string) $sheet->getCell([$prodiCol, $r])->getValue()) : '';
-                $facultyName = $facultyCol ? trim((string) $sheet->getCell([$facultyCol, $r])->getValue()) : '';
-
-                $studyProgram = null;
-                if ($prodiName !== '') {
-                    $normProdi = $this->normalize($prodiName);
-                    $studyProgram = $studyPrograms->first(function ($sp) use ($normProdi) {
-                        return $this->normalize($sp->name) === $normProdi
-                            || $this->normalize($sp->code) === $normProdi
-                            || str_contains($this->normalize($sp->name), $normProdi);
-                    });
-                }
-
-                $faculty = null;
-                if ($studyProgram && $studyProgram->faculty_id) {
-                    $faculty = $studyProgram->faculty;
-                } elseif ($facultyName !== '') {
-                    $normFac = $this->normalize($facultyName);
-                    $faculty = $faculties->first(function ($f) use ($normFac) {
-                        return $this->normalize($f->name) === $normFac
-                            || $this->normalize($f->short_name ?? '') === $normFac
-                            || $this->normalize($f->code) === $normFac;
-                    });
-                }
-
-                $phone = $phoneCol ? trim((string) $sheet->getCell([$phoneCol, $r])->getValue()) : null;
-                $email = $emailCol ? trim((string) $sheet->getCell([$emailCol, $r])->getValue()) : '';
-                if ($email === '') {
-                    $email = strtolower($nim).'@student.sikkn.ac.id';
-                }
-                $email = Str::lower($email);
-
-                $isLeader = $leaderCol ? $this->isTrueValue($sheet->getCell([$leaderCol, $r])->getValue()) : false;
-                $rowPassword = $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '';
-
-                // Find existing user by NIM
-                $user = User::where('nim', $nim)->first();
+                $user = $usersByNim[$nim] ?? null;
 
                 if ($user && $user->role !== UserRole::Mahasiswa) {
                     $errors[] = "Baris {$r} ({$name}): NIM {$nim} sudah terdaftar untuk pengguna non-mahasiswa.";
@@ -651,17 +696,21 @@ class GroupAllocationExcelService
                     continue;
                 }
 
-                $emailOwner = User::whereRaw('LOWER(email) = ?', [$email])->first();
-                if ($emailOwner && (! $user || $emailOwner->id !== $user->id)) {
-                    $errors[] = "Baris {$r} ({$name}): Email {$email} sudah digunakan oleh pengguna lain.";
+                if ($email !== null) {
+                    $emailOwner = $usersByEmail[$email] ?? null;
+                    if (($emailOwner && (! $user || $emailOwner->id !== $user->id)) || isset($pendingEmails[$email])) {
+                        $errors[] = "Baris {$r} ({$name}): Email {$email} sudah digunakan oleh pengguna lain.";
 
-                    continue;
+                        continue;
+                    }
                 }
 
                 if ($user) {
+                    $previousEmail = $user->email !== null ? Str::lower($user->email) : null;
+                    $effectiveEmail = $email ?? $user->email;
                     $updatePayload = [
                         'name' => $name,
-                        'email' => $user->email === $email ? $user->email : $email,
+                        'email' => $effectiveEmail,
                         'role' => UserRole::Mahasiswa,
                         'nim' => $nim,
                         'group_id' => $group->id,
@@ -676,34 +725,76 @@ class GroupAllocationExcelService
                     }
 
                     $user->update($updatePayload);
+                    if ($previousEmail !== null) {
+                        unset($usersByEmail[$previousEmail]);
+                    }
+                    if ($effectiveEmail !== null) {
+                        $usersByEmail[Str::lower($effectiveEmail)] = $user;
+                    }
                     $updatedCount++;
-                } else {
-                    $plainPassword = $rowPassword !== '' ? $rowPassword : $this->generateTemporaryPassword();
 
-                    $user = User::create([
+                    if ($isLeader) {
+                        $leaderAssignments[$group->id] = ['type' => 'id', 'value' => $user->id, 'group' => $group];
+                    }
+                } else {
+                    $hasCustomPassword = $rowPassword !== '';
+                    $plainPassword = $hasCustomPassword ? $rowPassword : 'password'.$nim;
+
+                    $newStudentRows[] = [
+                        'ulid' => (string) Str::ulid(),
                         'name' => $name,
                         'email' => $email,
-                        'password' => Hash::make($plainPassword),
+                        'password' => Hash::make($plainPassword, $hasCustomPassword ? [] : ['rounds' => $this->temporaryPasswordRounds()]),
                         'must_change_password' => true,
-                        'role' => UserRole::Mahasiswa,
+                        'role' => UserRole::Mahasiswa->value,
                         'nim' => $nim,
                         'group_id' => $group->id,
                         'faculty_id' => $faculty?->id,
                         'study_program_id' => $studyProgram?->id,
                         'phone' => $phone,
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                    $pendingNims[$nim] = true;
+                    if ($email !== null) {
+                        $pendingEmails[$email] = true;
+                    }
                     $importedCount++;
 
                     $generatedCredentials[] = [
                         'identifier' => $nim,
                         'name' => $name,
-                        'email' => $email,
                         'temporary_password' => $plainPassword,
                     ];
-                }
 
-                if ($isLeader) {
-                    $group->update(['student_leader_id' => $user->id]);
+                    if ($isLeader) {
+                        $leaderAssignments[$group->id] = ['type' => 'nim', 'value' => $nim, 'group' => $group];
+                    }
+                }
+            }
+
+            foreach (array_chunk($newStudentRows, 500) as $chunk) {
+                DB::table('users')->insert($chunk);
+            }
+
+            $leaderNims = collect($leaderAssignments)
+                ->where('type', 'nim')
+                ->pluck('value')
+                ->unique()
+                ->values()
+                ->all();
+
+            $leaderIdsByNim = ! empty($leaderNims)
+                ? User::whereIn('nim', $leaderNims)->pluck('id', 'nim')->all()
+                : [];
+
+            foreach ($leaderAssignments as $assignment) {
+                $leaderId = $assignment['type'] === 'id'
+                    ? $assignment['value']
+                    : ($leaderIdsByNim[$assignment['value']] ?? null);
+
+                if ($leaderId) {
+                    $assignment['group']->update(['student_leader_id' => $leaderId]);
                 }
             }
 
@@ -785,7 +876,7 @@ class GroupAllocationExcelService
                     $sheet->setCellValue([1, $rowIdx], $counter++);
                     $sheet->getCell([2, $rowIdx])->setValueExplicit($dpl->nip ?? '', DataType::TYPE_STRING);
                     $sheet->setCellValue([3, $rowIdx], $dpl->name);
-                    $sheet->setCellValue([4, $rowIdx], $dpl->email);
+                    $sheet->setCellValue([4, $rowIdx], $dpl->email ?? '');
                     $sheet->setCellValue([5, $rowIdx], $dpl->studyProgram?->name ?? '');
                     $sheet->getCell([6, $rowIdx])->setValueExplicit($dpl->phone ?? '', DataType::TYPE_STRING);
                     $sheet->getCell([7, $rowIdx])->setValueExplicit($group->name, DataType::TYPE_STRING);
@@ -908,63 +999,101 @@ class GroupAllocationExcelService
         $studyPrograms = StudyProgram::all();
 
         $errors = [];
+        $parsedRows = [];
+        $nips = [];
+        $emails = [];
+
+        for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
+            $nip = trim((string) $sheet->getCell([$nipCol, $r])->getValue());
+            $name = trim((string) $sheet->getCell([$nameCol, $r])->getValue());
+            $groupName = trim((string) $sheet->getCell([$groupCol, $r])->getValue());
+
+            if ($nip === '' && $name === '' && $groupName === '') {
+                continue; // Skip empty row
+            }
+
+            if ($nip === '' || $name === '') {
+                $errors[] = "Baris {$r}: NIP dan Nama DPL wajib diisi.";
+
+                continue;
+            }
+
+            if ($groupName === '') {
+                $errors[] = "Baris {$r} ({$name}): Nama Kelompok wajib diisi.";
+
+                continue;
+            }
+
+            $group = $groups->get($this->normalize($groupName));
+            if (! $group) {
+                $errors[] = "Baris {$r} ({$name}): Kelompok \"{$groupName}\" tidak ditemukan pada periode KKN ini. Buat kelompok terlebih dahulu di menu Kelompok.";
+
+                continue;
+            }
+
+            $prodiName = $prodiCol ? trim((string) $sheet->getCell([$prodiCol, $r])->getValue()) : '';
+            $studyProgram = null;
+            if ($prodiName !== '') {
+                $normProdi = $this->normalize($prodiName);
+                $studyProgram = $studyPrograms->first(function ($sp) use ($normProdi) {
+                    return $this->normalize($sp->name) === $normProdi
+                        || $this->normalize($sp->code) === $normProdi
+                        || str_contains($this->normalize($sp->name), $normProdi);
+                });
+            }
+
+            $phone = $phoneCol ? trim((string) $sheet->getCell([$phoneCol, $r])->getValue()) : null;
+            $email = $emailCol ? trim((string) $sheet->getCell([$emailCol, $r])->getValue()) : '';
+            $email = $email !== '' ? Str::lower($email) : null;
+
+            $parsedRows[] = [
+                'row' => $r,
+                'nip' => $nip,
+                'name' => $name,
+                'email' => $email,
+                'group' => $group,
+                'studyProgram' => $studyProgram,
+                'phone' => $phone,
+                'isLead' => $leadCol ? $this->isTrueValue($sheet->getCell([$leadCol, $r])->getValue()) : false,
+                'rowPassword' => $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '',
+            ];
+
+            $nips[] = $nip;
+            if ($email !== null) {
+                $emails[] = $email;
+            }
+        }
+
+        [$usersByNip, $usersByEmail] = $this->preloadUsersByIdentifierAndEmail('nip', $nips, $emails);
+
+        $existingPivotPairs = [];
+        $groupIds = $groups->pluck('id')->all();
+        if (! empty($groupIds)) {
+            foreach (DB::table('dpl_group')->whereIn('group_id', $groupIds)->get(['group_id', 'dpl_id']) as $pivot) {
+                $existingPivotPairs[$pivot->group_id.':'.$pivot->dpl_id] = true;
+            }
+        }
+
         $importedCount = 0;
         $updatedCount = 0;
         $generatedCredentials = [];
+        $pivotRowsToInsert = [];
+        $now = now();
 
         DB::beginTransaction();
         try {
-            for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
-                $nip = trim((string) $sheet->getCell([$nipCol, $r])->getValue());
-                $name = trim((string) $sheet->getCell([$nameCol, $r])->getValue());
-                $groupName = trim((string) $sheet->getCell([$groupCol, $r])->getValue());
+            foreach ($parsedRows as $item) {
+                $r = $item['row'];
+                $nip = $item['nip'];
+                $name = $item['name'];
+                $email = $item['email'];
+                $group = $item['group'];
+                $studyProgram = $item['studyProgram'];
+                $phone = $item['phone'];
+                $isLead = $item['isLead'];
+                $rowPassword = $item['rowPassword'];
 
-                if ($nip === '' && $name === '' && $groupName === '') {
-                    continue; // Skip empty row
-                }
-
-                if ($nip === '' || $name === '') {
-                    $errors[] = "Baris {$r}: NIP dan Nama DPL wajib diisi.";
-
-                    continue;
-                }
-
-                if ($groupName === '') {
-                    $errors[] = "Baris {$r} ({$name}): Nama Kelompok wajib diisi.";
-
-                    continue;
-                }
-
-                $group = $groups->get($this->normalize($groupName));
-                if (! $group) {
-                    $errors[] = "Baris {$r} ({$name}): Kelompok \"{$groupName}\" tidak ditemukan pada periode KKN ini. Buat kelompok terlebih dahulu di menu Kelompok.";
-
-                    continue;
-                }
-
-                $prodiName = $prodiCol ? trim((string) $sheet->getCell([$prodiCol, $r])->getValue()) : '';
-                $studyProgram = null;
-                if ($prodiName !== '') {
-                    $normProdi = $this->normalize($prodiName);
-                    $studyProgram = $studyPrograms->first(function ($sp) use ($normProdi) {
-                        return $this->normalize($sp->name) === $normProdi
-                            || $this->normalize($sp->code) === $normProdi
-                            || str_contains($this->normalize($sp->name), $normProdi);
-                    });
-                }
-
-                $phone = $phoneCol ? trim((string) $sheet->getCell([$phoneCol, $r])->getValue()) : null;
-                $email = $emailCol ? trim((string) $sheet->getCell([$emailCol, $r])->getValue()) : '';
-                if ($email === '') {
-                    $email = strtolower($nip).'@lecturer.sikkn.ac.id';
-                }
-                $email = Str::lower($email);
-
-                $isLead = $leadCol ? $this->isTrueValue($sheet->getCell([$leadCol, $r])->getValue()) : false;
-                $rowPassword = $passwordCol ? trim((string) $sheet->getCell([$passwordCol, $r])->getValue()) : '';
-
-                // Find existing lecturer by NIP
-                $user = User::where('nip', $nip)->first();
+                $user = $usersByNip[$nip] ?? null;
 
                 if ($user && $user->role !== UserRole::Dpl) {
                     $errors[] = "Baris {$r} ({$name}): NIP {$nip} sudah terdaftar untuk pengguna non-dosen.";
@@ -972,17 +1101,21 @@ class GroupAllocationExcelService
                     continue;
                 }
 
-                $emailOwner = User::whereRaw('LOWER(email) = ?', [$email])->first();
-                if ($emailOwner && (! $user || $emailOwner->id !== $user->id)) {
-                    $errors[] = "Baris {$r} ({$name}): Email {$email} sudah digunakan oleh pengguna lain.";
+                if ($email !== null) {
+                    $emailOwner = $usersByEmail[$email] ?? null;
+                    if ($emailOwner && (! $user || $emailOwner->id !== $user->id)) {
+                        $errors[] = "Baris {$r} ({$name}): Email {$email} sudah digunakan oleh pengguna lain.";
 
-                    continue;
+                        continue;
+                    }
                 }
 
                 if ($user) {
+                    $previousEmail = $user->email !== null ? Str::lower($user->email) : null;
+                    $effectiveEmail = $email ?? $user->email;
                     $updatePayload = [
                         'name' => $name,
-                        'email' => $user->email === $email ? $user->email : $email,
+                        'email' => $effectiveEmail,
                         'role' => UserRole::Dpl,
                         'nip' => $nip,
                         'study_program_id' => $studyProgram?->id ?? $user->study_program_id,
@@ -996,14 +1129,21 @@ class GroupAllocationExcelService
                     }
 
                     $user->update($updatePayload);
+                    if ($previousEmail !== null) {
+                        unset($usersByEmail[$previousEmail]);
+                    }
+                    if ($effectiveEmail !== null) {
+                        $usersByEmail[Str::lower($effectiveEmail)] = $user;
+                    }
                     $updatedCount++;
                 } else {
-                    $plainPassword = $rowPassword !== '' ? $rowPassword : $this->generateTemporaryPassword();
+                    $hasCustomPassword = $rowPassword !== '';
+                    $plainPassword = $hasCustomPassword ? $rowPassword : 'password'.$nip;
 
                     $user = User::create([
                         'name' => $name,
                         'email' => $email,
-                        'password' => Hash::make($plainPassword),
+                        'password' => Hash::make($plainPassword, $hasCustomPassword ? [] : ['rounds' => $this->temporaryPasswordRounds()]),
                         'must_change_password' => true,
                         'role' => UserRole::Dpl,
                         'nip' => $nip,
@@ -1011,23 +1151,37 @@ class GroupAllocationExcelService
                         'faculty_id' => $studyProgram?->faculty_id,
                         'phone' => $phone,
                     ]);
+                    $usersByNip[$nip] = $user;
+                    if ($email !== null) {
+                        $usersByEmail[$email] = $user;
+                    }
                     $importedCount++;
 
                     $generatedCredentials[] = [
                         'identifier' => $nip,
                         'name' => $name,
-                        'email' => $email,
                         'temporary_password' => $plainPassword,
                     ];
                 }
 
-                // Associate DPL with the group (many-to-many pivot)
-                $group->dpls()->syncWithoutDetaching([$user->id]);
+                $pivotKey = $group->id.':'.$user->id;
+                if (! isset($existingPivotPairs[$pivotKey])) {
+                    $existingPivotPairs[$pivotKey] = true;
+                    $pivotRowsToInsert[] = [
+                        'dpl_id' => $user->id,
+                        'group_id' => $group->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
 
-                // If marked as lead DPL, update lead_dpl_id
                 if ($isLead) {
                     $group->update(['lead_dpl_id' => $user->id]);
                 }
+            }
+
+            foreach (array_chunk($pivotRowsToInsert, 500) as $chunk) {
+                DB::table('dpl_group')->insert($chunk);
             }
 
             if (! empty($errors) && $importedCount === 0 && $updatedCount === 0) {
@@ -1065,9 +1219,47 @@ class GroupAllocationExcelService
     }
 
     /**
+     * Preload existing users keyed by their identifier column and lowercase email in chunked queries.
+     *
+     * @param  array<int, string>  $identifiers
+     * @param  array<int, string>  $emails
+     * @return array{0: array<string, User>, 1: array<string, User>}
+     */
+    protected function preloadUsersByIdentifierAndEmail(string $column, array $identifiers, array $emails): array
+    {
+        $usersByIdentifier = [];
+        $usersByEmail = [];
+
+        foreach (array_chunk(array_values(array_unique(array_filter($identifiers))), 500) as $chunk) {
+            foreach (User::whereIn($column, $chunk)->get() as $user) {
+                if ($user->{$column} !== null) {
+                    $usersByIdentifier[$user->{$column}] = $user;
+                }
+                if ($user->email !== null) {
+                    $usersByEmail[Str::lower($user->email)] = $user;
+                }
+            }
+        }
+
+        foreach (array_chunk(array_values(array_unique(array_filter($emails))), 500) as $chunk) {
+            $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+            foreach (User::whereRaw("LOWER(email) IN ({$placeholders})", $chunk)->get() as $user) {
+                if ($user->{$column} !== null) {
+                    $usersByIdentifier[$user->{$column}] = $user;
+                }
+                if ($user->email !== null) {
+                    $usersByEmail[Str::lower($user->email)] = $user;
+                }
+            }
+        }
+
+        return [$usersByIdentifier, $usersByEmail];
+    }
+
+    /**
      * Stream a one-time Excel sheet containing temporary credentials for newly imported users.
      *
-     * @param  array<int, array{identifier: string, name: string, email: string, temporary_password: string}>  $credentials
+     * @param  array<int, array{identifier: string, name: string, temporary_password: string}>  $credentials
      */
     public function exportGeneratedCredentials(array $credentials, string $filenamePrefix, string $identifierLabel): StreamedResponse
     {
@@ -1075,7 +1267,7 @@ class GroupAllocationExcelService
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Kredensial Sementara');
 
-        $headers = ['No', $identifierLabel, 'Nama', 'Email', 'Password Sementara'];
+        $headers = ['No', $identifierLabel, 'Nama', 'Password Sementara'];
         $sheet->fromArray($headers, null, 'A1');
         $this->styleHeaderRow($sheet, count($headers), 1);
 
@@ -1084,8 +1276,7 @@ class GroupAllocationExcelService
             $sheet->setCellValue([1, $rowIdx], $index + 1);
             $sheet->setCellValueExplicit([2, $rowIdx], (string) $item['identifier'], DataType::TYPE_STRING);
             $sheet->setCellValue([3, $rowIdx], (string) $item['name']);
-            $sheet->setCellValue([4, $rowIdx], (string) $item['email']);
-            $sheet->setCellValueExplicit([5, $rowIdx], (string) $item['temporary_password'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit([4, $rowIdx], (string) $item['temporary_password'], DataType::TYPE_STRING);
             $rowIdx++;
         }
 

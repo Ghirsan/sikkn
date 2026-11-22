@@ -17,6 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
@@ -210,10 +211,10 @@ class BatchExcelAllocationTest extends TestCase
             'must_change_password' => true,
         ]);
 
-        // Verify leader assignment & non-default random password
+        // Verify leader assignment & default password{nim}
         $budi = User::where('nim', '24060120120001')->first();
         $this->assertEquals($budi->id, $group->fresh()->student_leader_id);
-        $this->assertFalse(Hash::check('password', $budi->password));
+        $this->assertTrue(Hash::check('password24060120120001', $budi->password));
 
         $component->call('downloadGeneratedCredentials')
             ->assertFileDownloaded()
@@ -311,6 +312,74 @@ class BatchExcelAllocationTest extends TestCase
         ]);
     }
 
+    public function test_bulk_import_students_resolves_study_program_issues_default_password_and_handles_duplicate_nim_in_file(): void
+    {
+        $group = Group::create([
+            'period_id' => $this->period->id,
+            'name' => 'Kelompok Alpha',
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $headers = [
+            'No', 'NIM', 'Nama Mahasiswa', 'Nama Kelompok', 'Ketua Kelompok',
+        ];
+
+        $dataRows = [
+            [1, '11000120120001', 'Mahasiswa Pertama', 'Kelompok Alpha', 'Ya'],
+            [2, '11000120120002', 'Mahasiswa Kedua', 'Kelompok Alpha', 'Tidak'],
+            [3, '11000120120001', 'Mahasiswa Duplikat', 'Kelompok Alpha', 'Tidak'],
+        ];
+
+        $file = $this->createExcelFile($headers, $dataRows, 'bulk_students_');
+
+        Livewire::test(Students::class, ['periodId' => $this->period->id])
+            ->set('importFile', $file)
+            ->call('importExcel')
+            ->assertHasNoErrors()
+            ->assertSet('generatedCredentialsCount', 2);
+
+        $credentials = session('admin_import_credentials.students');
+        $this->assertCount(2, $credentials);
+        $this->assertArrayNotHasKey('email', $credentials[0]);
+
+        $first = User::where('nim', '11000120120001')->firstOrFail();
+        $this->assertNotNull($first->ulid);
+        $this->assertNull($first->email);
+        $this->assertSame($this->studyProgram->id, $first->study_program_id);
+        $this->assertSame($this->faculty->id, $first->faculty_id);
+        $this->assertSame($first->id, $group->fresh()->student_leader_id);
+        $this->assertTrue($first->must_change_password);
+        $this->assertSame('password11000120120001', $credentials[0]['temporary_password']);
+        $this->assertTrue(Hash::check('password11000120120001', $first->password));
+
+        $this->assertDatabaseMissing('users', [
+            'name' => 'Mahasiswa Duplikat',
+        ]);
+
+        $downloadResponse = Livewire::test(Students::class, ['periodId' => $this->period->id])
+            ->call('downloadGeneratedCredentials')
+            ->assertFileDownloaded();
+
+        $exportedContent = data_get($downloadResponse->effects, 'download.content');
+        $spreadsheet = IOFactory::load(
+            tap(tempnam(sys_get_temp_dir(), 'cred_'), fn ($p) => file_put_contents($p, base64_decode((string) $exportedContent)))
+        );
+        $headerRow = $spreadsheet->getActiveSheet()->toArray()[0] ?? [];
+        $this->assertSame(['No', 'NIM', 'Nama', 'Password Sementara'], $headerRow);
+
+        $downloadResponse = Livewire::test(Students::class, ['periodId' => $this->period->id])
+            ->call('downloadGeneratedCredentials')
+            ->assertFileDownloaded();
+
+        $exportedContent = data_get($downloadResponse->effects, 'download.content');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(
+            tap(tempnam(sys_get_temp_dir(), 'cred_'), fn ($p) => file_put_contents($p, base64_decode((string) $exportedContent)))
+        );
+        $headerRow = $spreadsheet->getActiveSheet()->toArray()[0] ?? [];
+        $this->assertSame(['No', 'NIM', 'Nama', 'Password Sementara'], $headerRow);
+    }
+
     public function test_admin_can_export_dpls_excel_with_multi_group(): void
     {
         $group1 = Group::create([
@@ -377,7 +446,7 @@ class BatchExcelAllocationTest extends TestCase
         $this->assertNotNull($dpl);
         $this->assertEquals(UserRole::Dpl, $dpl->role);
         $this->assertTrue($dpl->must_change_password);
-        $this->assertFalse(Hash::check('password', $dpl->password));
+        $this->assertTrue(Hash::check('password198001012005011001', $dpl->password));
 
         // Check pivot table
         $this->assertTrue($dpl->dplGroups()->where('groups.id', $group1->id)->exists());

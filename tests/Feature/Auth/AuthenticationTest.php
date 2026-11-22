@@ -182,4 +182,38 @@ class AuthenticationTest extends TestCase
             ->get(route('first-login.setup'))
             ->assertRedirect(route('dashboard', absolute: false));
     }
+
+    public function test_student_without_email_can_login_with_nim_and_set_real_email_on_first_login(): void
+    {
+        $student = User::factory()->mahasiswa()->mustChangePassword()->create([
+            'nim' => '24060120120055',
+            'email' => null,
+            'password' => Hash::make('password24060120120055'),
+        ]);
+
+        $this->post(route('login.store'), [
+            'email' => '24060120120055',
+            'password' => 'password24060120120055',
+        ])->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertAuthenticatedAs($student);
+
+        $this->get(route('dashboard'))
+            ->assertRedirect(route('first-login.setup'));
+
+        Livewire::test('pages::auth.first-login-setup')
+            ->assertSet('requiresRealEmail', true)
+            ->assertSet('email', '')
+            ->set('email', 'mahasiswa.baru@students.undip.ac.id')
+            ->set('password', 'NewSecurePass123!')
+            ->set('password_confirmation', 'NewSecurePass123!')
+            ->call('completeSetup')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('dashboard', absolute: false));
+
+        $student->refresh();
+        $this->assertFalse($student->must_change_password);
+        $this->assertSame('mahasiswa.baru@students.undip.ac.id', $student->email);
+        $this->assertTrue(Hash::check('NewSecurePass123!', $student->password));
+    }
 }

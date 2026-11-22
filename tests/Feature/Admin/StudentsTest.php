@@ -135,7 +135,7 @@ class StudentsTest extends TestCase
             'nim' => '21120120120001',
             'name' => 'Budi Santoso',
             'role' => UserRole::Mahasiswa->value,
-            'email' => '21120120120001@student.sikkn.ac.id',
+            'email' => null,
             'study_program_id' => $this->studyProgram->id,
             'faculty_id' => $this->faculty->id,
         ]);
@@ -592,11 +592,11 @@ class StudentsTest extends TestCase
             ->assertSet('showIssuedCredentialModal', true);
 
         $tempPassword = $component->get('issuedCredential.temporary_password');
-        $this->assertNotEmpty($tempPassword);
+        $this->assertSame('password21120120120088', $tempPassword);
 
         $student = User::where('nim', '21120120120088')->firstOrFail();
         $this->assertTrue($student->must_change_password);
-        $this->assertTrue(Hash::check($tempPassword, $student->password));
+        $this->assertTrue(Hash::check('password21120120120088', $student->password));
 
         $student->update(['must_change_password' => false]);
 
@@ -615,6 +615,7 @@ class StudentsTest extends TestCase
 
         $resetPassword = $resetComponent->get('issuedCredential.temporary_password');
         $this->assertNotEmpty($resetPassword);
+        $this->assertNotSame('password21120120120088', $resetPassword);
 
         $student->refresh();
         $this->assertTrue($student->must_change_password);

@@ -27,7 +27,7 @@ new #[Title('Profile settings')] class extends Component {
     public function mount(): void
     {
         $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $this->email = Auth::user()->email ?? '';
         $this->phone = Auth::user()->phone;
         $this->emergency_phone = Auth::user()->emergency_phone;
         $this->emergency_name = Auth::user()->emergency_name;

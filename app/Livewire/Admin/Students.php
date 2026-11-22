@@ -293,15 +293,17 @@ class Students extends Component
         ]);
 
         $nim = $this->nim;
-        $email = $this->email !== '' ? Str::lower($this->email) : strtolower($nim).'@student.sikkn.ac.id';
+        $email = $this->email !== '' ? Str::lower($this->email) : null;
 
-        $duplicateEmail = User::whereRaw('LOWER(email) = ?', [Str::lower($email)])
-            ->when($this->isEditing && $this->editingStudentId, fn ($q) => $q->where('id', '!=', $this->editingStudentId))
-            ->exists();
-        if ($duplicateEmail) {
-            $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+        if ($email !== null) {
+            $duplicateEmail = User::whereRaw('LOWER(email) = ?', [$email])
+                ->when($this->isEditing && $this->editingStudentId, fn ($q) => $q->where('id', '!=', $this->editingStudentId))
+                ->exists();
+            if ($duplicateEmail) {
+                $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
 
-            return;
+                return;
+            }
         }
 
         $facultyId = $studyProgram->faculty_id;
@@ -329,7 +331,7 @@ class Students extends Component
             return;
         }
 
-        $passwordData = $this->resolveProvisionedPassword($this->password, false);
+        $passwordData = $this->resolveProvisionedPassword($this->password, false, 'password'.$nim);
 
         $createdStudent = User::create([
             'name' => $this->name,

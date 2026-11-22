@@ -48,6 +48,11 @@ class User extends Authenticatable
                 $user->nip = $trimmedNip === '' ? null : $trimmedNip;
             }
 
+            if ($user->email !== null) {
+                $trimmedEmail = trim($user->email);
+                $user->email = $trimmedEmail === '' ? null : $trimmedEmail;
+            }
+
             // Auto-resolve from NIM for students
             if ($user->isDirty('nim') && $user->nim) {
                 $studyProgram = StudyProgram::resolveFromNim($user->nim);

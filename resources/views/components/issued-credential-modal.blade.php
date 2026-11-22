@@ -83,7 +83,7 @@
                     </div>
                 </div>
 
-                @if ($credential['identifier'] !== $credential['email'])
+                @if (! empty($credential['email']) && $credential['identifier'] !== $credential['email'])
                     <div>
                         <div class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Email Akun') }}</div>
                         <div class="text-xs font-medium text-zinc-700 dark:text-zinc-300 break-all">{{ $credential['email'] }}</div>

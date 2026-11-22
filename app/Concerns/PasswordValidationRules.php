@@ -58,11 +58,19 @@ trait PasswordValidationRules
     }
 
     /**
+     * Resolve the bcrypt cost used for short-lived onboarding passwords that must be changed on first login.
+     */
+    protected function temporaryPasswordRounds(): int
+    {
+        return max(4, min(8, (int) config('hashing.bcrypt.rounds', 10)));
+    }
+
+    /**
      * Resolve password hash, optional one-time plaintext password, and onboarding flag.
      *
      * @return array{hash: ?string, temporary_password: ?string, must_change_password: bool}
      */
-    protected function resolveProvisionedPassword(?string $password, bool $isUpdating): array
+    protected function resolveProvisionedPassword(?string $password, bool $isUpdating, ?string $defaultPassword = null): array
     {
         if (filled($password)) {
             return [
@@ -80,10 +88,11 @@ trait PasswordValidationRules
             ];
         }
 
-        $temporaryPassword = $this->generateTemporaryPassword();
+        $hasDefaultPassword = filled($defaultPassword);
+        $temporaryPassword = $hasDefaultPassword ? (string) $defaultPassword : $this->generateTemporaryPassword();
 
         return [
-            'hash' => Hash::make($temporaryPassword),
+            'hash' => Hash::make($temporaryPassword, $hasDefaultPassword ? ['rounds' => $this->temporaryPasswordRounds()] : []),
             'temporary_password' => $temporaryPassword,
             'must_change_password' => true,
         ];

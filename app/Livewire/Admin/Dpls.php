@@ -233,15 +233,17 @@ class Dpls extends Component
         ]);
 
         $nip = $this->nip;
-        $email = $this->email !== '' ? Str::lower($this->email) : strtolower($nip).'@lecturer.sikkn.ac.id';
+        $email = $this->email !== '' ? Str::lower($this->email) : null;
 
-        $duplicateEmail = User::whereRaw('LOWER(email) = ?', [Str::lower($email)])
-            ->when($this->isEditing && $this->editingDplId, fn ($q) => $q->where('id', '!=', $this->editingDplId))
-            ->exists();
-        if ($duplicateEmail) {
-            $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
+        if ($email !== null) {
+            $duplicateEmail = User::whereRaw('LOWER(email) = ?', [$email])
+                ->when($this->isEditing && $this->editingDplId, fn ($q) => $q->where('id', '!=', $this->editingDplId))
+                ->exists();
+            if ($duplicateEmail) {
+                $this->addError('email', 'Email sudah digunakan oleh pengguna lain.');
 
-            return;
+                return;
+            }
         }
 
         $studyProgram = $this->study_program_id ? StudyProgram::find($this->study_program_id) : null;
@@ -267,7 +269,7 @@ class Dpls extends Component
             return;
         }
 
-        $passwordData = $this->resolveProvisionedPassword($this->password, false);
+        $passwordData = $this->resolveProvisionedPassword($this->password, false, 'password'.$nip);
 
         $dpl = User::create([
             'name' => $this->name,

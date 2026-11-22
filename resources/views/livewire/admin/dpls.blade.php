@@ -136,7 +136,7 @@
                             <li>{{ __('Nama Kelompok harus sudah terdaftar pada periode KKN yang dipilih.') }}</li>
                             <li>{{ __('Dosen dengan multi-kelompok dapat ditulis beberapa baris dengan NIP sama dan Nama Kelompok berbeda.') }}</li>
                             <li>{{ __('Kolom opsional: Email, Program Studi, No HP, DPL Utama (Ya/Tidak), Password.') }}</li>
-                            <li>{{ __('Akun baru tanpa kolom Password akan dibuatkan password sementara acak yang dapat diunduh setelah proses selesai.') }}</li>
+                            <li>{{ __('Akun baru tanpa kolom Password akan dibuatkan password default (password{NIP}) yang dapat diunduh setelah proses selesai.') }}</li>
                         </ul>
                     </div>
 
@@ -173,7 +173,7 @@
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="email" label="{{ __('Email') }}" type="email" placeholder="{{ __('Otomatis: {nip}@lecturer.sikkn.ac.id') }}" />
+                    <flux:input wire:model="email" label="{{ __('Email') }}" type="email" placeholder="{{ __('Opsional (diisi dosen saat aktivasi)') }}" />
                     <flux:input wire:model="phone" label="{{ __('No. Telepon / WhatsApp') }}" placeholder="{{ __('Contoh: 081234567890') }}" />
                 </div>
 
@@ -203,7 +203,7 @@
                         </flux:button>
                     </div>
                 @else
-                    <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password sementara acak') }}" viewable />
+                    <flux:input wire:model="password" label="{{ __('Password') }}" type="password" placeholder="{{ __('Kosongkan untuk password default (password{NIP})') }}" viewable />
                 @endif
             </div>
 
