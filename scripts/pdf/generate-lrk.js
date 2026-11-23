@@ -541,7 +541,7 @@ drawTable(doc, {
 // Video Storyboard & Script (Multidisiplin 3)
 doc.moveDown(0.5);
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-  .text('Rencana Story Board :', landMarginLeft, doc.y);
+  .text('Tabel 4. Rencana Story Board', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 if (group.storyboard_text && group.storyboard_text.trim()) {
@@ -555,113 +555,112 @@ if (group.storyboard_text && group.storyboard_text.trim()) {
 }
 
 const sbScenes = group.storyboard_scenes || [];
-if (Array.isArray(sbScenes) && sbScenes.length > 0) {
-  const col1W = 250;
-  const col2W = landContentW - col1W; // 511 pt
-  const headerH = 18;
-  const padding = 6;
-  const cellInnerW = col1W - (padding * 2);
+const scenesToRender = (Array.isArray(sbScenes) && sbScenes.length > 0)
+  ? sbScenes
+  : [{
+      scene: 'Scene 1',
+      visual: group.storyboard_text || '(Belum ada adegan storyboard yang ditambahkan)',
+      image_base64: null
+    }];
 
-  const renderSbHeader = (y) => {
-    doc.rect(landMarginLeft, y, landContentW, headerH).fillColor('#d9d9d9').fill();
-    doc.rect(landMarginLeft, y, col1W, headerH).strokeColor('#000000').lineWidth(0.5).stroke();
-    doc.rect(landMarginLeft + col1W, y, col2W, headerH).strokeColor('#000000').lineWidth(0.5).stroke();
+const col1W = 250;
+const col2W = landContentW - col1W; // 511 pt
+const headerH = 18;
+const padding = 6;
+const cellInnerW = col1W - (padding * 2);
 
-    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000');
-    doc.text('Scene / Sketsa Visual', landMarginLeft + padding, y + 5, { width: cellInnerW, align: 'center' });
-    doc.text('Deskripsi Visual / Framing', landMarginLeft + col1W + padding, y + 5, { width: col2W - (padding * 2), align: 'left' });
-  };
+const renderSbHeader = (y) => {
+  doc.rect(landMarginLeft, y, landContentW, headerH).fillColor('#d9d9d9').fill();
+  doc.rect(landMarginLeft, y, col1W, headerH).strokeColor('#000000').lineWidth(0.5).stroke();
+  doc.rect(landMarginLeft + col1W, y, col2W, headerH).strokeColor('#000000').lineWidth(0.5).stroke();
 
-  if (doc.y + 60 > doc.page.height - doc.page.margins.bottom) {
-    addLandscapePage();
+  doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000');
+  doc.text('Scene / Sketsa Visual', landMarginLeft + padding, y + 5, { width: cellInnerW, align: 'center' });
+  doc.text('Deskripsi Visual / Framing', landMarginLeft + col1W + padding, y + 5, { width: col2W - (padding * 2), align: 'left' });
+};
+
+if (doc.y + 60 > doc.page.height - doc.page.margins.bottom) {
+  addLandscapePage();
+}
+
+let curY = doc.y;
+renderSbHeader(curY);
+curY += headerH;
+
+scenesToRender.forEach((s, idx) => {
+  const sceneLabel = s.scene || `Scene ${idx + 1}`;
+  const visualText = s.visual || '-';
+
+  // Calculate Col 1 height
+  let imgObj = null;
+  let renderW = 0;
+  let renderH = 0;
+
+  if (s.image_base64 && typeof s.image_base64 === 'string' && s.image_base64.includes('base64,')) {
+    try {
+      const b64Data = s.image_base64.split('base64,')[1];
+      const imgBuf = Buffer.from(b64Data, 'base64');
+      imgObj = doc.openImage(imgBuf);
+
+      const maxImgW = cellInnerW;
+      const maxImgH = 110;
+      const scale = Math.min(maxImgW / imgObj.width, maxImgH / imgObj.height);
+      renderW = Math.round(imgObj.width * scale);
+      renderH = Math.round(imgObj.height * scale);
+    } catch (e) {
+      imgObj = null;
+    }
   }
 
-  let curY = doc.y;
-  renderSbHeader(curY);
-  curY += headerH;
+  const col1ContentH = imgObj ? (16 + 4 + renderH + 6) : (16 + 4 + 38 + 6);
 
-  sbScenes.forEach((s, idx) => {
-    const sceneLabel = s.scene || `Scene ${idx + 1}`;
-    const visualText = s.visual || '-';
+  // Calculate Col 2 height
+  doc.fontSize(8).font('Helvetica');
+  const col2TextH = doc.heightOfString(visualText, { width: col2W - (padding * 2), lineGap: 2.5 });
+  const col2ContentH = col2TextH + (padding * 2);
 
-    // Calculate Col 1 height
-    let imgObj = null;
-    let renderW = 0;
-    let renderH = 0;
+  const rowH = Math.max(col1ContentH, col2ContentH, 65);
 
-    if (s.image_base64 && typeof s.image_base64 === 'string' && s.image_base64.includes('base64,')) {
-      try {
-        const b64Data = s.image_base64.split('base64,')[1];
-        const imgBuf = Buffer.from(b64Data, 'base64');
-        imgObj = doc.openImage(imgBuf);
+  // Check page break
+  if (curY + rowH > doc.page.height - doc.page.margins.bottom) {
+    addLandscapePage();
+    curY = doc.page.margins.top;
+    renderSbHeader(curY);
+    curY += headerH;
+  }
 
-        const maxImgW = cellInnerW;
-        const maxImgH = 110;
-        const scale = Math.min(maxImgW / imgObj.width, maxImgH / imgObj.height);
-        renderW = Math.round(imgObj.width * scale);
-        renderH = Math.round(imgObj.height * scale);
-      } catch (e) {
-        imgObj = null;
-      }
-    }
+  // Draw borders
+  doc.rect(landMarginLeft, curY, col1W, rowH).strokeColor('#000000').lineWidth(0.5).stroke();
+  doc.rect(landMarginLeft + col1W, curY, col2W, rowH).strokeColor('#000000').lineWidth(0.5).stroke();
 
-    const col1ContentH = imgObj ? (16 + 4 + renderH + 6) : (16 + 4 + 38 + 6);
+  // Render Col 1: Scene label & Image/Placeholder
+  doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
+    .text(sceneLabel, landMarginLeft + padding, curY + padding, { width: cellInnerW, align: 'center' });
 
-    // Calculate Col 2 height
-    doc.fontSize(8).font('Helvetica');
-    const col2TextH = doc.heightOfString(visualText, { width: col2W - (padding * 2), lineGap: 2.5 });
-    const col2ContentH = col2TextH + (padding * 2);
+  const contentTopY = curY + padding + 14;
+  if (imgObj) {
+    const imgX = landMarginLeft + padding + Math.round((cellInnerW - renderW) / 2);
+    doc.image(imgObj, imgX, contentTopY, { width: renderW, height: renderH });
+    doc.rect(imgX, contentTopY, renderW, renderH).strokeColor('#9ca3af').lineWidth(0.5).stroke();
+  } else {
+    const phH = 36;
+    doc.rect(landMarginLeft + padding, contentTopY, cellInnerW, phH).fillColor('#f9fafb').strokeColor('#d1d5db').lineWidth(0.5).fillAndStroke();
+    doc.fontSize(7.5).font('Helvetica-Oblique').fillColor('#6b7280')
+      .text('(Sketsa gambar belum dilampirkan)', landMarginLeft + padding, contentTopY + 12, { width: cellInnerW, align: 'center' });
+  }
 
-    const rowH = Math.max(col1ContentH, col2ContentH, 65);
+  // Render Col 2: Visual description
+  doc.fontSize(8).font('Helvetica').fillColor('#000000')
+    .text(visualText, landMarginLeft + col1W + padding, curY + padding, {
+      width: col2W - (padding * 2),
+      lineGap: 2.5
+    });
 
-    // Check page break
-    if (curY + rowH > doc.page.height - doc.page.margins.bottom) {
-      addLandscapePage();
-      curY = doc.page.margins.top;
-      renderSbHeader(curY);
-      curY += headerH;
-    }
+  curY += rowH;
+});
 
-    // Draw borders
-    doc.rect(landMarginLeft, curY, col1W, rowH).strokeColor('#000000').lineWidth(0.5).stroke();
-    doc.rect(landMarginLeft + col1W, curY, col2W, rowH).strokeColor('#000000').lineWidth(0.5).stroke();
-
-    // Render Col 1: Scene label & Image/Placeholder
-    doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#000000')
-      .text(sceneLabel, landMarginLeft + padding, curY + padding, { width: cellInnerW, align: 'center' });
-
-    const contentTopY = curY + padding + 14;
-    if (imgObj) {
-      const imgX = landMarginLeft + padding + Math.round((cellInnerW - renderW) / 2);
-      doc.image(imgObj, imgX, contentTopY, { width: renderW, height: renderH });
-      doc.rect(imgX, contentTopY, renderW, renderH).strokeColor('#9ca3af').lineWidth(0.5).stroke();
-    } else {
-      const phH = 36;
-      doc.rect(landMarginLeft + padding, contentTopY, cellInnerW, phH).fillColor('#f9fafb').strokeColor('#d1d5db').lineWidth(0.5).fillAndStroke();
-      doc.fontSize(7.5).font('Helvetica-Oblique').fillColor('#6b7280')
-        .text('(Sketsa gambar belum dilampirkan)', landMarginLeft + padding, contentTopY + 12, { width: cellInnerW, align: 'center' });
-    }
-
-    // Render Col 2: Visual description
-    doc.fontSize(8).font('Helvetica').fillColor('#000000')
-      .text(visualText, landMarginLeft + col1W + padding, curY + padding, {
-        width: col2W - (padding * 2),
-        lineGap: 2.5
-      });
-
-    curY += rowH;
-  });
-
-  doc.y = curY;
-  doc.x = landMarginLeft;
-} else {
-  doc.font('Helvetica-Oblique').fontSize(8.5).fillColor('#6b7280').text(
-    group.storyboard_text || 'Belum ada adegan storyboard yang ditambahkan.',
-    landMarginLeft,
-    doc.y,
-    { width: landContentW }
-  );
-}
+doc.y = curY;
+doc.x = landMarginLeft;
 
 doc.moveDown(0.6);
 if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
@@ -669,7 +668,7 @@ if (doc.y + 120 > doc.page.height - doc.page.margins.bottom) {
 }
 
 doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
-  .text('Rencana Skrip Video :', landMarginLeft, doc.y);
+  .text('Tabel 5. Rencana Skrip Video', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 if (group.video_script_text && group.video_script_text.trim()) {
@@ -683,33 +682,32 @@ if (group.video_script_text && group.video_script_text.trim()) {
 }
 
 const vsScenes = group.video_script_scenes || [];
-if (Array.isArray(vsScenes) && vsScenes.length > 0) {
-  const vsCols = [
-    { key: 'scene', label: 'Scene', width: 70, align: 'center' },
-    { key: 'visual', label: 'Aksi Visual On-Screen', width: 280, align: 'left' },
-    { key: 'audio', label: 'Dialog / Narasi Voice-Over', width: 321, align: 'left' },
-    { key: 'duration', label: 'Durasi', width: 90, align: 'center' }
-  ];
-  const vsRows = vsScenes.map((s, idx) => ({
+const vsCols = [
+  { key: 'scene', label: 'Scene', width: 70, align: 'center' },
+  { key: 'visual', label: 'Aksi Visual On-Screen', width: 280, align: 'left' },
+  { key: 'audio', label: 'Dialog / Narasi Voice-Over', width: 321, align: 'left' },
+  { key: 'duration', label: 'Durasi', width: 90, align: 'center' }
+];
+const vsRows = (Array.isArray(vsScenes) && vsScenes.length > 0)
+  ? vsScenes.map((s, idx) => ({
     scene: s.scene || `Scene ${idx + 1}`,
     visual: s.visual || '-',
     audio: s.audio || '-',
     duration: s.duration || '-'
-  }));
-  drawTable(doc, {
-    columns: vsCols,
-    rows: vsRows,
-    fontSize: 7.5,
-    headerFontSize: 8
-  });
-} else {
-  doc.font('Helvetica-Oblique').fontSize(8.5).fillColor('#6b7280').text(
-    group.video_script_text || 'Belum ada naskah adegan skrip video yang ditambahkan.',
-    landMarginLeft,
-    doc.y,
-    { width: landContentW }
-  );
-}
+  }))
+  : [{
+    scene: 'Scene 1',
+    visual: group.video_script_text || '(Belum ada naskah adegan skrip video yang ditambahkan)',
+    audio: '-',
+    duration: '-'
+  }];
+
+drawTable(doc, {
+  columns: vsCols,
+  rows: vsRows,
+  fontSize: 7.5,
+  headerFontSize: 8
+});
 
 // Page break before 2.2 Sosial Kemasyarakatan matching template
 addLandscapePage();
@@ -764,12 +762,12 @@ const sosmasCols = [
   { key: 'sdg', label: 'Kategori SDG', width: 121, align: 'left' }
 ];
 
-// Tabel 4. Saintek (grouped by program)
+// Tabel 6. Saintek (grouped by program)
 const saintekGroups = groupPrograms(saintekList);
 
 if (saintekGroups.length === 0) {
   doc.fontSize(9.5).font('Helvetica-Bold')
-    .text('Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
+    .text('Tabel 6. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
     .text('(Belum ada usulan program sosial kemasyarakatan rumpun Saintek)', landMarginLeft, doc.y);
@@ -781,8 +779,8 @@ if (saintekGroups.length === 0) {
     }
 
     const tableLabel = saintekGroups.length > 1
-      ? `Tabel 4.${gIdx + 1}. Rencana Sosial Kemasyarakatan Saintek : ${groupItem.title}`
-      : 'Tabel 4. Rencana Sosial Kemasyarakatan Saintek (contoh)';
+      ? `Tabel 6.${gIdx + 1}. Rencana Sosial Kemasyarakatan Saintek : ${groupItem.title}`
+      : 'Tabel 6. Rencana Sosial Kemasyarakatan Saintek (contoh)';
 
     doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
       .text(tableLabel, landMarginLeft, doc.y);
@@ -808,7 +806,7 @@ if (saintekGroups.length === 0) {
   });
 }
 
-// Tabel 5. Soshum (grouped by program)
+// Tabel 7. Soshum (grouped by program)
 const soshumGroups = groupPrograms(soshumList);
 
 if (soshumGroups.length === 0) {
@@ -816,7 +814,7 @@ if (soshumGroups.length === 0) {
     addLandscapePage();
   }
   doc.fontSize(9.5).font('Helvetica-Bold')
-    .text('Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
+    .text('Tabel 7. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
     .text('(Belum ada usulan program sosial kemasyarakatan rumpun Soshum)', landMarginLeft, doc.y);
@@ -828,8 +826,8 @@ if (soshumGroups.length === 0) {
     }
 
     const tableLabel = soshumGroups.length > 1
-      ? `Tabel 5.${gIdx + 1}. Rencana Sosial Kemasyarakatan Soshum : ${groupItem.title}`
-      : 'Tabel 5. Rencana Sosial Kemasyarakatan Soshum (contoh)';
+      ? `Tabel 7.${gIdx + 1}. Rencana Sosial Kemasyarakatan Soshum : ${groupItem.title}`
+      : 'Tabel 7. Rencana Sosial Kemasyarakatan Soshum (contoh)';
 
     doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
       .text(tableLabel, landMarginLeft, doc.y);
@@ -876,7 +874,7 @@ const lainnyaGroups = groupPrograms(lainnyaList);
 
 if (lainnyaGroups.length === 0) {
   doc.fontSize(9.5).font('Helvetica-Bold')
-    .text('Tabel 6. Rencana Program Lainnya', landMarginLeft, doc.y);
+    .text('Tabel 8. Rencana Program Lainnya', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563')
     .text('Belum ada usulan program lainnya.', landMarginLeft, doc.y);
@@ -888,8 +886,8 @@ if (lainnyaGroups.length === 0) {
     }
 
     const tableLabel = lainnyaGroups.length > 1
-      ? `Tabel 6.${gIdx + 1}. Rencana Program Lainnya : ${groupItem.title}`
-      : 'Tabel 6. Rencana Program Lainnya';
+      ? `Tabel 8.${gIdx + 1}. Rencana Program Lainnya : ${groupItem.title}`
+      : 'Tabel 8. Rencana Program Lainnya';
 
     doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
       .text(tableLabel, landMarginLeft, doc.y);
@@ -932,9 +930,9 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 );
 doc.moveDown(0.6);
 
-// Tabel 7. Rencana Umum Kegiatan (Mingguan)
+// Tabel 9. Rencana Umum Kegiatan (Mingguan)
 doc.fontSize(9.5).font('Helvetica-Bold')
-  .text('Tabel 7. Rencana Umum Kegiatan', landMarginLeft, doc.y);
+  .text('Tabel 9. Rencana Umum Kegiatan', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const rawSched = group.macro_schedules || [];
@@ -994,14 +992,14 @@ drawTable(doc, {
   headerFontSize: 8.5
 });
 
-// Tabel 8. Rencana Usulan Program (Kalender Berjalan)
+// Tabel 10. Rencana Usulan Program (Kalender Berjalan)
 doc.moveDown(0.8);
 if (doc.y + 140 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
 doc.fontSize(9.5).font('Helvetica-Bold')
-  .text('Tabel 8. Rencana Usulan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
+  .text('Tabel 10. Rencana Usulan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const calendar = payload.calendar || {};
@@ -1199,7 +1197,7 @@ doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
 doc.moveDown(0.4);
 
 doc.fontSize(9.5).font('Helvetica-Bold')
-  .text('Tabel 9. Jenis-jenis Luaran', landMarginLeft, doc.y);
+  .text('Tabel 11. Jenis-jenis Luaran', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
 const luaranCols = [

@@ -373,7 +373,7 @@ class BatchExcelAllocationTest extends TestCase
             ->assertFileDownloaded();
 
         $exportedContent = data_get($downloadResponse->effects, 'download.content');
-        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(
+        $spreadsheet = IOFactory::load(
             tap(tempnam(sys_get_temp_dir(), 'cred_'), fn ($p) => file_put_contents($p, base64_decode((string) $exportedContent)))
         );
         $headerRow = $spreadsheet->getActiveSheet()->toArray()[0] ?? [];

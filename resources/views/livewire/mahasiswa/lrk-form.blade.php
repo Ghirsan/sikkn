@@ -291,10 +291,10 @@
 
         <flux:separator />
 
-        {{-- Bab 3: Rencana Pelaksanaan (Tabel 7 Rencana Umum Kegiatan) --}}
+        {{-- Bab 3: Rencana Pelaksanaan (Tabel 9 Rencana Umum Kegiatan) --}}
         <div class="space-y-4">
             <div>
-                <flux:heading size="md" class="mb-1">{{ __('Rencana Pelaksanaan: Tabel 7 Rencana Umum Kegiatan (Mingguan)') }}</flux:heading>
+                <flux:heading size="md" class="mb-1">{{ __('Rencana Pelaksanaan: Tabel 9 Rencana Umum Kegiatan (Mingguan)') }}</flux:heading>
                 <flux:text class="text-sm text-zinc-500 mb-3">{{ __('Atur alokasi minggu pelaksanaan untuk kegiatan makro operasional KKN kelompok Anda (M1 s/d M:weeks).', ['weeks' => count($weekKeys)]) }}</flux:text>
             </div>
 
