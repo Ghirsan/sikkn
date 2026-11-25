@@ -418,7 +418,7 @@ doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
 doc.moveDown(0.4);
 
 // 2.1 MULTIDISIPLIN
-doc.fontSize(11).font('Helvetica-Bold')
+doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
   .text('2.1 MULTIDISIPLIN', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_multidisiplin_text || 'Tulis usulan program multidisiplin yang disesuaikan dengan permasalahan dan potensi yang telah dijabarkan sebelumnya. Usulan program multidisiplin adalah setiap mahasiswa terlibat dalam 3 multidisiplin.',
@@ -766,7 +766,7 @@ const sosmasCols = [
 const saintekGroups = groupPrograms(saintekList);
 
 if (saintekGroups.length === 0) {
-  doc.fontSize(9.5).font('Helvetica-Bold')
+  doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
     .text('Tabel 6. Rencana Sosial Kemasyarakatan Saintek (contoh)', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
@@ -813,7 +813,7 @@ if (soshumGroups.length === 0) {
   if (doc.y + 100 > doc.page.height - doc.page.margins.bottom) {
     addLandscapePage();
   }
-  doc.fontSize(9.5).font('Helvetica-Bold')
+  doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
     .text('Tabel 7. Rencana Sosial Kemasyarakatan Soshum (contoh)', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
@@ -873,7 +873,7 @@ const lainnyaList = payload.lainnya || [];
 const lainnyaGroups = groupPrograms(lainnyaList);
 
 if (lainnyaGroups.length === 0) {
-  doc.fontSize(9.5).font('Helvetica-Bold')
+  doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
     .text('Tabel 8. Rencana Program Lainnya', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563')
@@ -931,7 +931,7 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 doc.moveDown(0.6);
 
 // Tabel 9. Rencana Umum Kegiatan (Mingguan)
-doc.fontSize(9.5).font('Helvetica-Bold')
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Tabel 9. Rencana Umum Kegiatan', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
@@ -998,7 +998,7 @@ if (doc.y + 140 > doc.page.height - doc.page.margins.bottom) {
   addLandscapePage();
 }
 
-doc.fontSize(9.5).font('Helvetica-Bold')
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Tabel 10. Rencana Usulan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
@@ -1196,7 +1196,7 @@ doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
   .text('4. JENIS-JENIS LUARAN', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 
-doc.fontSize(9.5).font('Helvetica-Bold')
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Tabel 11. Jenis-jenis Luaran', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 

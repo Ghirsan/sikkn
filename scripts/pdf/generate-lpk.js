@@ -422,7 +422,7 @@ doc.moveDown(0.4);
 
 // 2.1 MULTIDISIPLIN
 tocPageMap.multidisiplin = doc.bufferedPageRange().count;
-doc.fontSize(11).font('Helvetica-Bold')
+doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
   .text('2.1 MULTIDISIPLIN', landMarginLeft, doc.y);
 doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
   group.program_multidisiplin_text || 'Tulis program multidisiplin yang telah dilaksanakan, setiap mahasiswa terlibat dalam 3 program multidisiplin.',
@@ -769,7 +769,7 @@ const lpkSosmasCols = [
 const allSosmasGroups = groupPrograms(sosmasAll);
 
 if (allSosmasGroups.length === 0) {
-  doc.fontSize(9.5).font('Helvetica-Bold')
+  doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
     .text('Tabel 6. Program Sosial Kemasyarakatan', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#6b7280')
@@ -831,7 +831,7 @@ const lainnyaList = payload.lainnya || [];
 const lainnyaGroups = groupPrograms(lainnyaList);
 
 if (lainnyaGroups.length === 0) {
-  doc.fontSize(9.5).font('Helvetica-Bold')
+  doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
     .text('Tabel 7. Program Lainnya', landMarginLeft, doc.y);
   doc.moveDown(0.3);
   doc.fontSize(8.5).font('Helvetica-Oblique').fillColor('#4b5563')
@@ -888,7 +888,7 @@ doc.fontSize(9).font('Helvetica').fillColor('#000000').text(
 doc.moveDown(0.6);
 
 // Tabel 8. Realisasi Jadwal Pelaksanaan Program (Kalender Berjalan - matching LRK calendar engine)
-doc.fontSize(9.5).font('Helvetica-Bold')
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Tabel 8. Realisasi Jadwal Pelaksanaan Program (sesuai kalender berjalan)', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
@@ -1088,7 +1088,7 @@ doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000')
   .text('4. JENIS-JENIS LUARAN', landMarginLeft, doc.y);
 doc.moveDown(0.4);
 
-doc.fontSize(9.5).font('Helvetica-Bold')
+doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#000000')
   .text('Tabel 9. Jenis-jenis Luaran', landMarginLeft, doc.y);
 doc.moveDown(0.3);
 
